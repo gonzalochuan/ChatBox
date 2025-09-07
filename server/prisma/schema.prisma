@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  nickname     String?
+  studentId    String?
+  yearLevel    String?
+  block        String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  messages     Message[]
+  enrollments  Enrollment[]
+}
+
+model Channel {
+  id        String    @id @default(cuid())
+  name      String
+  topic     String?
+  kind      String
+  createdAt DateTime  @default(now())
+  messages  Message[]
+  members   Enrollment[]
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  channelId  String
+  senderId   String?
+  senderName String
+  senderAvatarUrl String?
+  text       String
+  priority   String   @default("normal")
+  createdAt  DateTime @default(now())
+
+  channel Channel @relation(fields: [channelId], references: [id])
+  sender  User?   @relation(fields: [senderId], references: [id])
+}
+
+model Subject {
+  id    String  @id // subject code
+  name  String?
+  users Enrollment[]
+}
+
+model Enrollment {
+  id         String  @id @default(cuid())
+  userId     String
+  subjectId  String?
+  channelId  String?
+  createdAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  subject Subject? @relation(fields: [subjectId], references: [id])
+  channel Channel? @relation(fields: [channelId], references: [id])
+}
