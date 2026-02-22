@@ -784,6 +784,15 @@ function parseCreatedByFromTopic(topic?: string | null): string | null {
   return null;
 }
 
+function addCreatedByToTopic(topic: string | null | undefined, userId: string): string {
+  const current = (topic || "").trim();
+  const existing = parseCreatedByFromTopic(current);
+  if (existing) return current;
+  const suffix = `createdBy:${userId}`;
+  if (!current) return suffix;
+  return `${current};${suffix}`;
+}
+
 async function requireMember(userId: string, channelId: string): Promise<boolean> {
   const m = await prisma.enrollment.findFirst({ where: { userId, channelId } });
   return Boolean(m);
@@ -1920,10 +1929,14 @@ app.get("/teacher/activity/groups", requireTeacher, async (req, res) => {
   const sec = buildSectionId(teacher?.yearLevel, teacher?.block);
   // Students are users who match the teacher's section OR share any of the teacher's subject enrollments
   const studentIdsBySection = sec.id
-    ? await prisma.enrollment.findMany({ where: { channelId: sec.id }, select: { userId: true } }).then(rows => rows.map((r: any) => r.userId))
+    ? await prisma.enrollment
+        .findMany({ where: { channelId: sec.id }, select: { userId: true } })
+        .then((rows: Array<{ userId: string }>) => rows.map((r: { userId: string }) => r.userId))
     : [];
   const studentIdsBySubject = teacherSubjectIds.length
-    ? await prisma.enrollment.findMany({ where: { subjectId: { in: teacherSubjectIds } }, select: { userId: true } }).then(rows => rows.map((r: any) => r.userId))
+    ? await prisma.enrollment
+        .findMany({ where: { subjectId: { in: teacherSubjectIds } }, select: { userId: true } })
+        .then((rows: Array<{ userId: string }>) => rows.map((r: { userId: string }) => r.userId))
     : [];
   const allowedSenderIds = Array.from(new Set([teacherUserId, ...studentIdsBySection, ...studentIdsBySubject]));
 
@@ -2393,6 +2406,8 @@ app.post("/admin/users/bulk-temp", requireAdmin, async (req, res) => {
     }
 
     const yl = typeof yearLevel === "undefined" ? null : String(yearLevel || "").trim() || null;
+    const bl = String(block || "B1").trim().toUpperCase() || "B1";
+    const prof = String(profession || "Teacher").trim() || "Teacher";
 
     for (let i = 0; i < n; i++) {
       const idx = start + i;
@@ -2781,7 +2796,7 @@ app.post("/admin/reset", requireAdmin, async (req, res) => {
   }
 
   try {
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       await tx.channelPin.deleteMany({});
       await tx.message.deleteMany({});
       await tx.enrollment.deleteMany({});

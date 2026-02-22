@@ -6,6 +6,8 @@ import { assignAcademicMemberships } from "./academic";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-insecure-secret";
 
+type RoleRow = { role: string };
+
 function signToken(payload: object) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
@@ -61,7 +63,7 @@ export function applyAuthRoutes(app: Express) {
       });
 
       const roles = await prisma.userRole.findMany({ where: { userId: user.id } });
-      const token = signToken({ uid: user.id, email: user.email, roles: roles.map((r) => r.role) });
+      const token = signToken({ uid: user.id, email: user.email, roles: (roles as RoleRow[]).map((r: RoleRow) => r.role) });
       return res.status(201).json({
         user: {
           id: user.id,
@@ -72,7 +74,7 @@ export function applyAuthRoutes(app: Express) {
           yearLevel: user.yearLevel,
           block: user.block,
           avatarUrl: user.avatarUrl,
-          roles: roles.map((r) => r.role),
+          roles: (roles as RoleRow[]).map((r: RoleRow) => r.role),
         },
         token,
       });
@@ -191,7 +193,7 @@ export function applyAuthRoutes(app: Express) {
       const decoded = jwt.verify(token, JWT_SECRET) as { uid: string };
       const { name, nickname, schedule, avatarUrl, yearLevel, block, subjectCodes } = req.body || {};
       const roles = await prisma.userRole.findMany({ where: { userId: decoded.uid } });
-      const roleNames = roles.map((r) => r.role);
+      const roleNames = (roles as RoleRow[]).map((r: RoleRow) => r.role);
       const isAdmin = roleNames.includes("ADMIN");
       const data: any = {};
       if (typeof name !== "undefined") data.name = name || null;
