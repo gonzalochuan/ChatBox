@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html, body {
+  height: 100%;
+  min-height: 100dvh;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-poppins), system-ui, -apple-system, Segoe UI, Roboto, Arial, Helvetica, sans-serif;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Custom brand font: Akira (placed in /public) */
+@font-face {
+  font-family: "Akira";
+  src: url("/Akira Expanded Demo.otf") format("opentype");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-akira { font-family: "Akira", var(--font-poppins), system-ui, sans-serif; }
+.font-akira-bold { font-family: "Akira", var(--font-poppins), system-ui, sans-serif; font-weight: 800; }
+
+/* Custom brand font: Ethnocentric (placed in /public) */
+@font-face {
+  font-family: "Ethnocentric";
+  src: url("/Ethnocentric Rg.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+/* Some builds only include one weight; map 700 to the same file to prevent fallback */
+@font-face {
+  font-family: "Ethnocentric";
+  src: url("/Ethnocentric Rg.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Ethnocentric";
+  src: url("/Ethnocentric Rg It.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+.font-ethno { font-family: "Ethnocentric", var(--font-poppins), system-ui, sans-serif; }
+.font-ethno-bold { font-family: "Ethnocentric", var(--font-poppins), system-ui, sans-serif; font-weight: 700; font-synthesis-weight: none; }
+
+/* Intro specific styles */
+.grid-layer {
+  position: fixed;
+  inset: 0;
+  /* Control how many lines appear: n vertical (columns), m horizontal (rows) */
+  --grid-cols: 5;
+  --grid-rows: 5;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.10) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.10) 1px, transparent 1px);
+  background-size:
+    calc(100% / var(--grid-cols)) 100%,
+    100% calc(100% / var(--grid-rows));
+  background-position: 0 0, 0 0;
+  background-repeat: repeat;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* Visible, monochrome scrollbars */
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.35) transparent; }
+.custom-scroll { scrollbar-gutter: stable; }
+.custom-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.35); border-radius: 9999px; border: 2px solid rgba(0,0,0,0); background-clip: padding-box; }
+.custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1); }
+
+/* Force viewport height utility */
+.vh-100 {
+  height: 100vh;
+  height: 100svh;
+  min-height: 100dvh;
+}
+
+@keyframes rise {
+  0% { transform: translateY(24px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.animate-rise { animation: rise 700ms cubic-bezier(.2,.8,.2,1) both; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in { animation: fadeIn 900ms ease both; }
+
+@keyframes leaveOut {
+  to { opacity: 0; transform: scale(.98); }
+}
+
+.intro-leave { animation: leaveOut 900ms ease forwards; }
+
+/* Ensure the Anton font variable can be used inside SVG fallback */
+:root { --font-anton: var(--font-anton); }
+
+/* Light mode: fast, safe inversion for our monochrome UI */
+.light .app-theme {
+  background: #f7f7f7;
+  color: #0a0a0a;
+}
+.light .app-theme *,
+.light .app-theme *::before,
+.light .app-theme *::after { color-scheme: light; }
+
+/* Text flips */
+.light .app-theme .text-white { color: #0a0a0a !important; }
+.light .app-theme .text-white\/80 { color: rgba(10,10,10,0.8) !important; }
+.light .app-theme .text-white\/70 { color: rgba(10,10,10,0.7) !important; }
+.light .app-theme .text-white\/50 { color: rgba(10,10,10,0.5) !important; }
+.light .app-theme .placeholder-white\/40::placeholder { color: rgba(10,10,10,0.4) !important; }
+
+/* Borders/backgrounds flip */
+.light .app-theme .border-white\/10 { border-color: rgba(0,0,0,0.10) !important; }
+.light .app-theme .border-white\/15 { border-color: rgba(0,0,0,0.15) !important; }
+.light .app-theme .border-white\/20 { border-color: rgba(0,0,0,0.20) !important; }
+.light .app-theme .bg-black\/40 { background-color: rgba(255,255,255,0.6) !important; }
+.light .app-theme .bg-black\/30 { background-color: rgba(255,255,255,0.7) !important; }
+.light .app-theme .bg-black { background-color: #ffffff !important; }
+
+/* Hover adjustments that referenced white */
+.light .app-theme .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.06) !important; }
+.light .app-theme .hover\:bg-white\/5:hover { background-color: rgba(0,0,0,0.03) !important; }
+
+/* Inputs: ensure contrast */
+.light .app-theme input, .light .app-theme textarea { color: #0a0a0a !important; }
+
