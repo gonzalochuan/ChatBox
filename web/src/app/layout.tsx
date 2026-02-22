@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Poppins } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import ClientInit from "@/components/ClientInit";
 import GlobalBannerFeed from "@/components/GlobalBannerFeed";
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: "../../public/Akira Expanded Demo.otf",
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "../../public/Ethnocentric Rg.otf",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
-const poppins = Poppins({
-  weight: ["300", "400", "600", "700"],
-  subsets: ["latin"],
+const poppins = localFont({
+  src: "../../public/Ethnocentric Rg It.otf",
   variable: "--font-poppins",
   display: "swap",
 });
