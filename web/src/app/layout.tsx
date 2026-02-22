@@ -16,8 +16,29 @@ const geistMono = localFont({
   display: "swap",
 });
 
-const poppins = localFont({
-  src: "../../public/Ethnocentric Rg It.otf",
+const poppinsLocal = localFont({
+  src: [
+    {
+      path: "../../public/Poppins-Full-Version/Web Fonts/Poppins/Poppins-Light.woff2",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../../public/Poppins-Full-Version/Web Fonts/Poppins/Poppins-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/Poppins-Full-Version/Web Fonts/Poppins/Poppins-SemiBold.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../../public/Poppins-Full-Version/Web Fonts/Poppins/Poppins-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-poppins",
   display: "swap",
 });
@@ -40,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${poppinsLocal.variable} antialiased`}
       >
         <ClientInit />
         <GlobalBannerFeed />
