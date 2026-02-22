@@ -1,9 +1,11 @@
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 
 // Ensure a single Prisma instance across hot-reloads
-const globalForPrisma = global as unknown as { prisma?: PrismaClient };
+const { PrismaClient } = pkg as { PrismaClient: new (...args: any[]) => any };
+type PrismaClientType = InstanceType<typeof PrismaClient>;
+const globalForPrisma = global as unknown as { prisma?: PrismaClientType };
 
-export const prisma =
+export const prisma: PrismaClientType =
   globalForPrisma.prisma ||
   new PrismaClient({
     log: ["warn", "error"],

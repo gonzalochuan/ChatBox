@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+
+# env files
+.env
+.env.*
+
+# prisma local db / backups
+*.db
+*.db-journal
+
+# build outputs
+server/dist/
+web/.next/
+web/out/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+
+# uploads (ephemeral on most hosts; keep out of git)
+server/uploads/
+
+# Prisma artifacts
+server/prisma/dev.db
+server/prisma/dev.backup.db
+
+# IDE
+.vscode/
+.idea/
