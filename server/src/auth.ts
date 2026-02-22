@@ -1,8 +1,8 @@
 import type { Express, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import prisma from "./prisma";
-import { assignAcademicMemberships } from "./academic";
+import prisma from "./prisma.js";
+import { assignAcademicMemberships } from "./academic.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-insecure-secret";
 
