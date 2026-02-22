@@ -19,22 +19,22 @@ const geistMono = localFont({
 const poppinsLocal = localFont({
   src: [
     {
-      path: "../../public/Poppins-Full-Version/Web Fonts/Poppins/Poppins-Light.woff2",
+      path: "../fonts/Poppins/Poppins-Light.woff2",
       weight: "300",
       style: "normal",
     },
     {
-      path: "../../public/Poppins-Full-Version/Web Fonts/Poppins/Poppins-Regular.woff2",
+      path: "../fonts/Poppins/Poppins-Regular.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../../public/Poppins-Full-Version/Web Fonts/Poppins/Poppins-SemiBold.woff2",
+      path: "../fonts/Poppins/Poppins-SemiBold.woff2",
       weight: "600",
       style: "normal",
     },
     {
-      path: "../../public/Poppins-Full-Version/Web Fonts/Poppins/Poppins-Bold.woff2",
+      path: "../fonts/Poppins/Poppins-Bold.woff2",
       weight: "700",
       style: "normal",
     },
