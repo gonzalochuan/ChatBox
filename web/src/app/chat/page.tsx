@@ -51,6 +51,8 @@ export default function ChatPage() {
   const [dmPeople, setDmPeople] = useState<Array<{ id: string; name: string; handle?: string }>>([]);
   const createDm = useChatStore((s) => s.createDm);
 
+  const lastFetchRef = useRef<Record<string, number>>({});
+
   // Auto-configure LAN from QR deep link: ?lan=... or #lan=...
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -254,6 +256,16 @@ export default function ChatPage() {
   useEffect(() => {
     (async () => {
       if (!canUseApi || !baseUrl || !activeChannelId) return;
+
+      // If we already have messages locally, show them immediately and refresh in background.
+      // Avoid hammering the API when users click around quickly.
+      const now = Date.now();
+      const last = lastFetchRef.current[activeChannelId] || 0;
+      if (now - last < 1500) {
+        return;
+      }
+      lastFetchRef.current[activeChannelId] = now;
+
       // Migrate legacy DM id (dm-<otherId>) to symmetric id (dm-<low>-<high>) so history is unified
       if (activeChannelId.startsWith("dm-") && userId) {
         const rest = activeChannelId.slice(3);
@@ -276,8 +288,11 @@ export default function ChatPage() {
           }
         }
       }
-      const { joinRoom } = await import("@/lib/socket");
-      await joinRoom(baseUrl, activeChannelId);
+      // Join room (non-blocking). Message fetch should not wait for socket join.
+      try {
+        const { joinRoom } = await import("@/lib/socket");
+        joinRoom(baseUrl, activeChannelId);
+      } catch {}
       try {
         const token = getToken();
         const res = await fetch(
