@@ -54,6 +54,20 @@ const corsOriginCheck: cors.CorsOptions["origin"] = (origin, cb) => {
   return cb(null, false);
 };
 
+const socketCorsOriginCheck = (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
+  try {
+    if (!origin) return cb(null, true);
+    if (IS_DEV) return cb(null, true);
+    const o = String(origin || "").trim();
+    if (!o) return cb(null, true);
+    if (ORIGINS.includes(o)) return cb(null, true);
+    if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(o)) return cb(null, true);
+    return cb(null, false);
+  } catch {
+    return cb(null, false);
+  }
+};
+
 const corsOptions: cors.CorsOptions = {
   origin: corsOriginCheck,
   credentials: true,
@@ -3069,7 +3083,7 @@ app.get("/channels/:id/messages", async (req, res) => {
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: IS_DEV ? true : ORIGINS, credentials: true },
+  cors: { origin: socketCorsOriginCheck as any, credentials: true },
   transports: ["websocket", "polling"],
   pingInterval: parseInt(process.env.SOCKET_PING_INTERVAL || "25000", 10),
   pingTimeout: parseInt(process.env.SOCKET_PING_TIMEOUT || "20000", 10),
