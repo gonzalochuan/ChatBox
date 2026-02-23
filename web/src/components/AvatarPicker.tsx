@@ -34,8 +34,9 @@ export default function AvatarPicker({ className, value, onChange }: AvatarPicke
       if (!resp.ok) throw new Error(`upload_failed_${resp.status}`);
       const data = await resp.json();
       if (data?.url) {
-        const absolute = `${SERVER_URL}${data.url}`;
-        onChange(absolute);
+        const u = String(data.url);
+        const next = /^https?:\/\//i.test(u) ? u : `${SERVER_URL}${u}`;
+        onChange(next);
         URL.revokeObjectURL(localUrl);
       }
     } catch (e: any) {

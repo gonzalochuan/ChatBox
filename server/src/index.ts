@@ -16,6 +16,7 @@ import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import mammoth from "mammoth";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { v2 as cloudinary } from "cloudinary";
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
 const ORIGINS = (process.env.CORS_ORIGINS || "http://localhost:3000")
@@ -23,6 +24,20 @@ const ORIGINS = (process.env.CORS_ORIGINS || "http://localhost:3000")
   .map((o) => String(o || "").trim())
   .filter(Boolean);
 const IS_DEV = process.env.NODE_ENV !== "production";
+
+const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || "";
+const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || "";
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || "";
+const CLOUDINARY_FOLDER = process.env.CLOUDINARY_FOLDER || "chatbox";
+const CLOUDINARY_ENABLED = Boolean(CLOUDINARY_CLOUD_NAME && CLOUDINARY_API_KEY && CLOUDINARY_API_SECRET);
+
+if (CLOUDINARY_ENABLED) {
+  cloudinary.config({
+    cloud_name: CLOUDINARY_CLOUD_NAME,
+    api_key: CLOUDINARY_API_KEY,
+    api_secret: CLOUDINARY_API_SECRET,
+  });
+}
 
 type UserRecord = Awaited<ReturnType<typeof prisma.user.findMany>>[number];
 type UserRoleRecord = Awaited<ReturnType<typeof prisma.userRole.findMany>>[number];
@@ -2076,10 +2091,35 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 8 * 1024 * 1024 } });
 
-app.post("/upload/avatar", upload.single("avatar"), (req: any, res) => {
-  if (!req.file) return res.status(400).json({ error: "no_file" });
-  const url = `/uploads/${req.file.filename}`;
-  return res.json({ url });
+const uploadAvatarMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
+
+app.post("/upload/avatar", uploadAvatarMemory.single("avatar"), async (req: any, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "no_file" });
+
+    if (CLOUDINARY_ENABLED) {
+      const b64 = req.file.buffer.toString("base64");
+      const dataUri = `data:${req.file.mimetype || "image/jpeg"};base64,${b64}`;
+      const uploaded = await cloudinary.uploader.upload(dataUri, {
+        folder: CLOUDINARY_FOLDER,
+        resource_type: "image",
+      });
+      return res.json({ url: uploaded.secure_url, publicId: uploaded.public_id });
+    }
+
+    // Fallback to local disk if Cloudinary not configured
+    const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const ext = path.extname(req.file.originalname || "") || ".jpg";
+    const filename = `${unique}${ext}`;
+    const abs = path.join(uploadsDir, filename);
+    await fs.promises.writeFile(abs, req.file.buffer);
+    const url = `/uploads/${filename}`;
+    return res.json({ url });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("/upload/avatar error", e);
+    return res.status(500).json({ error: "upload_failed" });
+  }
 });
 
 // General file upload for message attachments
