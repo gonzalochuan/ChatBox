@@ -39,6 +39,10 @@ export default function ChatPage() {
   const apiBase = useMemo(() => (baseUrl || "").replace(/\/$/, ""), [baseUrl]);
   const totalUnreadCount = useMemo(() => Object.values(unreadCounts || {}).reduce((a: number, b: number) => a + (b || 0), 0), [unreadCounts]);
 
+  const canUseApi = useMemo(() => {
+    return (mode === "lan" || mode === "cloud") && Boolean(baseUrl);
+  }, [mode, baseUrl]);
+
   // Mobile DM picker state
   const [showMobileDm, setShowMobileDm] = useState(false);
   const [dmQuery, setDmQuery] = useState("");
@@ -102,7 +106,7 @@ export default function ChatPage() {
   // When LAN, fetch channels once
   useEffect(() => {
     (async () => {
-      if (mode !== "lan" || !baseUrl) return;
+      if (!canUseApi || !baseUrl) return;
       try {
         const token = getToken();
         const res = await fetch(`${baseUrl.replace(/\/$/, "")}/channels`, {
@@ -114,12 +118,12 @@ export default function ChatPage() {
         }
       } catch {}
     })();
-  }, [mode, baseUrl, setChannels]);
+  }, [canUseApi, baseUrl, setChannels]);
 
   // Join ALL channels so real-time events (like call invites) arrive even when not viewing a room
   useEffect(() => {
     (async () => {
-      if (mode !== "lan" || !baseUrl || !Array.isArray(channels) || channels.length === 0) return;
+      if (!canUseApi || !baseUrl || !Array.isArray(channels) || channels.length === 0) return;
       try {
         const { joinRoom } = await import("@/lib/socket");
         for (const ch of channels) {
@@ -136,44 +140,44 @@ export default function ChatPage() {
         }
       } catch {}
     })();
-  }, [mode, baseUrl, channels]);
+  }, [canUseApi, baseUrl, channels]);
 
   // Load current user profile (if token exists) for avatar/nickname
   useEffect(() => {
     (async () => {
-      if (mode !== "lan" || !baseUrl) return;
+      if (!canUseApi || !baseUrl) return;
       try {
         const me = await fetchMe(baseUrl);
         if (me?.user) setProfile(me.user);
       } catch {}
     })();
-  }, [mode, baseUrl, setProfile]);
+  }, [canUseApi, baseUrl, setProfile]);
 
   // Always join my personal legacy DM room so I can receive DM call invites
   useEffect(() => {
     (async () => {
-      if (mode !== "lan" || !baseUrl || !userId) return;
+      if (!canUseApi || !baseUrl || !userId) return;
       try {
         const { joinRoom } = await import("@/lib/socket");
         await joinRoom(baseUrl, `dm-${userId}`);
       } catch {}
     })();
-  }, [mode, baseUrl, userId]);
+  }, [canUseApi, baseUrl, userId]);
 
   // Join my user room for out-of-band events like incoming call invites
   useEffect(() => {
     (async () => {
-      if (mode !== "lan" || !baseUrl || !userId) return;
+      if (!canUseApi || !baseUrl || !userId) return;
       try {
         const { joinUserRoom } = await import("@/lib/socket");
         await joinUserRoom(baseUrl, userId);
       } catch {}
     })();
-  }, [mode, baseUrl, userId]);
+  }, [canUseApi, baseUrl, userId]);
 
   // Open profile modal and load full profile
   const openProfile = async () => {
-    if (mode !== "lan" || !apiBase) { setShowProfile(true); return; }
+    if (!canUseApi || !apiBase) { setShowProfile(true); return; }
     setShowProfile(true);
     setProfileLoading(true);
     setProfileError(null);
@@ -249,7 +253,7 @@ export default function ChatPage() {
   // Join room and fetch messages when channel changes in LAN mode
   useEffect(() => {
     (async () => {
-      if (mode !== "lan" || !baseUrl || !activeChannelId) return;
+      if (!canUseApi || !baseUrl || !activeChannelId) return;
       // Migrate legacy DM id (dm-<otherId>) to symmetric id (dm-<low>-<high>) so history is unified
       if (activeChannelId.startsWith("dm-") && userId) {
         const rest = activeChannelId.slice(3);
@@ -288,7 +292,7 @@ export default function ChatPage() {
         }
       } catch {}
     })();
-  }, [mode, baseUrl, activeChannelId, setChannelMessages, setChannelPins]);
+  }, [canUseApi, baseUrl, activeChannelId, setChannelMessages, setChannelPins, userId, messagesMap, setActiveChannel]);
 
   const badge = (
     <span

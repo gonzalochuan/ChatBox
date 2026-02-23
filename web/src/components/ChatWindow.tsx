@@ -132,15 +132,23 @@ export default function ChatWindow() {
   const normalizeAvatar = (u?: string | null) => {
     if (!u) return null;
     try {
-      const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
-      // If relative path (e.g., /uploads/abc.png), point to LAN server (port 4000)
+      const api = baseUrl ? baseUrl.replace(/\/$/, "") : "";
+      // If relative path (e.g., /uploads/abc.png), point to current API base when available
       if (u.startsWith("/")) {
+        if (api) return `${api}${u}`;
+        const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
         return `http://${host}:4000${u}`;
       }
-      return u
-        .replace("http://localhost:4000", `http://${host}:4000`)
-        .replace("http://127.0.0.1:4000", `http://${host}:4000`);
-    } catch { return u; }
+      // If old localhost URL is stored, rewrite to current API base if possible
+      if (api) {
+        return u
+          .replace("http://localhost:4000", api)
+          .replace("http://127.0.0.1:4000", api);
+      }
+      return u;
+    } catch {
+      return u;
+    }
   };
 
   useEffect(() => {
@@ -426,12 +434,21 @@ export default function ChatWindow() {
   const normalizeAttachment = (u?: string | null) => {
     if (!u) return null;
     try {
-      const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
-      if (u.startsWith("/")) return `http://${host}:4000${u}`;
-      return u
-        .replace("http://localhost:4000", `http://${host}:4000`)
-        .replace("http://127.0.0.1:4000", `http://${host}:4000`);
-    } catch { return u; }
+      const api = baseUrl ? baseUrl.replace(/\/$/, "") : "";
+      if (u.startsWith("/")) {
+        if (api) return `${api}${u}`;
+        const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+        return `http://${host}:4000${u}`;
+      }
+      if (api) {
+        return u
+          .replace("http://localhost:4000", api)
+          .replace("http://127.0.0.1:4000", api);
+      }
+      return u;
+    } catch {
+      return u;
+    }
   };
 
   const isImageUrl = (t: string) => /\.(png|jpg|jpeg|gif|webp|bmp|svg)$/i.test(t);
