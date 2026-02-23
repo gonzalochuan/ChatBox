@@ -2054,6 +2054,18 @@ applyAuthRoutes(app);
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use("/uploads", express.static(uploadsDir));
 
+app.get("/uploads/:key", (req, res) => {
+  try {
+    const key = String(req.params.key || "");
+    const abs = absoluteUploadPathFromKey(key);
+    if (!abs) return res.status(400).json({ error: "bad_path" });
+    if (!fs.existsSync(abs)) return res.status(404).json({ error: "not_found" });
+    return res.sendFile(abs);
+  } catch {
+    return res.status(500).json({ error: "upload_read_failed" });
+  }
+});
+
 const storage = multer.diskStorage({
   destination: (_req: any, _file: any, cb: any) => cb(null, uploadsDir),
   filename: (_req: any, file: any, cb: any) => {
