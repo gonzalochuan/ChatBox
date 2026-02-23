@@ -766,11 +766,11 @@ export default function ChatWindow() {
           e.preventDefault();
           if (!text.trim() || !activeChannelId) return;
           const body = text.trim();
-          if (mode !== "lan") {
-            // offline/cloud mode: add locally
-            send(activeChannelId, body);
-          }
-          if (mode === "lan" && baseUrl) {
+          // Optimistic UI (both LAN and CLOUD). Server echo will reconcile by id.
+          send(activeChannelId, body);
+
+          // Persist via socket whenever we have an API baseUrl (LAN or CLOUD)
+          if (baseUrl) {
             try {
               const { getSocket, joinRoom } = await import("@/lib/socket");
               const socket = await getSocket(baseUrl);
@@ -786,7 +786,13 @@ export default function ChatWindow() {
               }
               // Ensure room join before sending
               try { await joinRoom(baseUrl, activeChannelId); } catch {}
-              socket.emit("message:send", { channelId: activeChannelId, text: body, senderName: displayName || "You", senderAvatarUrl: avatarUrl || null, senderId: userId || undefined });
+              socket.emit("message:send", {
+                channelId: activeChannelId,
+                text: body,
+                senderName: displayName || "You",
+                senderAvatarUrl: avatarUrl || null,
+                senderId: userId || undefined,
+              });
             } catch {}
           }
           setText("");
@@ -799,7 +805,7 @@ export default function ChatWindow() {
             onChange={async (e) => {
               setText(e.target.value);
               try {
-                if (mode === "lan" && baseUrl && activeChannelId) {
+                if (baseUrl && activeChannelId) {
                   const { getSocket } = await import("@/lib/socket");
                   const socket = await getSocket(baseUrl);
                   socket.emit("typing", { channelId: activeChannelId, userId: userId || socket.id, name: displayName || "You", isTyping: true });
@@ -819,7 +825,7 @@ export default function ChatWindow() {
             onBlur={async () => {
               try {
                 if (typingTimer.current) { clearTimeout(typingTimer.current); typingTimer.current = null; }
-                if (mode === "lan" && baseUrl && activeChannelId) {
+                if (baseUrl && activeChannelId) {
                   const { getSocket } = await import("@/lib/socket");
                   const socket = await getSocket(baseUrl);
                   socket.emit("typing", { channelId: activeChannelId, userId: userId || socket.id, name: displayName || "You", isTyping: false });
@@ -855,19 +861,21 @@ export default function ChatWindow() {
                   mimetype: metaMimetype || "application/octet-stream",
                   size: metaSize,
                 };
-                if (mode !== "lan") {
-                  send(activeChannelId, textToSend, {
-                    summary: `${metaFilename} (${formatBytesReadable(metaSize)}) was shared.`,
-                    highlights: [],
-                    suggestions: [],
-                    tagline: "Smart Contextual Messaging",
-                    meta: metaPayload,
-                  });
-                }
-                if (mode === "lan" && baseUrl) {
+                // Optimistic UI
+                send(activeChannelId, textToSend, {
+                  summary: `${metaFilename} (${formatBytesReadable(metaSize)}) was shared.`,
+                  highlights: [],
+                  suggestions: [],
+                  tagline: "Smart Contextual Messaging",
+                  meta: metaPayload,
+                });
+
+                // Persist via socket whenever baseUrl exists
+                if (baseUrl) {
                   try {
-                    const { getSocket } = await import("@/lib/socket");
+                    const { getSocket, joinRoom } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
+                    try { await joinRoom(baseUrl, activeChannelId); } catch {}
                     socket.emit("message:send", {
                       channelId: activeChannelId,
                       text: textToSend,
