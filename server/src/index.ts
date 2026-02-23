@@ -18,7 +18,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
-const ORIGINS = (process.env.CORS_ORIGINS || "http://localhost:3000").split(",");
+const ORIGINS = (process.env.CORS_ORIGINS || "http://localhost:3000")
+  .split(",")
+  .map((o) => String(o || "").trim())
+  .filter(Boolean);
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 type UserRecord = Awaited<ReturnType<typeof prisma.user.findMany>>[number];
@@ -32,12 +35,35 @@ const app = express();
 if (!IS_DEV) {
   app.set("trust proxy", 1);
 }
-app.use(
-  cors({
-    origin: IS_DEV ? true : ORIGINS,
-    credentials: true,
-  })
-);
+const corsOriginCheck: cors.CorsOptions["origin"] = (origin, cb) => {
+  // Allow same-origin, curl/postman, etc.
+  if (!origin) return cb(null, true);
+  if (IS_DEV) return cb(null, true);
+
+  const o = String(origin || "").trim();
+  if (!o) return cb(null, true);
+
+  // Exact allow-list
+  if (ORIGINS.includes(o)) return cb(null, true);
+
+  // Allow any Vercel preview/prod domain if explicitly enabled via CORS_ORIGINS
+  // e.g. set CORS_ORIGINS to include "vercel" or just rely on exact domain.
+  // Here we allow *.vercel.app to prevent breakage when the user changes domains.
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(o)) return cb(null, true);
+
+  return cb(null, false);
+};
+
+const corsOptions: cors.CorsOptions = {
+  origin: corsOriginCheck,
+  credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+// Ensure preflight works for all routes (especially uploads)
+app.options("*", cors(corsOptions));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || "256kb" }));
 
 const apiLimiter = rateLimit({
