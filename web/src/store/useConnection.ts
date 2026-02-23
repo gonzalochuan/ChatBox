@@ -59,15 +59,18 @@ export const useConnection = create<ConnectionState>((set, get) => ({
   init: async () => {
     set({ initializing: true });
     const userLan = getStoredLan();
-    const lan = userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "http://localhost:4000";
+    const isProd = process.env.NODE_ENV === "production";
+    const lan = isProd
+      ? (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "")
+      : (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "http://localhost:4000");
     const cloud = process.env.NEXT_PUBLIC_CLOUD_BASE_URL || "";
 
-    if (await tryHealth(lan)) {
+    if (lan && (await tryHealth(lan))) {
       set({ mode: "lan", baseUrl: lan, initializing: false });
       return;
     }
     {
-      const ok = await tryHealth(lan);
+      const ok = lan ? await tryHealth(lan) : false;
       if (ok) {
         set({ mode: "lan", baseUrl: lan, initializing: false });
         return;
@@ -86,8 +89,9 @@ export const useConnection = create<ConnectionState>((set, get) => ({
     await get().init();
   },
   setLan: async (url) => {
-    const candidate = url ?? getStoredLan() ?? process.env.NEXT_PUBLIC_LAN_BASE_URL ?? "http://localhost:4000";
-    if (await tryHealth(candidate)) {
+    const isProd = process.env.NODE_ENV === "production";
+    const candidate = url ?? getStoredLan() ?? process.env.NEXT_PUBLIC_LAN_BASE_URL ?? (isProd ? "" : "http://localhost:4000");
+    if (candidate && (await tryHealth(candidate))) {
       set({ mode: "lan", baseUrl: candidate });
     } else {
       // If LAN not reachable, fall back to offline (non-destructive)
@@ -101,8 +105,9 @@ export const useConnection = create<ConnectionState>((set, get) => ({
     } else {
       // If cloud not reachable, don't assume LAN; keep current or go offline
       const userLan = getStoredLan();
-      const lan = userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "http://localhost:4000";
-      if (await tryHealth(lan)) {
+      const isProd = process.env.NODE_ENV === "production";
+      const lan = isProd ? (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "") : (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "http://localhost:4000");
+      if (lan && (await tryHealth(lan))) {
         set({ mode: "lan", baseUrl: lan });
       } else {
         set({ mode: "offline", baseUrl: null });
@@ -112,7 +117,8 @@ export const useConnection = create<ConnectionState>((set, get) => ({
   toggleInternet: async () => {
     const state = get();
     const userLan = getStoredLan();
-    const lan = userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "http://localhost:4000";
+    const isProd = process.env.NODE_ENV === "production";
+    const lan = isProd ? (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "") : (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "http://localhost:4000");
     const cloud = process.env.NEXT_PUBLIC_CLOUD_BASE_URL || "";
 
     if (state.mode === "lan") {
@@ -130,7 +136,7 @@ export const useConnection = create<ConnectionState>((set, get) => ({
     // If offline, prefer cloud, then LAN
     if (cloud && (await tryHealth(cloud))) {
       set({ mode: "cloud", baseUrl: cloud });
-    } else if (await tryHealth(lan)) {
+    } else if (lan && (await tryHealth(lan))) {
       set({ mode: "lan", baseUrl: lan });
     }
   },
