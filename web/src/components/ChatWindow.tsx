@@ -375,10 +375,22 @@ export default function ChatWindow() {
         };
         // When callee accepts, they send call:accept - caller should now send offer
         const onCallAccept = async (evt: { channelId: string; fromSocketId?: string }) => {
-          if (evt.channelId !== activeChannelId) return;
-          if (!pcRef.current || !inCall) return;
+          // eslint-disable-next-line no-console
+          console.log("[webrtc] onCallAccept received:", evt, "activeChannelId:", activeChannelId, "inCall:", inCall, "pcRef.current:", !!pcRef.current);
+          if (evt.channelId !== activeChannelId) {
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] onCallAccept: channelId mismatch, ignoring");
+            return;
+          }
+          if (!pcRef.current || !inCall) {
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] onCallAccept: no peer connection or not in call, ignoring");
+            return;
+          }
           // Callee is ready - send offer now
           peerSocketIdRef.current = evt.fromSocketId || null;
+          // eslint-disable-next-line no-console
+          console.log("[webrtc] onCallAccept: creating and sending offer to:", evt.fromSocketId);
           try {
             // Ensure local tracks are added before creating offer
             const local = videoStreamRef.current || audioStreamRef.current;
@@ -392,6 +404,8 @@ export default function ChatWindow() {
             }
             const offer = await pcRef.current.createOffer();
             await pcRef.current.setLocalDescription(offer);
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] onCallAccept: offer created, emitting to socket:", evt.fromSocketId);
             s.emit("webrtc:offer", { channelId: activeChannelId, sdp: offer, toSocketId: evt.fromSocketId });
           } catch (e) {
             // eslint-disable-next-line no-console
@@ -1173,6 +1187,8 @@ export default function ChatWindow() {
                       await createPeerConnection(s);
                       peerSocketIdRef.current = fromSocketId || null;
                       // Notify caller that we're ready to receive offer
+                      // eslint-disable-next-line no-console
+                      console.log("[webrtc] Emitting call:accept to:", fromSocketId);
                       s.emit("call:accept", { channelId: incomingCall.channelId, toSocketId: fromSocketId });
                       // The onOffer handler will receive caller's offer and send answer
                     } catch {}
