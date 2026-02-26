@@ -274,6 +274,19 @@ export default function ChatWindow() {
     } catch {}
   }, [remoteStream]);
 
+  // Join Socket.IO room when viewing a channel (needed for call invites)
+  useEffect(() => {
+    if (!baseUrl || !activeChannelId) return;
+    (async () => {
+      try {
+        const { joinRoom } = await import("@/lib/socket");
+        await joinRoom(baseUrl, activeChannelId);
+        // eslint-disable-next-line no-console
+        console.log("[socket] Joined room:", activeChannelId);
+      } catch {}
+    })();
+  }, [baseUrl, activeChannelId]);
+
   // Set up socket signaling listeners for WebRTC
   useEffect(() => {
     let cleanup = () => {};
@@ -408,9 +421,16 @@ export default function ChatWindow() {
   };
 
   const createPeerConnection = async (socket: any) => {
+    if (pcRef.current) {
+      // eslint-disable-next-line no-console
+      console.log("[webrtc] Already have peer connection, skipping creation");
+      return;
+    }
     const { ICE_SERVERS } = await import("@/lib/config");
     // eslint-disable-next-line no-console
     console.log("[webrtc] Creating peer connection with ICE servers:", ICE_SERVERS);
+    // eslint-disable-next-line no-console
+    console.trace("[webrtc] createPeerConnection called from");
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     pc.onicecandidate = (e) => {
       if (e.candidate) {
@@ -446,6 +466,8 @@ export default function ChatWindow() {
   const startCallWithPeer = async (kind: "video" | "voice") => {
     try {
       if (!baseUrl || !activeChannelId) return;
+      // eslint-disable-next-line no-console
+      console.log("[webrtc] startCallWithPeer called");
       const { getSocket } = await import("@/lib/socket");
       const s = await getSocket(baseUrl);
       setInCall(true);
@@ -453,6 +475,8 @@ export default function ChatWindow() {
       setMicOn(true);
       setCamOn(kind === "video");
       await ensureLocalForKind(kind);
+      // eslint-disable-next-line no-console
+      console.log("[webrtc] After ensureLocal, creating peer connection...");
       await createPeerConnection(s);
       // Don't send offer yet - wait for callee to accept and send call:accept
       // The onCallAccept handler will send the offer when callee is ready
@@ -609,8 +633,9 @@ export default function ChatWindow() {
                   try {
                     if (suppressVideoClickRef.current) { suppressVideoClickRef.current = false; return; }
                     if (!activeChannelId || !baseUrl) return;
-                    const { getSocket } = await import("@/lib/socket");
+                    const { getSocket, joinRoom } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
+                    await joinRoom(baseUrl, activeChannelId);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "video", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
                     await startCallWithPeer("video");
                   } catch {}
@@ -630,8 +655,9 @@ export default function ChatWindow() {
                   try {
                     if (suppressVoiceClickRef.current) { suppressVoiceClickRef.current = false; return; }
                     if (!activeChannelId || !baseUrl) return;
-                    const { getSocket } = await import("@/lib/socket");
+                    const { getSocket, joinRoom } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
+                    await joinRoom(baseUrl, activeChannelId);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "voice", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
                     await startCallWithPeer("voice");
                   } catch {}
@@ -679,8 +705,9 @@ export default function ChatWindow() {
                   try {
                     if (suppressVideoClickRef.current) { suppressVideoClickRef.current = false; return; }
                     if (!activeChannelId || !baseUrl) return;
-                    const { getSocket } = await import("@/lib/socket");
+                    const { getSocket, joinRoom } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
+                    await joinRoom(baseUrl, activeChannelId);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "video", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
                     await startCallWithPeer("video");
                   } catch {}
@@ -700,8 +727,9 @@ export default function ChatWindow() {
                   try {
                     if (suppressVoiceClickRef.current) { suppressVoiceClickRef.current = false; return; }
                     if (!activeChannelId || !baseUrl) return;
-                    const { getSocket } = await import("@/lib/socket");
+                    const { getSocket, joinRoom } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
+                    await joinRoom(baseUrl, activeChannelId);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "voice", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
                     await startCallWithPeer("voice");
                   } catch {}
@@ -1128,6 +1156,8 @@ export default function ChatWindow() {
                       await ensureLocalForKind(kind);
                       const { getSocket } = await import("@/lib/socket");
                       const s = await getSocket(baseUrl);
+                      // eslint-disable-next-line no-console
+                      console.log("[webrtc] Accept: creating peer connection");
                       await createPeerConnection(s);
                       peerSocketIdRef.current = fromSocketId || null;
                       // Notify caller that we're ready to receive offer
