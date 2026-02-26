@@ -376,15 +376,15 @@ export default function ChatWindow() {
         // When callee accepts, they send call:accept - caller should now send offer
         const onCallAccept = async (evt: { channelId: string; fromSocketId?: string }) => {
           // eslint-disable-next-line no-console
-          console.log("[webrtc] onCallAccept received:", evt, "activeChannelId:", activeChannelId, "inCall:", inCall, "pcRef.current:", !!pcRef.current);
+          console.log("[webrtc] onCallAccept received:", evt, "activeChannelId:", activeChannelId, "pcRef.current:", !!pcRef.current);
           if (evt.channelId !== activeChannelId) {
             // eslint-disable-next-line no-console
             console.log("[webrtc] onCallAccept: channelId mismatch, ignoring");
             return;
           }
-          if (!pcRef.current || !inCall) {
+          if (!pcRef.current) {
             // eslint-disable-next-line no-console
-            console.log("[webrtc] onCallAccept: no peer connection or not in call, ignoring");
+            console.log("[webrtc] onCallAccept: no peer connection, ignoring");
             return;
           }
           // Callee is ready - send offer now
