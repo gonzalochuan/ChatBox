@@ -108,6 +108,8 @@ export default function ChatWindow() {
   const [deleting, setDeleting] = useState(false);
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const videoStreamRef = useRef<MediaStream | null>(null);
+  const audioStreamRef = useRef<MediaStream | null>(null);
   const videoElRef = useRef<HTMLVideoElement>(null);
   const remoteVideoElRef = useRef<HTMLVideoElement>(null);
   // In-app call state
@@ -292,7 +294,7 @@ export default function ChatWindow() {
           peerSocketIdRef.current = evt.fromSocketId || null;
           try {
             // Ensure local tracks are added before creating answer
-            const local = videoStream || audioStream;
+            const local = videoStreamRef.current || audioStreamRef.current;
             if (local && pcRef.current) {
               const senders = pcRef.current.getSenders();
               for (const track of local.getTracks()) {
@@ -333,7 +335,7 @@ export default function ChatWindow() {
           peerSocketIdRef.current = evt.fromSocketId || null;
           try {
             // Ensure local tracks are added before creating offer
-            const local = videoStream || audioStream;
+            const local = videoStreamRef.current || audioStreamRef.current;
             if (local) {
               const senders = pcRef.current.getSenders();
               for (const track of local.getTracks()) {
@@ -393,7 +395,7 @@ export default function ChatWindow() {
       if (stream) setRemoteStream(stream);
     };
     // Add local tracks
-    const local = videoStream || audioStream;
+    const local = videoStreamRef.current || audioStreamRef.current;
     if (local) for (const track of local.getTracks()) pc.addTrack(track, local);
     pcRef.current = pc;
   };
@@ -444,28 +446,32 @@ export default function ChatWindow() {
   // Helpers to start/stop local media
   const startVideo = async () => {
     try {
-      if (videoStream) return;
+      if (videoStreamRef.current) return;
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      videoStreamRef.current = stream;
       setVideoStream(stream);
     } catch {}
   };
   const stopVideo = () => {
     try {
-      for (const tr of videoStream?.getTracks?.() || []) tr.stop();
+      for (const tr of videoStreamRef.current?.getTracks?.() || []) tr.stop();
     } catch {}
+    videoStreamRef.current = null;
     setVideoStream(null);
   };
   const startAudio = async () => {
     try {
-      if (audioStream) return;
+      if (audioStreamRef.current) return;
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      audioStreamRef.current = stream;
       setAudioStream(stream);
     } catch {}
   };
   const stopAudio = () => {
     try {
-      for (const tr of audioStream?.getTracks?.() || []) tr.stop();
+      for (const tr of audioStreamRef.current?.getTracks?.() || []) tr.stop();
     } catch {}
+    audioStreamRef.current = null;
     setAudioStream(null);
   };
 
