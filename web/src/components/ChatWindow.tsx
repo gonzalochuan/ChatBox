@@ -296,9 +296,17 @@ export default function ChatWindow() {
         const { getSocket } = await import("@/lib/socket");
         const s = await getSocket(baseUrl);
         const onInvite = (evt: { channelId: string; kind: "video" | "voice"; from?: string; fromSocketId?: string; fromUserId?: string }) => {
+          // eslint-disable-next-line no-console
+          console.log("[webrtc] onInvite received:", evt, "my socket.id:", s.id, "my userId:", userId);
           // Ignore my own invites (caller should not see Accept/Decline)
-          if ((evt.fromSocketId && evt.fromSocketId === s.id) || (evt.fromUserId && userId && evt.fromUserId === userId)) return;
+          if ((evt.fromSocketId && evt.fromSocketId === s.id) || (evt.fromUserId && userId && evt.fromUserId === userId)) {
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] Ignoring own invite");
+            return;
+          }
           // Show modal regardless of currently viewed channel so user doesn't miss calls
+          // eslint-disable-next-line no-console
+          console.log("[webrtc] Showing incoming call modal");
           setIncomingCall({ channelId: evt.channelId, kind: evt.kind, from: evt.from, fromSocketId: evt.fromSocketId || null as any });
         };
         const onOffer = async (evt: { channelId: string; sdp: any; fromSocketId?: string }) => {
@@ -636,6 +644,8 @@ export default function ChatWindow() {
                     const { getSocket, joinRoom } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
                     await joinRoom(baseUrl, activeChannelId);
+                    // eslint-disable-next-line no-console
+                    console.log("[webrtc] Emitting call:invite to channel:", activeChannelId, "socket.id:", socket.id);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "video", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
                     await startCallWithPeer("video");
                   } catch {}
@@ -708,6 +718,8 @@ export default function ChatWindow() {
                     const { getSocket, joinRoom } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
                     await joinRoom(baseUrl, activeChannelId);
+                    // eslint-disable-next-line no-console
+                    console.log("[webrtc] Emitting call:invite to channel:", activeChannelId, "socket.id:", socket.id);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "video", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
                     await startCallWithPeer("video");
                   } catch {}
