@@ -3242,6 +3242,21 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Call accept notification: relay to caller so they can send offer
+  socket.on("call:accept", (payload: { channelId: string; toSocketId?: string }) => {
+    try {
+      if (!payload?.channelId) return;
+      // eslint-disable-next-line no-console
+      console.log(`[socket] call:accept from=${socket.id} ch=${payload.channelId} to=${payload.toSocketId || 'room'}`);
+      const msg = { channelId: payload.channelId, fromSocketId: socket.id };
+      if (payload.toSocketId) io.to(payload.toSocketId).emit("call:accept", msg);
+      else socket.to(payload.channelId).emit("call:accept", msg);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[socket] call:accept error", e);
+    }
+  });
+
   socket.on("message:send", async (payload: { channelId: string; text: string; senderId?: string; senderName?: string; senderAvatarUrl?: string | null; priority?: "normal" | "high" | "emergency"; contextMeta?: { filename?: string; mimetype?: string; size?: number }; }) => {
     try {
       // Debug: inbound message

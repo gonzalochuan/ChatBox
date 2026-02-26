@@ -305,11 +305,27 @@ export default function ChatWindow() {
           // Peer ended the call - clean up locally
           endCall();
         };
+        // When callee accepts, they send call:accept - caller should now send offer
+        const onCallAccept = async (evt: { channelId: string; fromSocketId?: string }) => {
+          if (evt.channelId !== activeChannelId) return;
+          if (!pcRef.current || !inCall) return;
+          // Callee is ready - send offer now
+          peerSocketIdRef.current = evt.fromSocketId || null;
+          try {
+            const offer = await pcRef.current.createOffer();
+            await pcRef.current.setLocalDescription(offer);
+            s.emit("webrtc:offer", { channelId: activeChannelId, sdp: offer, toSocketId: evt.fromSocketId });
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error("[webrtc] onCallAccept error creating offer", e);
+          }
+        };
         s.on("call:invite", onInvite);
         s.on("webrtc:offer", onOffer);
         s.on("webrtc:answer", onAnswer);
         s.on("webrtc:candidate", onCandidate);
         s.on("call:end", onCallEnd);
+        s.on("call:accept", onCallAccept);
         cleanup = () => {
           try {
             s.off("call:invite", onInvite);
@@ -317,6 +333,7 @@ export default function ChatWindow() {
             s.off("webrtc:answer", onAnswer);
             s.off("webrtc:candidate", onCandidate);
             s.off("call:end", onCallEnd);
+            s.off("call:accept", onCallAccept);
           } catch {}
         };
       } catch {}
@@ -362,11 +379,8 @@ export default function ChatWindow() {
       setCamOn(kind === "video");
       await ensureLocalForKind(kind);
       await createPeerConnection(s);
-      const offer = await pcRef.current!.createOffer();
-      await pcRef.current!.setLocalDescription(offer);
-      // Small delay to ensure callee has time to accept and set up peer connection
-      await new Promise(r => setTimeout(r, 200));
-      s.emit("webrtc:offer", { channelId: activeChannelId, sdp: offer, toSocketId: peerSocketIdRef.current || undefined });
+      // Don't send offer yet - wait for callee to accept and send call:accept
+      // The onCallAccept handler will send the offer when callee is ready
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[webrtc] startCallWithPeer error", e);
@@ -1027,7 +1041,7 @@ export default function ChatWindow() {
                       // Small delay to let UI switch channel if needed
                       await new Promise(r => setTimeout(r, 100));
                       // As callee, we do NOT create an offer - we wait for caller's offer
-                      // Set up local media and peer connection, then wait for offer
+                      // Set up local media and peer connection, then notify caller we're ready
                       setInCall(true);
                       setCallKind(kind);
                       setMicOn(true);
@@ -1037,6 +1051,8 @@ export default function ChatWindow() {
                       const s = await getSocket(baseUrl);
                       await createPeerConnection(s);
                       peerSocketIdRef.current = fromSocketId || null;
+                      // Notify caller that we're ready to receive offer
+                      s.emit("call:accept", { channelId: incomingCall.channelId, toSocketId: fromSocketId });
                       // The onOffer handler will receive caller's offer and send answer
                     } catch {}
                   }}
