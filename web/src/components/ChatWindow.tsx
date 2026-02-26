@@ -264,8 +264,12 @@ export default function ChatWindow() {
   // Attach remote video element when stream arrives
   useEffect(() => {
     try {
+      // eslint-disable-next-line no-console
+      console.log("[webrtc] remoteStream changed:", remoteStream?.id, "tracks:", remoteStream?.getTracks().length);
       if (remoteVideoElRef.current && remoteStream) {
         (remoteVideoElRef.current as any).srcObject = remoteStream;
+        // eslint-disable-next-line no-console
+        console.log("[webrtc] Set remote video srcObject");
       }
     } catch {}
   }, [remoteStream]);
@@ -285,6 +289,8 @@ export default function ChatWindow() {
           setIncomingCall({ channelId: evt.channelId, kind: evt.kind, from: evt.from, fromSocketId: evt.fromSocketId || null as any });
         };
         const onOffer = async (evt: { channelId: string; sdp: any; fromSocketId?: string }) => {
+          // eslint-disable-next-line no-console
+          console.log("[webrtc] onOffer received from:", evt.fromSocketId, "channel:", evt.channelId, "current:", activeChannelId);
           if (evt.channelId !== activeChannelId) return;
           // Prepare local media if needed
           if (!pcRef.current) {
@@ -303,9 +309,17 @@ export default function ChatWindow() {
                 }
               }
             }
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] Setting remote description (offer)");
             await pcRef.current!.setRemoteDescription(new RTCSessionDescription(evt.sdp));
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] Creating answer");
             const answer = await pcRef.current!.createAnswer();
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] Setting local description (answer)");
             await pcRef.current!.setLocalDescription(answer);
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] Sending answer to:", evt.fromSocketId);
             s.emit("webrtc:answer", { channelId: activeChannelId, sdp: answer, toSocketId: evt.fromSocketId });
           } catch (e) {
             // eslint-disable-next-line no-console
@@ -313,9 +327,20 @@ export default function ChatWindow() {
           }
         };
         const onAnswer = async (evt: { channelId: string; sdp: any; fromSocketId?: string }) => {
+          // eslint-disable-next-line no-console
+          console.log("[webrtc] onAnswer received from:", evt.fromSocketId);
           if (evt.channelId !== activeChannelId) return;
           if (!pcRef.current) return;
-          await pcRef.current.setRemoteDescription(new RTCSessionDescription(evt.sdp));
+          try {
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] Setting remote description (answer)");
+            await pcRef.current.setRemoteDescription(new RTCSessionDescription(evt.sdp));
+            // eslint-disable-next-line no-console
+            console.log("[webrtc] Remote description set, connection should establish");
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error("[webrtc] onAnswer error:", e);
+          }
         };
         const onCandidate = async (evt: { channelId: string; candidate: any; fromSocketId?: string }) => {
           if (evt.channelId !== activeChannelId) return;
@@ -384,20 +409,38 @@ export default function ChatWindow() {
 
   const createPeerConnection = async (socket: any) => {
     const { ICE_SERVERS } = await import("@/lib/config");
+    // eslint-disable-next-line no-console
+    console.log("[webrtc] Creating peer connection with ICE servers:", ICE_SERVERS);
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     pc.onicecandidate = (e) => {
       if (e.candidate) {
+        // eslint-disable-next-line no-console
+        console.log("[webrtc] Sending ICE candidate");
         socket.emit("webrtc:candidate", { channelId: activeChannelId, candidate: e.candidate, toSocketId: peerSocketIdRef.current || undefined });
       }
     };
     pc.ontrack = (e) => {
       const [stream] = e.streams;
+      // eslint-disable-next-line no-console
+      console.log("[webrtc] ontrack received stream:", stream?.id, "tracks:", stream?.getTracks().length);
       if (stream) setRemoteStream(stream);
+    };
+    pc.oniceconnectionstatechange = () => {
+      // eslint-disable-next-line no-console
+      console.log("[webrtc] ICE state:", pc.iceConnectionState);
+    };
+    pc.onconnectionstatechange = () => {
+      // eslint-disable-next-line no-console
+      console.log("[webrtc] Connection state:", pc.connectionState);
     };
     // Add local tracks
     const local = videoStreamRef.current || audioStreamRef.current;
+    // eslint-disable-next-line no-console
+    console.log("[webrtc] Adding local tracks:", local?.getTracks().length || 0);
     if (local) for (const track of local.getTracks()) pc.addTrack(track, local);
     pcRef.current = pc;
+    // eslint-disable-next-line no-console
+    console.log("[webrtc] Peer connection created");
   };
 
   const startCallWithPeer = async (kind: "video" | "voice") => {
