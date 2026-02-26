@@ -3226,6 +3226,21 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Call end notification: relay to peer so they can clean up
+  socket.on("call:end", (payload: { channelId: string; toSocketId?: string }) => {
+    try {
+      if (!payload?.channelId) return;
+      // eslint-disable-next-line no-console
+      console.log(`[socket] call:end from=${socket.id} ch=${payload.channelId} to=${payload.toSocketId || 'room'}`);
+      const msg = { channelId: payload.channelId, fromSocketId: socket.id };
+      if (payload.toSocketId) io.to(payload.toSocketId).emit("call:end", msg);
+      else io.to(payload.channelId).emit("call:end", msg);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[socket] call:end error", e);
+    }
+  });
+
   socket.on("message:send", async (payload: { channelId: string; text: string; senderId?: string; senderName?: string; senderAvatarUrl?: string | null; priority?: "normal" | "high" | "emergency"; contextMeta?: { filename?: string; mimetype?: string; size?: number }; }) => {
     try {
       // Debug: inbound message

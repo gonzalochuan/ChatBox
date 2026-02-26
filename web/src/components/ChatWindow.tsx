@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MessageContext } from "@/types";
-// Stream integration removed in favor of ZEGOCLOUD UIKits
+// Video/voice calls use built-in WebRTC with Socket.IO signaling
 import { useAuth } from "@/store/useAuth";
 import { useChatStore } from "@/store/useChat";
 import { useConnection } from "@/store/useConnection";
@@ -118,9 +118,6 @@ export default function ChatWindow() {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const peerSocketIdRef = useRef<string | null>(null);
-  // Zego mount target
-  const participantsContainerRef = useRef<HTMLDivElement>(null);
-  const zegoDestroyRef = useRef<null | { destroy: () => void }>(null);
   // Long-press support for opening call modals
   const videoPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const voicePressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -279,14 +276,19 @@ export default function ChatWindow() {
           if (evt.channelId !== activeChannelId) return;
           // Prepare local media if needed
           if (!pcRef.current) {
-            await ensureLocalForKind(callKind || "video");
+            await ensureLocalForKind(callKind || incomingCall?.kind || "video");
             await createPeerConnection(s);
           }
           peerSocketIdRef.current = evt.fromSocketId || null;
-          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(evt.sdp));
-          const answer = await pcRef.current!.createAnswer();
-          await pcRef.current!.setLocalDescription(answer);
-          s.emit("webrtc:answer", { channelId: activeChannelId, sdp: answer, toSocketId: evt.fromSocketId });
+          try {
+            await pcRef.current!.setRemoteDescription(new RTCSessionDescription(evt.sdp));
+            const answer = await pcRef.current!.createAnswer();
+            await pcRef.current!.setLocalDescription(answer);
+            s.emit("webrtc:answer", { channelId: activeChannelId, sdp: answer, toSocketId: evt.fromSocketId });
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error("[webrtc] onOffer error", e);
+          }
         };
         const onAnswer = async (evt: { channelId: string; sdp: any; fromSocketId?: string }) => {
           if (evt.channelId !== activeChannelId) return;
@@ -298,16 +300,23 @@ export default function ChatWindow() {
           if (!pcRef.current) return;
           try { await pcRef.current.addIceCandidate(new RTCIceCandidate(evt.candidate)); } catch {}
         };
+        const onCallEnd = (evt: { channelId: string; fromSocketId?: string }) => {
+          if (evt.channelId !== activeChannelId) return;
+          // Peer ended the call - clean up locally
+          endCall();
+        };
         s.on("call:invite", onInvite);
         s.on("webrtc:offer", onOffer);
         s.on("webrtc:answer", onAnswer);
         s.on("webrtc:candidate", onCandidate);
+        s.on("call:end", onCallEnd);
         cleanup = () => {
           try {
             s.off("call:invite", onInvite);
             s.off("webrtc:offer", onOffer);
             s.off("webrtc:answer", onAnswer);
             s.off("webrtc:candidate", onCandidate);
+            s.off("call:end", onCallEnd);
           } catch {}
         };
       } catch {}
@@ -325,7 +334,8 @@ export default function ChatWindow() {
   };
 
   const createPeerConnection = async (socket: any) => {
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    const { ICE_SERVERS } = await import("@/lib/config");
+    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     pc.onicecandidate = (e) => {
       if (e.candidate) {
         socket.emit("webrtc:candidate", { channelId: activeChannelId, candidate: e.candidate, toSocketId: peerSocketIdRef.current || undefined });
@@ -354,38 +364,23 @@ export default function ChatWindow() {
       await createPeerConnection(s);
       const offer = await pcRef.current!.createOffer();
       await pcRef.current!.setLocalDescription(offer);
-      s.emit("webrtc:offer", { channelId: activeChannelId, sdp: offer });
-    } catch {}
-  };
-
-  const startZegoCall = async (kind: "video" | "voice") => {
-    try {
-      if (!activeChannelId) return;
-      const { mountZegoCall } = await import("@/lib/zego");
-      const fallbackId = mySocketId || (displayName ? displayName.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32) : null) || `guest-${Date.now()}`;
-      const uid = userId || fallbackId;
-      const uname = displayName || uid;
-      const roomId = activeChannelId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64) || "room";
-      // Show overlay first so the container exists in the DOM
-      setInCall(true);
-      setCallKind(kind);
-      setMicOn(true);
-      setCamOn(kind === "video");
-      // Wait for container to appear (next paint). Retry a few times just in case.
-      let container: HTMLElement | null = null;
-      for (let i = 0; i < 10; i++) {
-        await new Promise((r) => setTimeout(r, i === 0 ? 0 : 50));
-        container = participantsContainerRef.current as HTMLElement | null;
-        if (container) break;
-      }
-      if (!container) return;
-      const kit = await mountZegoCall({ roomId, userId: uid, userName: uname, mode: kind === "video" ? "video" : "voice", container });
-      zegoDestroyRef.current = kit ? { destroy: () => { try { (kit as any)?.destroy?.(); } catch {} } } : null;
-    } catch {}
+      // Small delay to ensure callee has time to accept and set up peer connection
+      await new Promise(r => setTimeout(r, 200));
+      s.emit("webrtc:offer", { channelId: activeChannelId, sdp: offer, toSocketId: peerSocketIdRef.current || undefined });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[webrtc] startCallWithPeer error", e);
+    }
   };
 
   const endCall = async () => {
     try {
+      // Notify peer that we're ending the call
+      if (baseUrl && activeChannelId && peerSocketIdRef.current) {
+        const { getSocket } = await import("@/lib/socket");
+        const s = await getSocket(baseUrl);
+        s.emit("call:end", { channelId: activeChannelId, toSocketId: peerSocketIdRef.current });
+      }
       pcRef.current?.getSenders().forEach((s) => { try { s.track && s.track.stop(); } catch {} });
       pcRef.current?.close();
     } catch {}
@@ -398,10 +393,9 @@ export default function ChatWindow() {
     setCamOn(false);
     stopVideo();
     stopAudio();
-    try { zegoDestroyRef.current?.destroy?.(); zegoDestroyRef.current = null; } catch {}
   };
 
-  // With Zego UI, controls are provided by the kit. Our overlay shows End only.
+  // WebRTC call overlay: we show End only.
 
   // Helpers to start/stop local media
   const startVideo = async () => {
@@ -525,7 +519,7 @@ export default function ChatWindow() {
                     const { getSocket } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "video", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
-                    await startZegoCall("video");
+                    await startCallWithPeer("video");
                   } catch {}
                 }}
                 className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="Video">
@@ -546,7 +540,7 @@ export default function ChatWindow() {
                     const { getSocket } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "voice", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
-                    await startZegoCall("voice");
+                    await startCallWithPeer("voice");
                   } catch {}
                 }}
                 className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="Call">
@@ -595,7 +589,7 @@ export default function ChatWindow() {
                     const { getSocket } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "video", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
-                    await startZegoCall("video");
+                    await startCallWithPeer("video");
                   } catch {}
                 }}
                 className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="Video">
@@ -616,7 +610,7 @@ export default function ChatWindow() {
                     const { getSocket } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "voice", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
-                    await startZegoCall("voice");
+                    await startCallWithPeer("voice");
                   } catch {}
                 }}
                 className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="Call">
@@ -967,7 +961,7 @@ export default function ChatWindow() {
                         const socket = await getSocket(baseUrl);
                         socket.emit("call:invite", { channelId: activeChannelId, kind: "video", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
                         setShowVideo(false);
-                        await startZegoCall("video");
+                        await startCallWithPeer("video");
                       } catch {}
                     }}
                   >Start call</button>
@@ -996,7 +990,7 @@ export default function ChatWindow() {
                         const socket = await getSocket(baseUrl);
                         socket.emit("call:invite", { channelId: activeChannelId, kind: "voice", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
                         setShowCall(false);
-                        await startZegoCall("voice");
+                        await startCallWithPeer("voice");
                       } catch {}
                     }}
                   >Start call</button>
@@ -1025,11 +1019,25 @@ export default function ChatWindow() {
                   onClick={async () => {
                     try {
                       if (!incomingCall?.channelId) return;
+                      const kind = incomingCall.kind;
+                      const fromSocketId = incomingCall.fromSocketId;
+                      if (!baseUrl) return;
                       if (incomingCall.channelId !== activeChannelId) setActive(incomingCall.channelId);
                       setIncomingCall(null);
                       // Small delay to let UI switch channel if needed
-                      await new Promise(r => setTimeout(r, 50));
-                      await startZegoCall(incomingCall.kind);
+                      await new Promise(r => setTimeout(r, 100));
+                      // As callee, we do NOT create an offer - we wait for caller's offer
+                      // Set up local media and peer connection, then wait for offer
+                      setInCall(true);
+                      setCallKind(kind);
+                      setMicOn(true);
+                      setCamOn(kind === "video");
+                      await ensureLocalForKind(kind);
+                      const { getSocket } = await import("@/lib/socket");
+                      const s = await getSocket(baseUrl);
+                      await createPeerConnection(s);
+                      peerSocketIdRef.current = fromSocketId || null;
+                      // The onOffer handler will receive caller's offer and send answer
                     } catch {}
                   }}
                 >Accept</button>
@@ -1047,8 +1055,25 @@ export default function ChatWindow() {
                 <button onClick={endCall} className="h-8 px-3 rounded-md border border-red-300/40 bg-red-500/20 hover:bg-red-500/30 text-xs text-white">End</button>
               </div>
             </div>
-            <div ref={participantsContainerRef} className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[220px] md:min-h-[320px]">
-              {/* Stream will render <video>/<audio> here. Fallback will still use legacy remote area. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[220px] md:min-h-[320px]">
+              <div className="rounded-xl border border-white/15 bg-black/40 overflow-hidden min-h-[180px]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <video ref={videoElRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+              </div>
+              <div className="rounded-xl border border-white/15 bg-black/40 overflow-hidden min-h-[180px]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <video
+                  autoPlay
+                  playsInline
+                  className="h-full w-full object-cover"
+                  ref={(el) => {
+                    try {
+                      if (!el) return;
+                      (el as any).srcObject = remoteStream as any;
+                    } catch {}
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>, document.body) : null}
