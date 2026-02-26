@@ -3188,8 +3188,9 @@ io.on("connection", (socket) => {
       // eslint-disable-next-line no-console
       console.log(`[socket] webrtc:offer from=${socket.id} ch=${payload.channelId} to=${payload.toSocketId || 'room'}`);
       const msg = { channelId: payload.channelId, sdp: payload.sdp, fromSocketId: socket.id };
+      // Use socket.to() for room broadcast to exclude sender, io.to() for direct peer
       if (payload.toSocketId) io.to(payload.toSocketId).emit("webrtc:offer", msg);
-      else io.to(payload.channelId).emit("webrtc:offer", msg);
+      else socket.to(payload.channelId).emit("webrtc:offer", msg);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[socket] webrtc:offer error", e);
@@ -3204,7 +3205,7 @@ io.on("connection", (socket) => {
       console.log(`[socket] webrtc:answer from=${socket.id} ch=${payload.channelId} to=${payload.toSocketId || 'room'}`);
       const msg = { channelId: payload.channelId, sdp: payload.sdp, fromSocketId: socket.id };
       if (payload.toSocketId) io.to(payload.toSocketId).emit("webrtc:answer", msg);
-      else io.to(payload.channelId).emit("webrtc:answer", msg);
+      else socket.to(payload.channelId).emit("webrtc:answer", msg);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[socket] webrtc:answer error", e);
@@ -3219,7 +3220,7 @@ io.on("connection", (socket) => {
       console.log(`[socket] webrtc:candidate from=${socket.id} ch=${payload.channelId} to=${payload.toSocketId || 'room'}`);
       const msg = { channelId: payload.channelId, candidate: payload.candidate, fromSocketId: socket.id };
       if (payload.toSocketId) io.to(payload.toSocketId).emit("webrtc:candidate", msg);
-      else io.to(payload.channelId).emit("webrtc:candidate", msg);
+      else socket.to(payload.channelId).emit("webrtc:candidate", msg);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[socket] webrtc:candidate error", e);
@@ -3234,7 +3235,7 @@ io.on("connection", (socket) => {
       console.log(`[socket] call:end from=${socket.id} ch=${payload.channelId} to=${payload.toSocketId || 'room'}`);
       const msg = { channelId: payload.channelId, fromSocketId: socket.id };
       if (payload.toSocketId) io.to(payload.toSocketId).emit("call:end", msg);
-      else io.to(payload.channelId).emit("call:end", msg);
+      else socket.to(payload.channelId).emit("call:end", msg);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[socket] call:end error", e);
