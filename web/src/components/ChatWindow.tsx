@@ -109,6 +109,7 @@ export default function ChatWindow() {
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const videoElRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoElRef = useRef<HTMLVideoElement>(null);
   // In-app call state
   const [incomingCall, setIncomingCall] = useState<{ channelId: string; kind: "video" | "voice"; from?: string; fromSocketId?: string } | null>(null);
   const [inCall, setInCall] = useState(false);
@@ -258,6 +259,15 @@ export default function ChatWindow() {
     } catch {}
   }, [videoStream]);
 
+  // Attach remote video element when stream arrives
+  useEffect(() => {
+    try {
+      if (remoteVideoElRef.current && remoteStream) {
+        (remoteVideoElRef.current as any).srcObject = remoteStream;
+      }
+    } catch {}
+  }, [remoteStream]);
+
   // Set up socket signaling listeners for WebRTC
   useEffect(() => {
     let cleanup = () => {};
@@ -281,6 +291,16 @@ export default function ChatWindow() {
           }
           peerSocketIdRef.current = evt.fromSocketId || null;
           try {
+            // Ensure local tracks are added before creating answer
+            const local = videoStream || audioStream;
+            if (local && pcRef.current) {
+              const senders = pcRef.current.getSenders();
+              for (const track of local.getTracks()) {
+                if (!senders.find(sender => sender.track === track)) {
+                  pcRef.current.addTrack(track, local);
+                }
+              }
+            }
             await pcRef.current!.setRemoteDescription(new RTCSessionDescription(evt.sdp));
             const answer = await pcRef.current!.createAnswer();
             await pcRef.current!.setLocalDescription(answer);
@@ -312,6 +332,16 @@ export default function ChatWindow() {
           // Callee is ready - send offer now
           peerSocketIdRef.current = evt.fromSocketId || null;
           try {
+            // Ensure local tracks are added before creating offer
+            const local = videoStream || audioStream;
+            if (local) {
+              const senders = pcRef.current.getSenders();
+              for (const track of local.getTracks()) {
+                if (!senders.find(s => s.track === track)) {
+                  pcRef.current.addTrack(track, local);
+                }
+              }
+            }
             const offer = await pcRef.current.createOffer();
             await pcRef.current.setLocalDescription(offer);
             s.emit("webrtc:offer", { channelId: activeChannelId, sdp: offer, toSocketId: evt.fromSocketId });
@@ -1082,12 +1112,7 @@ export default function ChatWindow() {
                   autoPlay
                   playsInline
                   className="h-full w-full object-cover"
-                  ref={(el) => {
-                    try {
-                      if (!el) return;
-                      (el as any).srcObject = remoteStream as any;
-                    } catch {}
-                  }}
+                  ref={remoteVideoElRef}
                 />
               </div>
             </div>
