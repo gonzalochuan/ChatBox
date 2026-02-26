@@ -3188,7 +3188,6 @@ io.on("connection", (socket) => {
       // eslint-disable-next-line no-console
       console.log(`[socket] webrtc:offer from=${socket.id} ch=${payload.channelId} to=${payload.toSocketId || 'room'}`);
       const msg = { channelId: payload.channelId, sdp: payload.sdp, fromSocketId: socket.id };
-      // Use socket.to() for room broadcast to exclude sender, io.to() for direct peer
       if (payload.toSocketId) io.to(payload.toSocketId).emit("webrtc:offer", msg);
       else socket.to(payload.channelId).emit("webrtc:offer", msg);
     } catch (e) {
