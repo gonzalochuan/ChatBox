@@ -201,9 +201,9 @@ export default function RegisterPage() {
                           }
                           const data = await up.json();
                           if (data?.url) {
-                            // Ensure absolute URL for preview across ports
-                            const absolute = `${SERVER_URL}${data.url}`;
-                            setAvatarUrl(absolute);
+                            const u = String(data.url);
+                            const next = /^https?:\/\//i.test(u) ? u : `${SERVER_URL}${u}`;
+                            setAvatarUrl(next);
                             // Optionally revoke local blob URL
                             try { URL.revokeObjectURL(localUrl); } catch {}
                           }

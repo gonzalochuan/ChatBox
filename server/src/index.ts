@@ -3329,9 +3329,9 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   // eslint-disable-next-line no-console
-  console.log(`LAN server listening on http://0.0.0.0:${PORT}`);
+  console.log(`server listening on 0.0.0.0:${PORT}`);
   // Fire-and-forget admin seed
   ensureInitialAdmin().catch((e) => console.error("[seed] admin error", e));
   ensureInitialTeacher().catch((e) => console.error("[seed] teacher error", e));

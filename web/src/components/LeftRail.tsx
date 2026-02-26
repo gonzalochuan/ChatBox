@@ -72,6 +72,22 @@ export default function LeftRail() {
   const setActiveChannel = useChatStore((s) => s.setActiveChannel);
   const { baseUrl, setUserLanUrl, reinit } = useConnection();
 
+  const normalizedAvatarUrl = (() => {
+    if (!avatarUrl) return null;
+    try {
+      const api = baseUrl ? baseUrl.replace(/\/$/, "") : "";
+      if (avatarUrl.startsWith("/")) return api ? `${api}${avatarUrl}` : avatarUrl;
+      if (api) {
+        return avatarUrl
+          .replace("http://localhost:4000", api)
+          .replace("http://127.0.0.1:4000", api);
+      }
+      return avatarUrl;
+    } catch {
+      return avatarUrl;
+    }
+  })();
+
   // Ensure the html class matches the persisted theme on mount
   useEffect(() => {
     try {
@@ -102,9 +118,9 @@ export default function LeftRail() {
       {/* Profile (bigger on desktop) */}
       <div className="shrink-0">
         <div className="h-10 w-10 md:h-14 md:w-14 rounded-full border border-white/20 bg-white/5 overflow-hidden">
-          {avatarUrl ? (
+          {normalizedAvatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="Me" className="h-full w-full object-cover" />
+            <img src={normalizedAvatarUrl} alt="Me" className="h-full w-full object-cover" />
           ) : (
             <div className="h-full w-full grid place-items-center text-white/90">
               {Icon.profile}
