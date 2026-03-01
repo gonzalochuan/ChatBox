@@ -17,6 +17,37 @@ function formatBytesReadable(size?: number) {
   return `${value.toFixed(value >= 10 || exponent === 0 ? 0 : 1)} ${units[exponent]}`;
 }
 
+function SmartContextCardCompact({ context, align }: { context: MessageContext; align: "left" | "right" }) {
+  const meta = context.meta || { filename: "attachment", size: 0, mimetype: "" };
+  const highlights = Array.isArray(context.highlights) ? context.highlights.filter(Boolean) : [];
+  const suggestions = Array.isArray(context.suggestions) ? context.suggestions.filter(Boolean) : [];
+  return (
+    <div className={`flex ${align === "right" ? "justify-end" : "justify-start"}`}>
+      <div className="mt-2 max-w-[80%] rounded-xl border border-emerald-300/20 bg-emerald-900/10 px-3 py-2 text-emerald-100 shadow-[0_0_10px_rgba(16,185,129,0.10)]">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-200/70">
+          Smart Contextual Messaging
+        </div>
+        {context.summary ? (
+          <div className="mt-1 text-[12px] text-emerald-50/85 whitespace-pre-wrap break-words">
+            {context.summary}
+          </div>
+        ) : null}
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-emerald-200/60">
+          <span className="truncate max-w-[14rem]">{meta.filename}</span>
+          <span>{formatBytesReadable(meta.size)}</span>
+          {meta.mimetype ? <span>{meta.mimetype}</span> : null}
+        </div>
+        {(highlights.length > 0 || suggestions.length > 0) ? (
+          <div className="mt-2 text-[11px] text-emerald-50/80">
+            {highlights.length > 0 ? <div>Highlights: {highlights.slice(0, 2).join(" • ")}{highlights.length > 2 ? " …" : ""}</div> : null}
+            {suggestions.length > 0 ? <div>Suggested: {suggestions.slice(0, 2).join(" • ")}{suggestions.length > 2 ? " …" : ""}</div> : null}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function SmartContextCard({ context, align }: { context: MessageContext; align: "left" | "right" }) {
   const highlights = Array.isArray(context.highlights) ? context.highlights.filter(Boolean) : [];
   const suggestions = Array.isArray(context.suggestions) ? context.suggestions.filter(Boolean) : [];
@@ -895,8 +926,10 @@ export default function ChatWindow() {
                     </div>
                   )}
                 </div>
-                {m.context && !isImageMessage(m) ? (
-                  <SmartContextCard context={m.context} align={mine ? "right" : "left"} />
+                {m.context ? (
+                  isImageMessage(m)
+                    ? <SmartContextCardCompact context={m.context} align={mine ? "right" : "left"} />
+                    : <SmartContextCard context={m.context} align={mine ? "right" : "left"} />
                 ) : null}
                 {/* Meta row: time and tiny avatar-as-seen for own messages */}
                 <div className={`flex items-center ${mine ? "justify-end" : "justify-start"} gap-2 px-10 md:px-16`}>
