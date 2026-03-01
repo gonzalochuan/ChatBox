@@ -2092,6 +2092,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { fileSize: 8 * 1024 * 1024 } });
 
 const uploadAvatarMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
+const uploadFileMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 16 * 1024 * 1024 } });
 
 app.post("/upload/avatar", uploadAvatarMemory.single("avatar"), async (req: any, res) => {
   try {
@@ -2123,14 +2124,46 @@ app.post("/upload/avatar", uploadAvatarMemory.single("avatar"), async (req: any,
 });
 
 // General file upload for message attachments
-app.post("/upload/file", upload.single("file"), (req: any, res) => {
-  if (!req.file) return res.status(400).json({ error: "no_file" });
-  const url = `/uploads/${req.file.filename}`;
-  const filename = req.file.originalname || req.file.filename;
-  const mimetype = req.file.mimetype || guessMimeFromName(filename);
-  const size = typeof req.file.size === "number" ? req.file.size : 0;
-  return res.json({ url, filename, mimetype, size });
-});
+app.post(
+  "/upload/file",
+  (req: any, res, next) => {
+    if (CLOUDINARY_ENABLED) return uploadFileMemory.single("file")(req, res, next);
+    return upload.single("file")(req, res, next);
+  },
+  async (req: any, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: "no_file" });
+
+      const filename = req.file.originalname || req.file.filename;
+      const mimetype = req.file.mimetype || guessMimeFromName(filename);
+      const size = typeof req.file.size === "number" ? req.file.size : 0;
+
+      if (CLOUDINARY_ENABLED) {
+        const b64 = req.file.buffer.toString("base64");
+        const dataUri = `data:${req.file.mimetype || "application/octet-stream"};base64,${b64}`;
+        const isImage = /^image\//i.test(String(req.file.mimetype || ""));
+        const uploaded = await cloudinary.uploader.upload(dataUri, {
+          folder: CLOUDINARY_FOLDER,
+          resource_type: isImage ? "image" : "auto",
+        });
+        return res.json({
+          url: uploaded.secure_url,
+          publicId: uploaded.public_id,
+          filename,
+          mimetype,
+          size,
+        });
+      }
+
+      const url = `/uploads/${req.file.filename}`;
+      return res.json({ url, filename, mimetype, size });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("/upload/file error", e);
+      return res.status(500).json({ error: "upload_failed" });
+    }
+  }
+);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, mode: IS_DEV ? "lan" : "cloud", ts: Date.now() });
