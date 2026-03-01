@@ -154,11 +154,35 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"ALL" | "ADMIN" | "TEACHER" | "STUDENT">("ALL");
+  const roleMenuRef = useRef<HTMLDivElement | null>(null);
+  const [roleOpen, setRoleOpen] = useState(false);
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showAddStaff, setShowAddStaff] = useState(false);
   const [showEdit, setShowEdit] = useState<AdminUser | null>(null);
   const [showRoles, setShowRoles] = useState<AdminUser | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<AdminUser | null>(null);
+
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as any;
+      if (roleMenuRef.current && !roleMenuRef.current.contains(t)) setRoleOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  const filteredUsers = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return users.filter((u) => {
+      const roles = Array.isArray(u.roles) ? u.roles : [];
+      if (roleFilter !== "ALL" && !roles.includes(roleFilter)) return false;
+      if (!q) return true;
+      const hay = `${u.name || ""} ${u.nickname || ""} ${u.email || ""} ${u.studentId || ""}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [users, query, roleFilter]);
 
   const load = async () => {
     setError(null);
@@ -219,16 +243,81 @@ export default function AdminUsersPage() {
 
           <div className="rounded-2xl border border-white/15 bg-black/40 backdrop-blur-sm overflow-hidden">
             <div className="px-3 py-2 border-b border-white/10 text-sm text-white/80 flex items-center justify-between">
-              <div>Total: {users.length}</div>
+              <div className="flex items-center gap-3">
+                <div>Total: {users.length}</div>
+                <div className="text-white/50">Showing: {filteredUsers.length}</div>
+              </div>
             </div>
+
+            <div className="px-3 py-2 border-b border-white/10 bg-black/30">
+              <div className="flex flex-col md:flex-row md:items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search name, email, student ID…"
+                    className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
+                  />
+                  {query ? (
+                    <button
+                      type="button"
+                      onClick={() => setQuery("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-sm"
+                      aria-label="Clear search"
+                    >
+                      ×
+                    </button>
+                  ) : null}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs uppercase tracking-widest text-white/50">Role</span>
+                  <div className="relative" ref={roleMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => setRoleOpen((v) => !v)}
+                      className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:ring-2 focus:ring-white/30 flex items-center justify-between min-w-[150px]"
+                    >
+                      <span>
+                        {roleFilter === "ALL" ? "All" : roleFilter === "STUDENT" ? "Student" : roleFilter === "TEACHER" ? "Teacher" : "Admin"}
+                      </span>
+                      <span className="text-white/60">▾</span>
+                    </button>
+                    {roleOpen && (
+                      <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-white/15 bg-black/80 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+                        {([
+                          { value: "ALL", label: "All" },
+                          { value: "STUDENT", label: "Student" },
+                          { value: "TEACHER", label: "Teacher" },
+                          { value: "ADMIN", label: "Admin" },
+                        ] as const).map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              setRoleFilter(opt.value);
+                              setRoleOpen(false);
+                            }}
+                            className={`w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 ${roleFilter === opt.value ? "bg-white/10" : ""}`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="max-h-[calc(100dvh-180px)] md:max-h-[calc(100dvh-180px)] overflow-y-auto">
               {loading ? (
                 <div className="p-4 text-white/60 text-sm">Loading…</div>
-              ) : users.length === 0 ? (
+              ) : filteredUsers.length === 0 ? (
                 <div className="p-4 text-white/60 text-sm">No users found.</div>
               ) : (
                 <UserList
-                  users={users}
+                  users={filteredUsers}
                   onEdit={setShowEdit}
                   onRoles={setShowRoles}
                   onDelete={setConfirmDelete}

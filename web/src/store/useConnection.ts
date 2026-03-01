@@ -60,24 +60,19 @@ export const useConnection = create<ConnectionState>((set, get) => ({
     set({ initializing: true });
     const userLan = getStoredLan();
     const isProd = process.env.NODE_ENV === "production";
+    const cloud = process.env.NEXT_PUBLIC_CLOUD_BASE_URL || "";
     const lan = isProd
       ? (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "")
       : (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "http://localhost:4000");
-    const cloud = process.env.NEXT_PUBLIC_CLOUD_BASE_URL || "";
 
-    if (lan && (await tryHealth(lan))) {
-      set({ mode: "lan", baseUrl: lan, initializing: false });
-      return;
-    }
-    {
-      const ok = lan ? await tryHealth(lan) : false;
-      if (ok) {
-        set({ mode: "lan", baseUrl: lan, initializing: false });
-        return;
-      }
-    }
+    // In production, prefer cloud first to avoid accidentally sticking to a stale/misconfigured LAN URL.
     if (cloud && (await tryHealth(cloud))) {
       set({ mode: "cloud", baseUrl: cloud, initializing: false });
+      return;
+    }
+    // Otherwise, try LAN (useful for local/network deployments)
+    if (lan && (await tryHealth(lan))) {
+      set({ mode: "lan", baseUrl: lan, initializing: false });
       return;
     }
     set({ mode: "offline", baseUrl: null, initializing: false });
