@@ -2546,8 +2546,22 @@ app.post("/admin/users/bulk-temp", requireAdmin, async (req, res) => {
 });
 
 // Admin endpoint to seed 50 jejemon students
-app.post("/admin/seed-students", requireAdmin, async (req, res) => {
+app.post("/admin/seed-students", async (req, res) => {
   try {
+    // Allow either admin session OR a one-time seed key (useful for Render free tier without Shell)
+    const seedKey = String(req.headers["x-seed-key"] || "");
+    const envSeedKey = String(process.env.SEED_KEY || "");
+    const seedKeyOk = Boolean(envSeedKey) && seedKey === envSeedKey;
+
+    if (!seedKeyOk) {
+      try {
+        await (requireAdmin as any)(req, res, () => {});
+      } catch {}
+      if (!res.headersSent) {
+        return;
+      }
+    }
+
     const nicknames = [
       "xX_JhayRuzzXx", "PrinCessAiah", "LhadyKhat", "JhunLhoyd", "KhrizTian",
       "MhikhaiL", "JhennElyn", "RhoSell", "KhrisTine", "JhayRuz",
