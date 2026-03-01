@@ -512,6 +512,24 @@ function normalizeContextMetaInput(input: any): { filename?: string; mimetype?: 
   return { filename, mimetype, size };
 }
 
+function normalizeContextInput(input: any): SmartContext | null {
+  if (!input || typeof input !== "object") return null;
+  const summary = typeof (input as any).summary === "string" ? (input as any).summary : "";
+  const tagline = typeof (input as any).tagline === "string" ? (input as any).tagline : SMART_CONTEXT_TAGLINE;
+  const metaRaw = (input as any).meta;
+  const meta = metaRaw && typeof metaRaw === "object"
+    ? {
+        filename: typeof metaRaw.filename === "string" ? metaRaw.filename : "attachment",
+        mimetype: typeof metaRaw.mimetype === "string" ? metaRaw.mimetype : "",
+        size: typeof metaRaw.size === "number" && Number.isFinite(metaRaw.size) ? metaRaw.size : 0,
+      }
+    : { filename: "attachment", mimetype: "", size: 0 };
+  const highlights = Array.isArray((input as any).highlights) ? (input as any).highlights.filter((x: any) => typeof x === "string" && x.trim()).slice(0, 10) : [];
+  const suggestions = Array.isArray((input as any).suggestions) ? (input as any).suggestions.filter((x: any) => typeof x === "string" && x.trim()).slice(0, 10) : [];
+  if (!summary && highlights.length === 0 && suggestions.length === 0) return null;
+  return { summary, highlights, suggestions, tagline, meta };
+}
+
 async function buildContextForMessage(text: string | null | undefined, overrides?: { filename?: string; mimetype?: string; size?: number }): Promise<SmartContext | null> {
   if (!text) return null;
   const uploadUrl = extractFirstUploadUrl(text);
@@ -2138,13 +2156,31 @@ app.post(
       const mimetype = req.file.mimetype || guessMimeFromName(filename);
       const size = typeof req.file.size === "number" ? req.file.size : 0;
 
+      const prettySize = formatBytes(size);
+      const isImage = isImageFile(mimetype, filename);
+      const context: SmartContext = isImage
+        ? {
+            summary: `${filename} (${prettySize}) image was shared. Review the visual content for relevant details.`,
+            highlights: ["Check for diagrams, screenshots, or photos that support the discussion."],
+            suggestions: ["Ask the sender to clarify key takeaways from the image if they aren't obvious."],
+            tagline: SMART_CONTEXT_TAGLINE,
+            meta: { filename, mimetype, size },
+          }
+        : {
+            summary: `${filename} (${prettySize}) was shared. Review the attachment for full details.`,
+            highlights: [],
+            suggestions: ["Review the attachment and acknowledge any required actions."],
+            tagline: SMART_CONTEXT_TAGLINE,
+            meta: { filename, mimetype, size },
+          };
+
       if (CLOUDINARY_ENABLED) {
         const b64 = req.file.buffer.toString("base64");
         const dataUri = `data:${req.file.mimetype || "application/octet-stream"};base64,${b64}`;
-        const isImage = /^image\//i.test(String(req.file.mimetype || ""));
+        const isUploadImage = /^image\//i.test(String(req.file.mimetype || ""));
         const uploaded = await cloudinary.uploader.upload(dataUri, {
           folder: CLOUDINARY_FOLDER,
-          resource_type: isImage ? "image" : "auto",
+          resource_type: isUploadImage ? "image" : "auto",
         });
         return res.json({
           url: uploaded.secure_url,
@@ -2152,11 +2188,12 @@ app.post(
           filename,
           mimetype,
           size,
+          context,
         });
       }
 
       const url = `/uploads/${req.file.filename}`;
-      return res.json({ url, filename, mimetype, size });
+      return res.json({ url, filename, mimetype, size, context });
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("/upload/file error", e);
@@ -3388,7 +3425,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("message:send", async (payload: { channelId: string; text: string; senderId?: string; senderName?: string; senderAvatarUrl?: string | null; priority?: "normal" | "high" | "emergency"; contextMeta?: { filename?: string; mimetype?: string; size?: number }; }) => {
+  socket.on("message:send", async (payload: { channelId: string; text: string; senderId?: string; senderName?: string; senderAvatarUrl?: string | null; priority?: "normal" | "high" | "emergency"; contextMeta?: { filename?: string; mimetype?: string; size?: number }; context?: SmartContext; }) => {
     try {
       // Debug: inbound message
       // eslint-disable-next-line no-console
@@ -3401,9 +3438,14 @@ io.on("connection", (socket) => {
       });
       let context: SmartContext | null = null;
       try {
-        const overrides = normalizeContextMetaInput(payload.contextMeta);
-        context = await buildContextForMessage(payload.text, overrides);
+        context = normalizeContextInput((payload as any).context);
       } catch {}
+      if (!context) {
+        try {
+          const overrides = normalizeContextMetaInput(payload.contextMeta);
+          context = await buildContextForMessage(payload.text, overrides);
+        } catch {}
+      }
       const created = await prisma.message.create({
         data: {
           channelId: payload.channelId,

@@ -1049,14 +1049,21 @@ export default function ChatWindow() {
                   mimetype: metaMimetype || "application/octet-stream",
                   size: metaSize,
                 };
+                const contextPayload = (data && typeof data === "object" ? (data as any).context : null) as any;
                 // Optimistic UI
-                send(activeChannelId, textToSend, {
-                  summary: `${metaFilename} (${formatBytesReadable(metaSize)}) was shared.`,
-                  highlights: [],
-                  suggestions: [],
-                  tagline: "Smart Contextual Messaging",
-                  meta: metaPayload,
-                });
+                send(
+                  activeChannelId,
+                  textToSend,
+                  (contextPayload && typeof contextPayload === "object")
+                    ? contextPayload
+                    : {
+                        summary: `${metaFilename} (${formatBytesReadable(metaSize)}) was shared.`,
+                        highlights: [],
+                        suggestions: [],
+                        tagline: "Smart Contextual Messaging",
+                        meta: metaPayload,
+                      }
+                );
 
                 // Persist via socket whenever baseUrl exists
                 if (baseUrl) {
@@ -1071,6 +1078,7 @@ export default function ChatWindow() {
                       senderAvatarUrl: avatarUrl || null,
                       senderId: userId || undefined,
                       contextMeta: metaPayload,
+                      context: (contextPayload && typeof contextPayload === "object") ? contextPayload : undefined,
                     });
                   } catch {}
                 }
