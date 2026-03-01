@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { SERVER_URL } from "@/lib/config";
 import { useConnection } from "@/store/useConnection";
 import { getToken } from "@/lib/auth";
+import PasswordInput from "@/components/PasswordInput";
 
 interface SectionInfo {
   id: string;
@@ -359,7 +360,7 @@ export default function TeacherSectionsPage() {
                     </div>
                   </div>
                   <input value={addEmail} onChange={(e) => setAddEmail(e.target.value)} placeholder="Email" className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
-                  <input value={addPassword} onChange={(e) => setAddPassword(e.target.value)} placeholder="Temporary password" type="password" className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
+                  <PasswordInput value={addPassword} onChange={setAddPassword} placeholder="Temporary password" className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
                   <input value={addName} onChange={(e) => setAddName(e.target.value)} placeholder="Full name (optional)" className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
                   <input value={addNickname} onChange={(e) => setAddNickname(e.target.value)} placeholder="Nickname (optional)" className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
                   <input value={addStudentId} onChange={(e) => setAddStudentId(e.target.value)} placeholder="Student ID" className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />

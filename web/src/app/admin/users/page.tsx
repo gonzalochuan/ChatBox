@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { SERVER_URL } from "@/lib/config";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useConnection } from "@/store/useConnection";
 import { getToken } from "@/lib/auth";
+import { SERVER_URL } from "@/lib/config";
+import PasswordInput from "@/components/PasswordInput";
 import AvatarPicker from "@/components/AvatarPicker";
 
 const YEAR_OPTIONS = ["1", "2", "3", "4", "5"];
@@ -116,7 +117,7 @@ function AddStaffModal({ onClose, onDone, baseUrl }: { onClose: () => void; onDo
         </div>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
-        <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
+        <PasswordInput value={password} onChange={setPassword} placeholder="Password" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
         {primaryRole === "TEACHER" && (
           <>
             <AvatarPicker value={avatarUrl} onChange={setAvatarUrl} />
@@ -554,7 +555,7 @@ function AddStudentModal({ onClose, onDone, baseUrl }: { onClose: () => void; on
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
         <input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Nickname" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
-        <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
+        <PasswordInput value={password} onChange={setPassword} placeholder="Password" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
         <input value={studentId} onChange={(e) => setStudentId(e.target.value)} placeholder="Student ID" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
         <YearLevelSelect value={yearLevel} onChange={setYearLevel} />
         <input value={block} onChange={(e) => setBlock(e.target.value)} placeholder="Block" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
@@ -656,7 +657,7 @@ function EditUserModal({ user, onClose, onDone, baseUrl }: { user: AdminUser; on
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
           <input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Nickname" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
           <input value={user.email} disabled className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white/70 outline-none" />
-          <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New password (optional)" type="password" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
+          <PasswordInput value={password} onChange={setPassword} placeholder="New password (optional)" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
           <input value={studentId} onChange={(e) => setStudentId(e.target.value)} placeholder="Student ID" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
           <YearLevelSelect value={yearLevel || "1"} onChange={setYearLevel} />
           <input value={block || ""} onChange={(e) => setBlock(e.target.value)} placeholder="Block" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
@@ -692,7 +693,7 @@ function EditUserModal({ user, onClose, onDone, baseUrl }: { user: AdminUser; on
           </div>
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
           <input value={user.email} disabled className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white/70 outline-none" />
-          <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New password (optional)" type="password" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
+          <PasswordInput value={password} onChange={setPassword} placeholder="New password (optional)" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
           {primaryRole === "TEACHER" && (
             <input value={professionState} onChange={(e) => setProfessionState(e.target.value)} placeholder="Profession" className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
           )}

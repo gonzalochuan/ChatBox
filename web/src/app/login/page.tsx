@@ -6,6 +6,7 @@ import { useState } from "react";
 import { SERVER_URL } from "@/lib/config";
 import { setToken } from "@/lib/auth";
 import AlertBanner from "@/components/AlertBanner";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -84,11 +85,10 @@ export default function LoginPage() {
             </div>
             <div>
               <label className="block text-xs uppercase tracking-widest text-white/60">Password</label>
-              <input
-                type="password"
+              <PasswordInput
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={setPassword}
                 className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2.5 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
                 placeholder="••••••••"
               />
