@@ -151,6 +151,20 @@ export default function ChatWindow() {
     }
   };
 
+  const isMediaMessage = (msg?: any) => {
+    const t = typeof msg?.text === "string" ? msg.text : "";
+    if (!t) return false;
+    if (!(t.startsWith("/uploads/") || t.startsWith("http"))) return false;
+    return Boolean(normalizeAttachment(t));
+  };
+
+  const isImageMessage = (msg?: any) => {
+    const t = typeof msg?.text === "string" ? msg.text : "";
+    if (!t) return false;
+    if (!(t.startsWith("/uploads/") || t.startsWith("http"))) return false;
+    return isImageUrl(t);
+  };
+
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [messages.length, activeChannelId]);
@@ -881,7 +895,7 @@ export default function ChatWindow() {
                     </div>
                   )}
                 </div>
-                {m.context ? (
+                {m.context && !isImageMessage(m) ? (
                   <SmartContextCard context={m.context} align={mine ? "right" : "left"} />
                 ) : null}
                 {/* Meta row: time and tiny avatar-as-seen for own messages */}
