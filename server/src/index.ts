@@ -1254,7 +1254,7 @@ app.post("/admin/delete-4th-b4-b5", async (req, res) => {
       },
       select: { id: true, email: true },
     });
-    const userIds = users.map((u) => u.id);
+    const userIds = users.map((u: { id: string; email: string }) => u.id);
 
     if (userIds.length === 0) {
       return res.json({ yearLevel, blocks, usersFound: 0, deleted: { users: 0 } });
