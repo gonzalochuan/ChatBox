@@ -2887,6 +2887,178 @@ app.post("/admin/import-b1", async (req, res) => {
   }
 });
 
+app.post("/admin/import-b2", async (req, res) => {
+  try {
+    const seedKeyHeader = String(req.headers["x-seed-key"] || "");
+    const seedKeyEnv = String(process.env.SEED_KEY || "");
+
+    let isAdminSession = false;
+    try {
+      const token = req.cookies?.token;
+      if (token) {
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        const userId = decoded?.id;
+        if (userId) {
+          const roles = await prisma.userRole.findMany({ where: { userId }, select: { role: true } });
+          isAdminSession = roles.some((r: any) => r.role === "ADMIN");
+        }
+      }
+    } catch {}
+
+    const isSeedKeyAuthed = Boolean(seedKeyEnv && seedKeyHeader && seedKeyHeader === seedKeyEnv);
+    if (!isAdminSession && !isSeedKeyAuthed) return res.status(401).json({ error: "unauthorized" });
+
+    const yearLevel = "4";
+    const block = "B2";
+    const pwd = "seait123";
+    const passwordHash = await bcrypt.hash(pwd, 10);
+
+    const candidates = [
+      "IT 324",
+      "CAPSTONE",
+      "IT 401",
+      "IT 402",
+      "IT 403",
+      "IT 404",
+      "IT 405",
+      "IT 406",
+      "IT 407",
+      "IT 408",
+    ];
+    const domains = ["seait.edu", "seait.com", "gmail.com", "school.edu", "campus.edu"];
+
+    const names: Array<{ last: string; first: string }> = [
+      { last: "ABADINAS", first: "JOSHEL MAE" },
+      { last: "ABIERA", first: "LUIZ ANTONIO" },
+      { last: "ACHARON", first: "MARLOU" },
+      { last: "ADOLFO", first: "ELPHEN, JR." },
+      { last: "ANINAG", first: "DEBBIE MAE" },
+      { last: "BALABA", first: "KRISTINA CASSANDRA" },
+      { last: "BALMORIA", first: "FRITZ GERALD" },
+      { last: "BALONGA", first: "GEMELLOYD" },
+      { last: "BANTILLO", first: "LEMUEL, JR." },
+      { last: "BARTOLOME", first: "SHEKINAH FAITH" },
+      { last: "BUDLONG", first: "JUSTIN MARC" },
+      { last: "BURAN", first: "SHERYL JANE" },
+      { last: "BUTIL", first: "ZYLE" },
+      { last: "CABALES", first: "KURT NIEL" },
+      { last: "CARREON", first: "HONEYYE" },
+      { last: "CATOR", first: "JOHN" },
+      { last: "CUNANAN", first: "JEMAR KYLE" },
+      { last: "DAEL", first: "ANTHONY" },
+      { last: "DIAZ", first: "JOHN CARL" },
+      { last: "DINOPOL", first: "JOHNCENT" },
+      { last: "EGONIO", first: "PRINCESS JEVONNE" },
+      { last: "ELISAN", first: "VICTOR, JR." },
+      { last: "EREDIANO", first: "MARY ANN" },
+      { last: "FACTOR", first: "RAFAEL" },
+      { last: "GARDOSE", first: "JE-MARK" },
+      { last: "LASPRILLA", first: "PAULINE" },
+      { last: "LEGARTO", first: "EDEN FAYE" },
+      { last: "LUNASCO", first: "GINA JEAN JOY" },
+      { last: "MAHUSAY", first: "PRINCESS JOYCE" },
+      { last: "MALIBAGO", first: "JANDRY" },
+      { last: "OÑAS", first: "RANCY" },
+      { last: "ONGIT", first: "JEMAICA" },
+      { last: "PARROCHA", first: "ANGEL" },
+      { last: "QUINOVEVA", first: "JAMES" },
+      { last: "REBITE", first: "JAMAICA" },
+      { last: "REFUGIO", first: "MARK JOSEPH" },
+      { last: "REPOPONIO", first: "MJ" },
+      { last: "SARANGAYA", first: "JOHN DAVID" },
+      { last: "ZALDARRIAGA", first: "ZENLEE" },
+    ];
+
+    const slug = (s: string) => String(s || "")
+      .toLowerCase()
+      .replace(/\(.*?\)/g, "")
+      .replace(/[^a-z0-9]+/g, ".")
+      .replace(/^\.+|\.+$/g, "")
+      .slice(0, 40);
+
+    const randDigits = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join("");
+    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+    const shuffle = <T,>(arr: T[]) => {
+      const out = [...arr];
+      for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+      }
+      return out;
+    };
+
+    const created: Array<{ email: string; studentId: string; name: string }> = [];
+    const skipped: Array<{ reason: string; name: string }> = [];
+
+    for (const row of names) {
+      const cleanLast = String(row.last || "").trim();
+      const cleanFirst = String(row.first || "").trim();
+      const fullName = `${cleanFirst} ${cleanLast}`.replace(/\s+/g, " ").trim();
+      const nickname = cleanFirst.split(/\s|,/).filter(Boolean)[0] || cleanLast.split(/\s|,/).filter(Boolean)[0] || "Student";
+
+      const baseLocal = `${slug(cleanFirst)}.${slug(cleanLast)}`.replace(/\.+/g, ".").replace(/^\.|\.$/g, "") || `student.${randDigits(4)}`;
+      const domain = pick(domains);
+
+      let email = `${baseLocal}@${domain}`.toLowerCase();
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const exists = await prisma.user.findUnique({ where: { email } });
+        if (!exists) break;
+        email = `${baseLocal}${randDigits(3)}@${domain}`.toLowerCase();
+      }
+      const emailExists = await prisma.user.findUnique({ where: { email } });
+      if (emailExists) {
+        skipped.push({ reason: "email_taken", name: fullName });
+        continue;
+      }
+
+      const studentId = `2022-${randDigits(5)}`;
+      const subjects = (() => {
+        const extras = shuffle(candidates.filter((c) => c !== "IT 324" && c !== "CAPSTONE")).slice(0, 2);
+        return shuffle(["IT 324", "CAPSTONE", ...extras]);
+      })();
+
+      const user = await prisma.user.create({
+        data: {
+          email,
+          passwordHash,
+          name: fullName,
+          nickname,
+          studentId,
+          yearLevel,
+          block,
+          schedule: null,
+          avatarUrl: null,
+          profession: null,
+        },
+      });
+      await prisma.userRole.create({ data: { userId: user.id, role: "STUDENT" } });
+      await assignAcademicMemberships({
+        userId: user.id,
+        subjectCodes: subjects,
+        yearLevel,
+        block,
+        replaceSubjects: true,
+      });
+
+      created.push({ email, studentId, name: fullName });
+    }
+
+    return res.status(201).json({
+      yearLevel,
+      block,
+      requested: names.length,
+      created: created.length,
+      skipped: skipped.length,
+      password: pwd,
+      sample: created.slice(0, 5),
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("/admin/import-b2 error", e);
+    return res.status(500).json({ error: "import_failed" });
+  }
+});
+
 app.patch("/admin/users/:id", requireAdmin, async (req, res) => {
   const id = req.params.id;
   const {
