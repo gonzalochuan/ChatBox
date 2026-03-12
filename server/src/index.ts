@@ -1222,6 +1222,93 @@ app.post("/admin/import-b4", async (req, res) => {
   }
 });
 
+app.post("/admin/delete-4th-b4-b5", async (req, res) => {
+  try {
+    const seedKeyHeader = String(req.headers["x-seed-key"] || "");
+    const seedKeyEnv = String(process.env.SEED_KEY || "");
+
+    let isAdminSession = false;
+    try {
+      const token = req.cookies?.token;
+      if (token) {
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        const userId = decoded?.id;
+        if (userId) {
+          const roles = await prisma.userRole.findMany({ where: { userId }, select: { role: true } });
+          isAdminSession = roles.some((r: any) => r.role === "ADMIN");
+        }
+      }
+    } catch {}
+
+    const isSeedKeyAuthed = Boolean(seedKeyEnv && seedKeyHeader && seedKeyHeader === seedKeyEnv);
+    if (!isAdminSession && !isSeedKeyAuthed) return res.status(401).json({ error: "unauthorized" });
+
+    const yearLevel = "4";
+    const blocks = ["B4", "B5"];
+
+    const users = await prisma.user.findMany({
+      where: {
+        yearLevel,
+        block: { in: blocks },
+        roles: { some: { role: "STUDENT" } },
+      },
+      select: { id: true, email: true },
+    });
+    const userIds = users.map((u) => u.id);
+
+    if (userIds.length === 0) {
+      return res.json({ yearLevel, blocks, usersFound: 0, deleted: { users: 0 } });
+    }
+
+    const deleteChannelPins = await prisma.channelPin.deleteMany({
+      where: { message: { senderId: { in: userIds } } },
+    });
+
+    const deleteMessages = await prisma.message.deleteMany({
+      where: { senderId: { in: userIds } },
+    });
+
+    const deleteEnrollments = await prisma.enrollment.deleteMany({
+      where: { userId: { in: userIds } },
+    });
+
+    const deleteBannerUserTargets = await prisma.bannerUserTarget.deleteMany({
+      where: { userId: { in: userIds } },
+    });
+
+    const deleteBannersCreated = await prisma.banner.deleteMany({
+      where: { createdBy: { in: userIds } },
+    });
+
+    const deleteRoles = await prisma.userRole.deleteMany({
+      where: { userId: { in: userIds } },
+    });
+
+    const deleteUsers = await prisma.user.deleteMany({
+      where: { id: { in: userIds } },
+    });
+
+    return res.json({
+      yearLevel,
+      blocks,
+      usersFound: userIds.length,
+      deleted: {
+        channelPins: deleteChannelPins.count,
+        messages: deleteMessages.count,
+        enrollments: deleteEnrollments.count,
+        bannerUserTargets: deleteBannerUserTargets.count,
+        bannersCreated: deleteBannersCreated.count,
+        roles: deleteRoles.count,
+        users: deleteUsers.count,
+      },
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("/admin/delete-4th-b4-b5 error", e);
+    return res.status(500).json({ error: "delete_failed" });
+  }
+});
+
 // Authenticated: list all teachers for DM picker (available to any logged-in user)
 app.get("/users/teachers", async (req, res) => {
   try {
