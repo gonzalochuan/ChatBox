@@ -769,6 +769,20 @@ app.post("/admin/import-b5", async (req, res) => {
       const fullName = `${nameFirst} ${nameLast}`.replace(/\s+/g, " ").trim();
       const nickname = (nameFirst.split(/\s|,/).filter(Boolean)[0] || nameLast.split(/\s|,/).filter(Boolean)[0] || "Student").trim();
 
+      const existingByName = await prisma.user.findFirst({
+        where: {
+          yearLevel,
+          block,
+          name: fullName,
+          roles: { some: { role: "STUDENT" } },
+        },
+        select: { id: true },
+      });
+      if (existingByName) {
+        skipped.push({ reason: "already_imported", name: fullName });
+        continue;
+      }
+
       const baseLocal = `${slug(cleanFirstRaw)}.${slug(cleanLastRaw)}`.replace(/\.+/g, ".").replace(/^\.|\.$/g, "") || `student.${randDigits(4)}`;
       const domain = pick(domains);
 
