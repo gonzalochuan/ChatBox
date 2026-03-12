@@ -651,6 +651,196 @@ app.post("/api/zego/token", async (req, res) => {
   }
 });
 
+app.post("/admin/import-b3", async (req, res) => {
+  try {
+    const seedKeyHeader = String(req.headers["x-seed-key"] || "");
+    const seedKeyEnv = String(process.env.SEED_KEY || "");
+
+    let isAdminSession = false;
+    try {
+      const token = req.cookies?.token;
+      if (token) {
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        const userId = decoded?.id;
+        if (userId) {
+          const roles = await prisma.userRole.findMany({ where: { userId }, select: { role: true } });
+          isAdminSession = roles.some((r: any) => r.role === "ADMIN");
+        }
+      }
+    } catch {}
+
+    const isSeedKeyAuthed = Boolean(seedKeyEnv && seedKeyHeader && seedKeyHeader === seedKeyEnv);
+    if (!isAdminSession && !isSeedKeyAuthed) return res.status(401).json({ error: "unauthorized" });
+
+    const yearLevel = "4";
+    const block = "B3";
+    const pwd = "seait123";
+    const passwordHash = await bcrypt.hash(pwd, 10);
+
+    const candidates = [
+      "IT 324",
+      "CAPSTONE",
+      "IT 401",
+      "IT 402",
+      "IT 403",
+      "IT 404",
+      "IT 405",
+      "IT 406",
+      "IT 407",
+      "IT 408",
+    ];
+    const domains = ["seait.edu", "seait.com", "gmail.com", "school.edu", "campus.edu"];
+
+    const names: Array<{ last: string; first: string }> = [
+      { last: "ABUEME", first: "YZHEN STEFFEN CLARK" },
+      { last: "AGUSTIN", first: "PATRICK JUSTIN" },
+      { last: "ALOOT", first: "JHON DENVER" },
+      { last: "ANDRADE", first: "GLESTHER JOHN" },
+      { last: "ANG", first: "STEPHEN BRYLLE" },
+      { last: "AVENIDO", first: "REY GEORGE" },
+      { last: "BALTERO", first: "JONAMAE" },
+      { last: "BARRIOS", first: "ARON JAMES" },
+      { last: "CABANBAN", first: "CYNIE" },
+      { last: "CADUNGOG", first: "KEAN JAMES" },
+      { last: "CONSAD", first: "REYNALDO, JR." },
+      { last: "COTIMAR", first: "MARPY" },
+      { last: "CURAY", first: "ARJAY" },
+      { last: "DALON", first: "RONIEL" },
+      { last: "ENRIQUEZ", first: "CHRISTIAN LAWRENCE" },
+      { last: "ESLABAN", first: "GLENN" },
+      { last: "FAJADAN", first: "KYLE" },
+      { last: "GERASMIA", first: "ARNETH BABES" },
+      { last: "GIGANTE", first: "JOBERT" },
+      { last: "GUADALUPE", first: "RIC JOHN" },
+      { last: "HATULAN", first: "MARIEL" },
+      { last: "JONGAY", first: "RAJAA" },
+      { last: "LANDERO", first: "JOANA MAE" },
+      { last: "LAPIZAR", first: "LENARD JAY" },
+      { last: "LEMBAGA", first: "CHRISTIAN" },
+      { last: "MASENDO", first: "ARHA" },
+      { last: "MIJARES", first: "AXL JOHN" },
+      { last: "MONTILLA", first: "ANDY KENETH" },
+      { last: "MORALES", first: "FRANCIS JOHN" },
+      { last: "NABE", first: "FRANCIS ANTHONY" },
+      { last: "PALMA", first: "ELMA JOY" },
+      { last: "PIANG", first: "JULYDINE" },
+      { last: "QUIÑANOLA", first: "FERG JUNE" },
+      { last: "SALARZA", first: "JHON MARK" },
+      { last: "TAGHAP", first: "MARK JEREMY" },
+      { last: "VILLAGRACIA", first: "KRISTINE HEART" },
+      { last: "VILLALOBOS", first: "JOSHUA" },
+      { last: "VILLANUEVA", first: "MARIE JAME" },
+      { last: "VILLANUEVA", first: "CHARLENE" },
+      { last: "ZALDIVIA", first: "KIM ROGER" },
+    ];
+
+    const slug = (s: string) => String(s || "")
+      .toLowerCase()
+      .replace(/\(.*?\)/g, "")
+      .replace(/[^a-z0-9]+/g, ".")
+      .replace(/^\.+|\.+$/g, "")
+      .slice(0, 40);
+
+    const toTitle = (s: string) => {
+      const text = String(s || "").trim().toLowerCase();
+      if (!text) return "";
+      return text
+        .split(/\s+/)
+        .map((w) => {
+          const parts = w.split("-").filter(Boolean);
+          const fixed = parts
+            .map((p) => p ? p[0].toUpperCase() + p.slice(1) : p)
+            .join("-");
+          return fixed;
+        })
+        .join(" ");
+    };
+
+    const randDigits = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join("");
+    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+    const shuffle = <T,>(arr: T[]) => {
+      const out = [...arr];
+      for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+      }
+      return out;
+    };
+
+    const created: Array<{ email: string; studentId: string; name: string }> = [];
+    const skipped: Array<{ reason: string; name: string }> = [];
+
+    for (const row of names) {
+      const cleanLastRaw = String(row.last || "").trim();
+      const cleanFirstRaw = String(row.first || "").trim();
+      const nameFirst = toTitle(cleanFirstRaw);
+      const nameLast = toTitle(cleanLastRaw);
+      const fullName = `${nameFirst} ${nameLast}`.replace(/\s+/g, " ").trim();
+      const nickname = (nameFirst.split(/\s|,/).filter(Boolean)[0] || nameLast.split(/\s|,/).filter(Boolean)[0] || "Student").trim();
+
+      const baseLocal = `${slug(cleanFirstRaw)}.${slug(cleanLastRaw)}`.replace(/\.+/g, ".").replace(/^\.|\.$/g, "") || `student.${randDigits(4)}`;
+      const domain = pick(domains);
+
+      let email = `${baseLocal}@${domain}`.toLowerCase();
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const exists = await prisma.user.findUnique({ where: { email } });
+        if (!exists) break;
+        email = `${baseLocal}${randDigits(3)}@${domain}`.toLowerCase();
+      }
+      const emailExists = await prisma.user.findUnique({ where: { email } });
+      if (emailExists) {
+        skipped.push({ reason: "email_taken", name: fullName });
+        continue;
+      }
+
+      const studentId = `2022-${randDigits(5)}`;
+      const subjects = (() => {
+        const extras = shuffle(candidates.filter((c) => c !== "IT 324" && c !== "CAPSTONE")).slice(0, 2);
+        return shuffle(["IT 324", "CAPSTONE", ...extras]);
+      })();
+
+      const user = await prisma.user.create({
+        data: {
+          email,
+          passwordHash,
+          name: fullName,
+          nickname,
+          studentId,
+          yearLevel,
+          block,
+          schedule: null,
+          avatarUrl: null,
+          profession: null,
+        },
+      });
+      await prisma.userRole.create({ data: { userId: user.id, role: "STUDENT" } });
+      await assignAcademicMemberships({
+        userId: user.id,
+        subjectCodes: subjects,
+        yearLevel,
+        block,
+        replaceSubjects: true,
+      });
+
+      created.push({ email, studentId, name: fullName });
+    }
+
+    return res.status(201).json({
+      yearLevel,
+      block,
+      requested: names.length,
+      created: created.length,
+      skipped: skipped.length,
+      password: pwd,
+      sample: created.slice(0, 5),
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("/admin/import-b3 error", e);
+    return res.status(500).json({ error: "import_failed" });
+  }
+});
+
 // Authenticated: list all teachers for DM picker (available to any logged-in user)
 app.get("/users/teachers", async (req, res) => {
   try {
