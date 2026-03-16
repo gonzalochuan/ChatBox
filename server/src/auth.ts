@@ -92,13 +92,14 @@ export function applyAuthRoutes(app: Express) {
   // Claim a pre-provisioned student account by verifying email + studentId
   app.post("/auth/claim-student", async (req: Request, res: Response) => {
     try {
-      const { email, studentId, newPassword } = req.body || {};
+      const { email, studentId, tempPassword, newPassword } = req.body || {};
       const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
       const normalizedStudentId = typeof studentId === "string" ? studentId.trim() : "";
+      const providedTempPassword = typeof tempPassword === "string" ? tempPassword : "";
       const password = typeof newPassword === "string" ? newPassword : "";
 
-      if (!normalizedEmail || !normalizedStudentId || !password) {
-        return res.status(400).json({ error: "email_studentId_newPassword_required" });
+      if (!normalizedEmail || !normalizedStudentId || !providedTempPassword || !password) {
+        return res.status(400).json({ error: "email_studentId_tempPassword_newPassword_required" });
       }
 
       // Password policy: at least 1 uppercase letter and 1 number, min length 6
@@ -119,15 +120,23 @@ export function applyAuthRoutes(app: Express) {
         return res.status(403).json({ error: "studentId_mismatch" });
       }
 
-      // Prevent re-claim if user has already changed password away from the default import password.
-      const defaultImportPassword = "seait123";
-      const stillDefault = await bcrypt.compare(defaultImportPassword, user.passwordHash).catch(() => false);
-      if (!stillDefault) {
+      // Prevent re-claim once the real user has claimed the account.
+      if ((user as any).claimedAt) {
         return res.status(409).json({ error: "already_claimed" });
       }
 
+      // Require knowledge of the temporary password provided by admin.
+      const tempOk = await bcrypt.compare(providedTempPassword, user.passwordHash).catch(() => false);
+      if (!tempOk) return res.status(401).json({ error: "invalid_temp_password" });
+
       const passwordHash = await bcrypt.hash(password, 10);
-      const updated = await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+      const updated = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          claimedAt: new Date(),
+        },
+      });
 
       const roles = await prisma.userRole.findMany({ where: { userId: updated.id } });
       const token = signToken({ uid: updated.id, email: updated.email, roles: (roles as RoleRow[]).map((r: RoleRow) => r.role) });
@@ -142,6 +151,7 @@ export function applyAuthRoutes(app: Express) {
           yearLevel: updated.yearLevel,
           block: updated.block,
           avatarUrl: updated.avatarUrl,
+          claimedAt: (updated as any).claimedAt || null,
           roles: (roles as RoleRow[]).map((r: RoleRow) => r.role),
         },
         token,

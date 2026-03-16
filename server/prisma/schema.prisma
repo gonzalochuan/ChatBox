@@ -19,6 +19,7 @@ model User {
   profession   String?
   schedule     String?
   avatarUrl    String?
+  claimedAt    DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   messages     Message[]

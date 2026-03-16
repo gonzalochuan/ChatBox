@@ -10,6 +10,7 @@ import PasswordInput from "@/components/PasswordInput";
 export default function ClaimPage() {
   const [email, setEmail] = useState("");
   const [studentId, setStudentId] = useState("");
+  const [tempPassword, setTempPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,8 +23,9 @@ export default function ClaimPage() {
 
     const normalizedEmail = email.trim();
     const normalizedStudentId = studentId.trim();
-    if (!normalizedEmail || !normalizedStudentId || !newPassword.trim()) {
-      setSubmitError("Email, Student ID, and New Password are required.");
+    const normalizedTemp = tempPassword;
+    if (!normalizedEmail || !normalizedStudentId || !normalizedTemp.trim() || !newPassword.trim()) {
+      setSubmitError("Email, Student ID, Temporary Password, and New Password are required.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -39,6 +41,7 @@ export default function ClaimPage() {
         body: JSON.stringify({
           email: normalizedEmail,
           studentId: normalizedStudentId,
+          tempPassword: normalizedTemp,
           newPassword,
         }),
       });
@@ -49,7 +52,9 @@ export default function ClaimPage() {
         if (code === "account_not_found") throw new Error("Account not found. Make sure you are using the email that was imported by admin.");
         if (code === "studentId_mismatch") throw new Error("Student ID does not match the imported record.");
         if (code === "already_claimed") throw new Error("This account has already been claimed. Please sign in instead.");
+        if (code === "invalid_temp_password") throw new Error("Temporary password is incorrect.");
         if (code === "password_must_include_uppercase_and_number_min6") throw new Error("Password must be at least 6 characters and include 1 uppercase letter and 1 number.");
+        if (code === "email_studentId_tempPassword_newPassword_required") throw new Error("Please fill out all required fields.");
         throw new Error(code || `Claim failed (${resp.status})`);
       }
 
@@ -117,6 +122,17 @@ export default function ClaimPage() {
                 onChange={(e) => setStudentId(e.target.value)}
                 className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2.5 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
                 placeholder="2022-12345"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs uppercase tracking-widest text-white/60">Temporary password <span className="text-red-400">*</span></label>
+              <PasswordInput
+                required
+                value={tempPassword}
+                onChange={setTempPassword}
+                className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2.5 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
+                placeholder="(given by admin)"
               />
             </div>
 
