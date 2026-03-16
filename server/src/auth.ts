@@ -28,6 +28,10 @@ export function applyAuthRoutes(app: Express) {
       const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
       if (!normalizedEmail || !password) return res.status(400).json({ error: "email and password are required" });
 
+      // Students are pre-provisioned by admin import. Public registration is disabled to prevent impersonation.
+      // Use POST /auth/claim-student to claim a pre-imported student account.
+      return res.status(403).json({ error: "student_registration_disabled_use_claim" });
+
       // Password policy: at least 1 uppercase letter and 1 number, min length 6
       const hasUpper = /[A-Z]/.test(password);
       const hasNumber = /[0-9]/.test(password);
@@ -81,6 +85,70 @@ export function applyAuthRoutes(app: Express) {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("/auth/register error", err);
+      return res.status(500).json({ error: "internal_error" });
+    }
+  });
+
+  // Claim a pre-provisioned student account by verifying email + studentId
+  app.post("/auth/claim-student", async (req: Request, res: Response) => {
+    try {
+      const { email, studentId, newPassword } = req.body || {};
+      const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+      const normalizedStudentId = typeof studentId === "string" ? studentId.trim() : "";
+      const password = typeof newPassword === "string" ? newPassword : "";
+
+      if (!normalizedEmail || !normalizedStudentId || !password) {
+        return res.status(400).json({ error: "email_studentId_newPassword_required" });
+      }
+
+      // Password policy: at least 1 uppercase letter and 1 number, min length 6
+      const hasUpper = /[A-Z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+      if (!(hasUpper && hasNumber) || password.length < 6) {
+        return res.status(400).json({ error: "password_must_include_uppercase_and_number_min6" });
+      }
+
+      const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+      if (!user) return res.status(404).json({ error: "account_not_found" });
+
+      const isStudent = await prisma.userRole.findFirst({ where: { userId: user.id, role: "STUDENT" }, select: { id: true } });
+      if (!isStudent) return res.status(403).json({ error: "not_student" });
+
+      const storedStudentId = String(user.studentId || "").trim();
+      if (!storedStudentId || storedStudentId !== normalizedStudentId) {
+        return res.status(403).json({ error: "studentId_mismatch" });
+      }
+
+      // Prevent re-claim if user has already changed password away from the default import password.
+      const defaultImportPassword = "seait123";
+      const stillDefault = await bcrypt.compare(defaultImportPassword, user.passwordHash).catch(() => false);
+      if (!stillDefault) {
+        return res.status(409).json({ error: "already_claimed" });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+      const updated = await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+
+      const roles = await prisma.userRole.findMany({ where: { userId: updated.id } });
+      const token = signToken({ uid: updated.id, email: updated.email, roles: (roles as RoleRow[]).map((r: RoleRow) => r.role) });
+
+      return res.status(200).json({
+        user: {
+          id: updated.id,
+          email: updated.email,
+          name: updated.name,
+          nickname: updated.nickname,
+          studentId: updated.studentId,
+          yearLevel: updated.yearLevel,
+          block: updated.block,
+          avatarUrl: updated.avatarUrl,
+          roles: (roles as RoleRow[]).map((r: RoleRow) => r.role),
+        },
+        token,
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("/auth/claim-student error", err);
       return res.status(500).json({ error: "internal_error" });
     }
   });

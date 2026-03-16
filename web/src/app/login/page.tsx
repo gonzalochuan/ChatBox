@@ -103,7 +103,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-5 text-sm text-white/70 flex items-center justify-between">
-            <Link href="/register" className="hover:text-white">Create account</Link>
+            <Link href="/claim" className="hover:text-white">Claim account</Link>
             <Link href="/chat" className="hover:text-white">Continue as guest</Link>
           </div>
         </div>
