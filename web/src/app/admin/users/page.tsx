@@ -8,7 +8,7 @@ import { SERVER_URL } from "@/lib/config";
 import PasswordInput from "@/components/PasswordInput";
 import AvatarPicker from "@/components/AvatarPicker";
 
-const YEAR_OPTIONS = ["1", "2", "3", "4", "5"];
+const YEAR_OPTIONS = ["1", "2", "3", "4"];
 
 interface AdminUser {
   id: string;
