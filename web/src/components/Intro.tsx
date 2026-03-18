@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import PrimaryButton from "@/components/PrimaryButton";
 
 export default function Intro() {
   const [leaving, setLeaving] = useState(false);
@@ -36,6 +37,11 @@ export default function Intro() {
       v.pause();
     }
   }, [isPlaying]);
+
+  // Ensure we always start in the light, non-playing state
+  useEffect(() => {
+    setIsPlaying(false);
+  }, []);
 
   // Sparkle canvas overlay: draw tiny stars at grid intersections
   useEffect(() => {
@@ -135,21 +141,25 @@ export default function Intro() {
 
   return (
     <div
-      className={`relative fixed inset-0 z-50 overflow-hidden bg-black text-white ${leaving ? "intro-leave" : ""}`}
+      className={`relative fixed inset-0 z-50 overflow-hidden bg-[var(--background)] text-[var(--foreground)] ${leaving ? "intro-leave" : ""}`}
       style={{ minHeight: "100dvh" }}
     >
+      {/* Force a light canvas behind everything (prevents any black flash/layer bleed) */}
+      <div className="fixed inset-0 bg-[var(--background)]" />
+
       {/* Full-bleed background video shown when playing */}
       <video
         ref={bgVideoRef}
-        className={`fixed inset-0 w-full h-full object-cover transition-opacity duration-500 ${isPlaying ? "opacity-100" : "opacity-0"}`}
+        className={`fixed inset-0 w-full h-full object-cover transition-opacity duration-500 ${isPlaying ? "opacity-[0.10]" : "opacity-0"}`}
         src="/chat2.mp4"
         muted
         loop
         playsInline
       />
 
-      {/* Subtle dark veil for readability when playing (below grid) */}
-      <div className={`fixed inset-0 bg-black/50 transition-opacity duration-500 ${isPlaying ? "opacity-100" : "opacity-0"}`} />
+      {/* Keep background light even when playing (no dark veil) */}
+      {/* When NOT playing, keep it purely light (no dark tint) */}
+      <div className={`fixed inset-0 bg-[var(--background)] transition-opacity duration-500 ${isPlaying ? "opacity-0" : "opacity-100"}`} />
 
       {/* Grid overlay fixed to viewport */}
       <div className="grid-layer" />
@@ -157,9 +167,9 @@ export default function Intro() {
       <canvas ref={sparkleCanvasRef} className="fixed inset-0 z-[8] pointer-events-none" />
 
       {/* Top chrome */}
-      <div className="absolute top-6 left-6 z-20 text-xs md:text-sm tracking-widest text-white/80 font-ethno-bold">CB</div>
+      <div className="absolute top-6 left-6 z-20 text-xs md:text-sm tracking-widest text-[var(--foreground)]/80 font-ethno-bold">CB</div>
       <a
-        className="absolute top-6 right-6 z-20 text-xs md:text-sm tracking-wider text-white/80 hover:text-white/95"
+        className="absolute top-6 right-6 z-20 text-xs md:text-sm tracking-wider text-[var(--foreground)]/80 hover:text-[var(--foreground)]"
         href="#"
         onClick={(e) => {
           e.preventDefault();
@@ -171,92 +181,93 @@ export default function Intro() {
 
       {/* Centered title */}
       <div className="fixed inset-0 z-10 grid place-items-center px-6 select-none">
-        <h1 className="text-white/80 font-ethno-bold text-3xl sm:text-5xl md:text-6xl tracking-[0.12em] sm:tracking-[0.35em] md:tracking-[0.6em] text-center leading-tight whitespace-normal sm:whitespace-nowrap animate-rise">
+        <h1 className="text-[var(--foreground)]/95 font-ethno-bold text-3xl sm:text-5xl md:text-6xl tracking-[0.12em] sm:tracking-[0.35em] md:tracking-[0.6em] text-center leading-tight whitespace-normal sm:whitespace-nowrap animate-rise">
           C h a t  B o x
         </h1>
       </div>
 
       {/* Lower section: subtitle and button near bottom */}
       <div className="fixed left-0 right-0 z-10 px-6 select-none flex flex-col items-center gap-6 bottom-24 sm:bottom-28 md:bottom-32">
-        <p className="text-center max-w-xl text-white/80 tracking-wide leading-relaxed animate-fade-in [animation-delay:200ms]">
+        <p className="text-center max-w-xl text-[var(--foreground)]/70 tracking-wide leading-relaxed animate-fade-in [animation-delay:200ms]">
           Step into ChatBox — Intranet Based Communication Platforms.
         </p>
-        <button
-          onClick={handleStart}
-          className="inline-flex items-center justify-center rounded-full border border-white/50 px-8 py-3 text-white/90 hover:bg-white/5 active:bg-white/10 transition-colors shadow-[0_0_0_1px_rgba(255,255,255,0.15)_inset]"
-        >
-          Get Started
-        </button>
+        <PrimaryButton onClick={handleStart}>Get Started</PrimaryButton>
       </div>
 
       {/* Bottom-left Play/Pause toggle */}
       <button
         aria-label={isPlaying ? "Pause background" : "Play background"}
         onClick={togglePlay}
-        className="absolute left-6 bottom-6 z-20 h-6 w-6 md:h-7 md:w-7 grid place-items-center text-white/80 hover:text-white/95"
+        className="absolute left-6 bottom-6 z-20 h-6 w-6 md:h-7 md:w-7 grid place-items-center text-[var(--foreground)]/70 hover:text-[var(--foreground)]"
       >
         {/* Icon */}
         {isPlaying ? (
           <span className="relative block w-4 h-4">
-            <span className="absolute inset-y-0 left-0 w-1 bg-white rounded-sm"></span>
-            <span className="absolute inset-y-0 right-0 w-1 bg-white rounded-sm"></span>
+            <span className="absolute inset-y-0 left-0 w-1 bg-current rounded-sm"></span>
+            <span className="absolute inset-y-0 right-0 w-1 bg-current rounded-sm"></span>
           </span>
         ) : (
-          <span className="block w-0 h-0 border-y-[8px] border-y-transparent border-l-[12px] border-l-white translate-x-[2px]" />
+          <span className="block w-0 h-0 border-y-[8px] border-y-transparent border-l-[12px] border-l-current translate-x-[2px]" />
         )}
       </button>
       {showHowTo ? (
         <div className="fixed inset-0 z-[60]">
-          <div className="absolute inset-0 bg-black/70" onClick={() => setShowHowTo(false)} />
+          <div className="absolute inset-0 bg-black/35" onClick={() => setShowHowTo(false)} />
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-lg rounded-[28px] border border-white/10 bg-black/80 backdrop-blur-2xl shadow-[0_25px_80px_-40px_rgba(0,0,0,0.8)] overflow-hidden">
-              <div className="relative px-6 py-5 border-b border-white/10 bg-gradient-to-r from-white/8 via-white/4 to-transparent">
-                <div className="flex items-center justify-between gap-6">
+            <div className="w-full max-w-xl rounded-[28px] border border-[var(--border)] bg-[var(--surface)] shadow-[0_30px_90px_-55px_rgba(15,23,42,0.55)] overflow-hidden">
+              <div className="relative px-6 py-5 border-b border-[var(--border)] bg-gradient-to-r from-[color-mix(in_oklab,var(--brand)_14%,var(--surface))] via-[color-mix(in_oklab,var(--brand)_8%,var(--surface))] to-[var(--surface)]">
+                <div className="flex items-start justify-between gap-6">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.35em] text-white/70">Getting Started</div>
-                    <div className="mt-1 text-lg font-medium text-white/90">How to use ChatBox</div>
+                    <div className="text-[10px] uppercase tracking-[0.35em] text-[var(--muted-2)]">Getting Started</div>
+                    <div className="mt-1 text-xl font-semibold text-[var(--foreground)]">How to use ChatBox</div>
+                    <div className="mt-1 text-sm text-[var(--muted)]">ChatBox works on your campus network (Wi‑Fi/LAN).</div>
                   </div>
                   <button
                     type="button"
-                    className="h-8 w-8 rounded-full border border-white/20 text-white/70 hover:text-white hover:border-white/40 transition"
+                    className="h-9 w-9 rounded-full border border-[var(--border)] bg-[color-mix(in_oklab,var(--brand)_6%,var(--surface))] text-[var(--foreground)]/70 hover:text-[var(--foreground)] hover:bg-[color-mix(in_oklab,var(--brand)_10%,var(--surface))] transition"
                     onClick={() => setShowHowTo(false)}
+                    aria-label="Close"
                   >
                     ✕
                   </button>
                 </div>
-                <div className="absolute inset-x-6 bottom-0 translate-y-1 h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                <div className="absolute inset-x-6 bottom-0 translate-y-1 h-[2px] bg-gradient-to-r from-transparent via-[color-mix(in_oklab,var(--brand)_55%,transparent)] to-transparent" />
               </div>
-              <div className="px-6 py-6 space-y-4 text-sm text-white/80">
+
+              <div className="px-6 py-6 space-y-4 text-sm text-[var(--foreground)]">
                 <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 shrink-0 rounded-2xl border border-emerald-400/30 bg-emerald-500/20 backdrop-blur-sm grid place-items-center text-emerald-200 text-lg">
-                    🌐
+                  <div className="h-11 w-11 shrink-0 rounded-2xl border border-[color-mix(in_oklab,var(--brand)_35%,transparent)] bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))] grid place-items-center text-[var(--brand)]">
+                    <span className="text-lg" aria-hidden="true">📶</span>
                   </div>
-                  <div>
-                    <div className="font-medium text-white/90">Connect to the same network</div>
-                    <p className="mt-1 leading-relaxed text-white/70">Ensure all devices join the campus Wi-Fi or LAN IP so peer-to-peer messaging, calls, and file syncing work seamlessly.</p>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-[var(--foreground)]">Connect to campus Wi‑Fi</div>
+                    <p className="mt-1 leading-relaxed text-[var(--muted)]">Make sure your phone/PC is connected to the same campus Wi‑Fi or LAN so messaging and calls work.</p>
                   </div>
                 </div>
+
                 <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 shrink-0 rounded-2xl border border-sky-400/30 bg-sky-500/20 backdrop-blur-sm grid place-items-center text-sky-200 text-lg">
-                    🔐
+                  <div className="h-11 w-11 shrink-0 rounded-2xl border border-[color-mix(in_oklab,var(--brand)_35%,transparent)] bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))] grid place-items-center text-[var(--brand)]">
+                    <span className="text-lg" aria-hidden="true">🔐</span>
                   </div>
-                  <div>
-                    <div className="font-medium text-white/90">Sign in and explore channels</div>
-                    <p className="mt-1 leading-relaxed text-white/70">Use your provided credentials to unlock announcements, subject rooms, and announcements tailored to your role.</p>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-[var(--foreground)]">Sign in / claim your account</div>
+                    <p className="mt-1 leading-relaxed text-[var(--muted)]">Use your school credentials. Students may need to claim their account first (imported by admin).</p>
                   </div>
                 </div>
+
                 <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 shrink-0 rounded-2xl border border-purple-400/30 bg-purple-500/20 backdrop-blur-sm grid place-items-center text-purple-200 text-lg">
-                    💬
+                  <div className="h-11 w-11 shrink-0 rounded-2xl border border-[color-mix(in_oklab,var(--brand)_35%,transparent)] bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))] grid place-items-center text-[var(--brand)]">
+                    <span className="text-lg" aria-hidden="true">💬</span>
                   </div>
-                  <div>
-                    <div className="font-medium text-white/90">Navigate and collaborate</div>
-                    <p className="mt-1 leading-relaxed text-white/70">Switch channels from the left rail to chat with classes, teams, or individuals. Share files and pin important messages for quick recall.</p>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-[var(--foreground)]">Join channels and chat</div>
+                    <p className="mt-1 leading-relaxed text-[var(--muted)]">Open General, Section, or Direct Messages. Pin important messages and share files.</p>
                   </div>
                 </div>
               </div>
-              <div className="px-6 py-4 border-t border-white/10 bg-black/70 text-xs text-white/60 flex items-center justify-between">
-                <span>Tip: Toggle the ambient background video using the play control in the lower-left corner.</span>
+
+              <div className="px-6 py-4 border-t border-[var(--border)] bg-[color-mix(in_oklab,var(--brand)_6%,var(--surface))] text-xs text-[var(--muted-2)]">
+                Tip: You can toggle the ambient background video using the play control in the lower-left corner.
               </div>
             </div>
           </div>

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import type { ActivityLog } from "@/types";
 import { SERVER_URL } from "@/lib/config";
 import { getToken } from "@/lib/auth";
 import { useConnection } from "@/store/useConnection";
+import PrimaryButton from "@/components/PrimaryButton";
 
 interface ActivityResponse {
   items: ActivityLog[];
@@ -263,13 +264,13 @@ export default function TeacherActivityPage() {
               <button onClick={() => setEngView("section")} className={`rounded-full px-3 py-1 border ${engView === "section" ? "border-white/60 bg-white/10" : "border-white/20 bg-white/5"}`}>Section</button>
               <button onClick={() => setEngView("subject")} className={`rounded-full px-3 py-1 border ${engView === "subject" ? "border-white/60 bg-white/10" : "border-white/20 bg-white/5"}`}>Subject</button>
               <div className="ml-auto flex gap-2">
-                <select value={period} onChange={(e) => setPeriod(e.target.value as any)} className="rounded-lg bg-black/30 border border-white/20 px-2 py-1 text-xs">
+                <select value={period} onChange={(e) => setPeriod(e.target.value as any)} className="rounded-lg bg-white/5 border border-white/20 px-2 py-1 text-xs text-white/90">
                   <option value="24h">24h</option>
                   <option value="7d">7d</option>
                   <option value="30d">30d</option>
                 </select>
                 {engView === "subject" && (
-                  <select value={subjectCode} onChange={(e) => setSubjectCode(e.target.value)} className="rounded-lg bg-black/30 border border-white/20 px-2 py-1 text-xs">
+                  <select value={subjectCode} onChange={(e) => setSubjectCode(e.target.value)} className="rounded-lg bg-white/5 border border-white/20 px-2 py-1 text-xs text-white/90">
                     {subjects.map((s) => (
                       <option key={s.id} value={s.id}>{s.id}</option>
                     ))}
@@ -336,7 +337,9 @@ export default function TeacherActivityPage() {
                       <input value={`${selectedStudent.yearLevel || "-"} ${selectedStudent.block || "-"}`} disabled className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white/70 outline-none" />
                     </div>
                     <div className="md:col-span-2 flex justify-end">
-                      <button disabled={savingStudent} onClick={saveStudent} className="rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 px-3 py-2 text-sm">{savingStudent ? "Saving…" : "Save changes"}</button>
+                      <PrimaryButton disabled={savingStudent} onClick={saveStudent}>
+                        {savingStudent ? "Saving…" : "Save changes"}
+                      </PrimaryButton>
                     </div>
                   </div>
                 )}

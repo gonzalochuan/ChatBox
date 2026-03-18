@@ -6,6 +6,7 @@ import SparkleGridOverlay from "@/components/SparkleGridOverlay";
 import { SERVER_URL } from "@/lib/config";
 import AlertBanner from "@/components/AlertBanner";
 import PasswordInput from "@/components/PasswordInput";
+import PrimaryButton from "@/components/PrimaryButton";
 
 export default function ClaimPage() {
   const [email, setEmail] = useState("");
@@ -97,7 +98,7 @@ export default function ClaimPage() {
 
       <div className="relative z-10 min-h-[100dvh] flex items-center justify-center p-6 pt-24 sm:pt-28">
         <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset,0_10px_40px_-10px_rgba(0,0,0,0.6)] p-6 sm:p-8">
-          <h1 className="text-2xl font-akira-bold tracking-wide">Claim account</h1>
+          <h1 className="text-2xl font-akira-bold text-[var(--foreground)]/95 tracking-wide">Claim account</h1>
           <p className="text-sm text-white/70 mt-4">Students are pre-imported by admin. Enter your imported email + Student ID to set your password.</p>
 
           <form onSubmit={onSubmit} className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -160,18 +161,14 @@ export default function ClaimPage() {
             </div>
 
             <div className="sm:col-span-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-full border border-white/25 bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-md py-3 font-medium tracking-wide transition-colors disabled:opacity-60"
-              >
+              <PrimaryButton type="submit" disabled={loading} fullWidth>
                 {loading ? "Claiming…" : "Claim account"}
-              </button>
+              </PrimaryButton>
             </div>
           </form>
 
           <div className="mt-5 text-sm text-white/70">
-            Already claimed? <Link href="/login" className="hover:text-white">Sign in</Link>
+            Already claimed? <Link href="/login" className="hover:text-gray">Sign in</Link>
           </div>
         </div>
       </div>

@@ -460,20 +460,20 @@ export default function ChatSidebar(): ReactElement {
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/70" onClick={() => setShowNewChat(false)} />
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-lg rounded-2xl border border-white/20 bg-black/70 backdrop-blur-xl p-4">
+            <div className="w-full max-w-lg rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl p-4">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-white/80 font-medium">Start a direct message</div>
-                <button className="text-white/60 hover:text-white" onClick={() => setShowNewChat(false)}>✕</button>
+                <div className="text-[color:var(--foreground)]/80 font-medium">Start a direct message</div>
+                <button className="text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]" onClick={() => setShowNewChat(false)}>✕</button>
               </div>
               <div className="mb-3">
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">🔎</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--foreground)]/50">🔎</span>
                   <input
                     autoFocus
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search students"
-                    className="w-full rounded-full border border-white/20 bg-black/30 text-white/90 pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                    className="w-full rounded-full border border-white/20 bg-[color:var(--surface)] text-[color:var(--foreground)] pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
                   />
                 </div>
               </div>
@@ -530,12 +530,12 @@ export default function ChatSidebar(): ReactElement {
                       }}
                       className="w-full text-left px-3 py-3 hover:bg-white/10 flex items-center gap-3"
                     >
-                      <div className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-white/80">
+                      <div className="h-9 w-9 rounded-full border border-white/20 bg-[color:var(--surface)] grid place-items-center text-[color:var(--foreground)]/70">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
                       </div>
                       <div className="min-w-0">
-                        <div className="text-sm text-white/90 truncate">{p.name}</div>
-                        {p.handle ? <div className="text-xs text-white/50 truncate">{p.handle}</div> : null}
+                        <div className="text-sm text-[color:var(--foreground)]/90 truncate">{p.name}</div>
+                        {p.handle ? <div className="text-xs text-[color:var(--foreground)]/50 truncate">{p.handle}</div> : null}
                       </div>
                     </button>
                   ))
@@ -552,10 +552,10 @@ export default function ChatSidebar(): ReactElement {
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/70" onClick={closeGroupModal} />
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-lg rounded-2xl border border-white/20 bg-black/70 backdrop-blur-xl p-4">
+            <div className="w-full max-w-lg rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl p-4 text-[color:var(--foreground)]">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-white/80 font-medium">Create a group</div>
-                <button className="text-white/60 hover:text-white" onClick={closeGroupModal}>✕</button>
+                <div className="text-[color:var(--foreground)]/85 font-medium">Create a group</div>
+                <button className="text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]" onClick={closeGroupModal}>✕</button>
               </div>
 
               {groupError && (
@@ -563,36 +563,36 @@ export default function ChatSidebar(): ReactElement {
               )}
 
               <div className="space-y-2 mb-3">
-                <label className="block text-xs text-white/60">Group name (optional)</label>
+                <label className="block text-xs text-[color:var(--foreground)]/60">Group name (optional)</label>
                 <input
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
                   placeholder="e.g., Thesis Team"
-                  className="w-full rounded-xl border border-white/20 bg-black/30 text-white/90 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                  className="w-full rounded-xl border border-white/20 bg-[color:var(--surface)] text-[color:var(--foreground)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
                 />
               </div>
 
               <div className="mb-3">
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">🔎</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--foreground)]/50">🔎</span>
                   <input
                     autoFocus
                     value={groupQuery}
                     onChange={(e) => setGroupQuery(e.target.value)}
                     placeholder="Search students or teachers"
-                    className="w-full rounded-full border border-white/20 bg-black/30 text-white/90 pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                    className="w-full rounded-full border border-white/20 bg-[color:var(--surface)] text-[color:var(--foreground)] pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
                   />
                 </div>
               </div>
 
-              <div className="text-[11px] text-white/60 mb-2">Selected: {selectedGroupMembers.length}</div>
+              <div className="text-[11px] text-[color:var(--foreground)]/60 mb-2">Selected: {selectedGroupMembers.length}</div>
               <div className="max-h-[45vh] overflow-y-auto custom-scroll divide-y divide-white/10">
                 {peopleLoading ? (
-                  <div className="py-6 text-center text-white/60 text-sm">Loading…</div>
+                  <div className="py-6 text-center text-[color:var(--foreground)]/60 text-sm">Loading…</div>
                 ) : peopleError ? (
                   <div className="py-6 text-center text-red-300 text-sm">{peopleError}</div>
                 ) : filteredGroupPeople.length === 0 ? (
-                  <div className="py-6 text-center text-white/60 text-sm">No people found.</div>
+                  <div className="py-6 text-center text-[color:var(--foreground)]/60 text-sm">No people found.</div>
                 ) : (
                   filteredGroupPeople.map((p) => {
                     const checked = selectedGroupMembers.includes(p.id);
@@ -600,14 +600,14 @@ export default function ChatSidebar(): ReactElement {
                       <button
                         key={p.id}
                         onClick={() => toggleMember(p.id)}
-                        className="w-full text-left px-3 py-3 hover:bg-white/10 flex items-center gap-3"
+                        className="w-full text-left px-3 py-3 hover:bg-white/10 flex items-center gap-3 text-[color:var(--foreground)]"
                       >
-                        <div className={`h-5 w-5 rounded border grid place-items-center ${checked ? "border-emerald-300/60 bg-emerald-500/20" : "border-white/20 bg-white/5"}`}>
-                          {checked ? <span className="text-emerald-200 text-xs leading-none">✓</span> : null}
+                        <div className={`h-5 w-5 rounded border grid place-items-center ${checked ? "border-emerald-400/60 bg-emerald-500/20" : "border-[color:var(--foreground)]/25 bg-[color:var(--surface)]"}`}>
+                          {checked ? <span className="text-emerald-700 text-xs leading-none">✓</span> : null}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm text-white/90 truncate">{p.name}</div>
-                          {p.handle ? <div className="text-xs text-white/50 truncate">{p.handle}</div> : null}
+                          <div className="text-sm text-[color:var(--foreground)]/90 truncate">{p.name}</div>
+                          {p.handle ? <div className="text-xs text-[color:var(--foreground)]/50 truncate">{p.handle}</div> : null}
                         </div>
                         {Boolean((p as any).isTeacher) && (
                           <span className="shrink-0 inline-flex items-center rounded-full border border-emerald-300/30 bg-emerald-500/15 px-2 py-[2px] text-[9px] uppercase tracking-[0.22em] text-emerald-200">Teacher</span>
@@ -621,7 +621,7 @@ export default function ChatSidebar(): ReactElement {
               <div className="mt-4 flex justify-end gap-2">
                 <button
                   type="button"
-                  className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm"
+                  className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm text-[color:var(--foreground)]"
                   onClick={closeGroupModal}
                   disabled={creatingGroup}
                 >
@@ -629,7 +629,7 @@ export default function ChatSidebar(): ReactElement {
                 </button>
                 <button
                   type="button"
-                  className="rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 px-4 py-2 text-sm"
+                  className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold tracking-wide text-white bg-gradient-to-b from-[var(--brand-2)] to-[var(--brand)] shadow-[0_14px_30px_-20px_rgba(234,88,12,0.60),0_0_0_1px_rgba(234,88,12,0.35)_inset] hover:brightness-[1.01] active:brightness-[0.98] transition disabled:opacity-60 disabled:cursor-not-allowed"
                   onClick={createSectionGroup}
                   disabled={creatingGroup}
                 >

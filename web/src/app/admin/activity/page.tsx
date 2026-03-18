@@ -6,6 +6,7 @@ import type { ActivityLog } from "@/types";
 import { SERVER_URL } from "@/lib/config";
 import { getToken } from "@/lib/auth";
 import { useConnection } from "@/store/useConnection";
+import PrimaryButton from "@/components/PrimaryButton";
 
 interface ActivityResponse {
   items: ActivityLog[];
@@ -110,12 +111,9 @@ export default function AdminActivityPage() {
               className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none"
             />
             <div className="flex gap-2">
-              <button
-                onClick={() => fetchLogs()}
-                className="flex-1 rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 px-3 py-2"
-              >
+              <PrimaryButton onClick={() => fetchLogs()} className="flex-1">
                 Apply
-              </button>
+              </PrimaryButton>
               <button
                 onClick={() => { setKind(""); setActorId(""); setSubjectType(""); setSubjectId(""); fetchLogs(); }}
                 className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-3 py-2"

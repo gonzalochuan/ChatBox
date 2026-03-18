@@ -23,22 +23,22 @@ function SmartContextCardCompact({ context, align }: { context: MessageContext; 
   const suggestions = Array.isArray(context.suggestions) ? context.suggestions.filter(Boolean) : [];
   return (
     <div className={`flex ${align === "right" ? "justify-end" : "justify-start"}`}>
-      <div className="mt-2 max-w-[80%] rounded-xl border border-emerald-300/20 bg-emerald-900/10 px-3 py-2 text-emerald-100 shadow-[0_0_10px_rgba(16,185,129,0.10)]">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-200/70">
+      <div className="mt-2 max-w-[80%] rounded-xl border border-emerald-500/20 bg-[color:var(--surface)]/70 px-3 py-2 text-[color:var(--foreground)] shadow-[0_0_10px_rgba(16,185,129,0.08)]">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-600/80">
           Smart Contextual Messaging
         </div>
         {context.summary ? (
-          <div className="mt-1 text-[12px] text-emerald-50/85 whitespace-pre-wrap break-words">
+          <div className="mt-1 text-[12px] text-[color:var(--foreground)]/85 whitespace-pre-wrap break-words">
             {context.summary}
           </div>
         ) : null}
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-emerald-200/60">
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[color:var(--foreground)]/60">
           <span className="truncate max-w-[14rem]">{meta.filename}</span>
           <span>{formatBytesReadable(meta.size)}</span>
           {meta.mimetype ? <span>{meta.mimetype}</span> : null}
         </div>
         {(highlights.length > 0 || suggestions.length > 0) ? (
-          <div className="mt-2 text-[11px] text-emerald-50/80">
+          <div className="mt-2 text-[11px] text-[color:var(--foreground)]/80">
             {highlights.length > 0 ? <div>Highlights: {highlights.slice(0, 2).join(" • ")}{highlights.length > 2 ? " …" : ""}</div> : null}
             {suggestions.length > 0 ? <div>Suggested: {suggestions.slice(0, 2).join(" • ")}{suggestions.length > 2 ? " …" : ""}</div> : null}
           </div>
@@ -54,19 +54,19 @@ function SmartContextCard({ context, align }: { context: MessageContext; align: 
   const meta = context.meta || { filename: "attachment", size: 0, mimetype: "" };
   return (
     <div className={`flex ${align === "right" ? "justify-end" : "justify-start"}`}>
-      <div className="mt-2 max-w-[80%] rounded-2xl border border-emerald-300/30 bg-emerald-900/20 px-4 py-3 text-emerald-100 shadow-[0_0_12px_rgba(16,185,129,0.13)]">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-200/80 mb-2">
+      <div className="mt-2 max-w-[80%] rounded-2xl border border-emerald-500/25 bg-[color:var(--surface)]/70 px-4 py-3 text-[color:var(--foreground)] shadow-[0_0_12px_rgba(16,185,129,0.10)]">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-600/80 mb-2">
           Smart Contextual Messaging
         </div>
-        <div className="text-sm text-emerald-50/90 whitespace-pre-wrap break-words">
+        <div className="text-sm text-[color:var(--foreground)]/90 whitespace-pre-wrap break-words">
           {context.summary || `${meta.filename} was shared.`}
         </div>
         {highlights.length > 0 ? (
           <div className="mt-3">
-            <div className="text-[10px] uppercase tracking-[0.24em] text-emerald-200/70 mb-1">
+            <div className="text-[10px] uppercase tracking-[0.24em] text-emerald-600/70 mb-1">
               Highlights
             </div>
-            <ul className="list-disc list-inside space-y-1 text-sm text-emerald-50/85">
+            <ul className="list-disc list-inside space-y-1 text-sm text-[color:var(--foreground)]/85">
               {highlights.map((item, idx) => (
                 <li key={idx}>{item}</li>
               ))}
@@ -75,23 +75,23 @@ function SmartContextCard({ context, align }: { context: MessageContext; align: 
         ) : null}
         {suggestions.length > 0 ? (
           <div className="mt-3">
-            <div className="text-[10px] uppercase tracking-[0.24em] text-emerald-200/70 mb-1">
+            <div className="text-[10px] uppercase tracking-[0.24em] text-emerald-600/70 mb-1">
               Suggested Replies
             </div>
-            <ul className="list-disc list-inside space-y-1 text-sm text-emerald-100/90">
+            <ul className="list-disc list-inside space-y-1 text-sm text-[color:var(--foreground)]/90">
               {suggestions.map((item, idx) => (
                 <li key={idx}>{item}</li>
               ))}
             </ul>
           </div>
         ) : null}
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-emerald-200/70">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[color:var(--foreground)]/70">
           <span className="truncate max-w-[14rem]">{meta.filename}</span>
           <span>{formatBytesReadable(meta.size)}</span>
           {meta.mimetype ? <span>{meta.mimetype}</span> : null}
         </div>
         {context.tagline ? (
-          <div className="mt-3 text-[10px] text-emerald-200/60 uppercase tracking-[0.2em]">
+          <div className="mt-3 text-[10px] text-[color:var(--foreground)]/55 uppercase tracking-[0.2em]">
             {context.tagline}
           </div>
         ) : null}
@@ -143,6 +143,7 @@ export default function ChatWindow() {
   const audioStreamRef = useRef<MediaStream | null>(null);
   const videoElRef = useRef<HTMLVideoElement>(null);
   const remoteVideoElRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioElRef = useRef<HTMLAudioElement>(null);
   // In-app call state
   const [incomingCall, setIncomingCall] = useState<{ channelId: string; kind: "video" | "voice"; from?: string; fromSocketId?: string } | null>(null);
   const [inCall, setInCall] = useState(false);
@@ -301,20 +302,30 @@ export default function ChatWindow() {
   useEffect(() => {
     try {
       if (videoElRef.current) {
-        videoElRef.current.srcObject = videoStream as any;
+        const local = (callKind === "video" ? videoStreamRef.current : null) || videoStream;
+        (videoElRef.current as any).srcObject = local as any;
       }
     } catch {}
-  }, [videoStream]);
+  }, [videoStream, callKind]);
 
   // Attach remote video element when stream arrives
   useEffect(() => {
     try {
       // eslint-disable-next-line no-console
       console.log("[webrtc] remoteStream changed:", remoteStream?.id, "tracks:", remoteStream?.getTracks().length);
-      if (remoteVideoElRef.current && remoteStream) {
-        (remoteVideoElRef.current as any).srcObject = remoteStream;
+      if (remoteVideoElRef.current) {
+        (remoteVideoElRef.current as any).srcObject = remoteStream || null;
         // eslint-disable-next-line no-console
         console.log("[webrtc] Set remote video srcObject");
+      }
+    } catch {}
+  }, [remoteStream]);
+
+  // Attach remote audio playback (needed for voice calls and for hearing remote audio in video calls)
+  useEffect(() => {
+    try {
+      if (remoteAudioElRef.current) {
+        (remoteAudioElRef.current as any).srcObject = remoteStream || null;
       }
     } catch {}
   }, [remoteStream]);
@@ -507,10 +518,21 @@ export default function ChatWindow() {
       }
     };
     pc.ontrack = (e) => {
-      const [stream] = e.streams;
+      const stream = (e.streams && e.streams[0]) ? e.streams[0] : null;
       // eslint-disable-next-line no-console
-      console.log("[webrtc] ontrack received stream:", stream?.id, "tracks:", stream?.getTracks().length);
-      if (stream) setRemoteStream(stream);
+      console.log("[webrtc] ontrack received stream:", stream?.id, "tracks:", stream?.getTracks().length, "track:", e.track?.kind);
+      if (stream) {
+        setRemoteStream(stream);
+        return;
+      }
+      // Some browsers may deliver tracks without streams; synthesize a MediaStream.
+      setRemoteStream((prev) => {
+        const next = prev ? new MediaStream(prev.getTracks()) : new MediaStream();
+        try {
+          if (e.track) next.addTrack(e.track);
+        } catch {}
+        return next;
+      });
     };
     pc.oniceconnectionstatechange = () => {
       // eslint-disable-next-line no-console
@@ -660,6 +682,7 @@ export default function ChatWindow() {
 
   return (
     <div className="h-full flex flex-col">
+      <audio ref={remoteAudioElRef} autoPlay playsInline />
       {/* Mobile header */}
       <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-white/10">
         <div className="flex items-center gap-3 min-w-0">
@@ -709,7 +732,7 @@ export default function ChatWindow() {
                     await startCallWithPeer("video");
                   } catch {}
                 }}
-                className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="Video">
+                className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10 text-[color:var(--foreground)]/85" title="Video">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>
               </button>
               <button
@@ -731,12 +754,12 @@ export default function ChatWindow() {
                     await startCallWithPeer("voice");
                   } catch {}
                 }}
-                className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="Call">
+                className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10 text-[color:var(--foreground)]/85" title="Call">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.13.98.36 1.94.69 2.86a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.92.33 1.88.56 2.86.69A2 2 0 0 1 22 16.92z"/></svg>
               </button>
             </>
           )}
-          <button onClick={() => setShowMore((v) => !v)} className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="More">
+          <button onClick={() => setShowMore((v) => !v)} className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10 text-[color:var(--foreground)]/85" title="More">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
           </button>
         </div>
@@ -744,22 +767,22 @@ export default function ChatWindow() {
       {/* Desktop header */}
       <div className="hidden md:flex items-center justify-between px-5 py-3 border-b border-white/10">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-white/80">
+          <div className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-[color:var(--foreground)]/80">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="truncate tracking-wider font-medium">{active?.name ?? "Chat"}</span>
+              <span className="truncate tracking-wider font-medium text-[color:var(--foreground)]">{active?.name ?? "Chat"}</span>
               {active?.kind === 'dm' && activeOtherIsTeacher && (
                 <span className="inline-flex items-center rounded-full border border-emerald-300/40 bg-emerald-500/20 px-2 py-[1px] text-[9px] uppercase tracking-[0.22em] text-emerald-200">
                   Teacher
                 </span>
               )}
             </div>
-            <div className="text-xs text-white/50 truncate">{active?.kind === 'dm' ? 'Online' : (active?.topic ?? '')}</div>
+            <div className="text-xs text-[color:var(--foreground)]/55 truncate">{active?.kind === 'dm' ? 'Online' : (active?.topic ?? '')}</div>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-white/80">
+        <div className="flex items-center gap-2 text-[color:var(--foreground)]/80">
           {canStartCall && (
             <>
               <button
@@ -830,11 +853,11 @@ export default function ChatWindow() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                className="rounded-md border border-amber-200/50 bg-amber-500/20 hover:bg-amber-500/30 px-2 py-1 text-xs"
+                className="rounded-md border border-orange-300/60 bg-orange-500/15 hover:bg-orange-500/25 px-2 py-1 text-xs text-[color:var(--foreground)]"
                 onClick={() => setShowPinnedList(true)}
               >View all ({currentPins.length})</button>
               <button
-                className="rounded-md border border-amber-200/50 bg-amber-500/20 hover:bg-amber-500/30 px-2 py-1 text-xs"
+                className="inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-semibold tracking-wide text-white bg-gradient-to-b from-[var(--brand-2)] to-[var(--brand)] shadow-[0_14px_30px_-20px_rgba(234,88,12,0.60),0_0_0_1px_rgba(234,88,12,0.35)_inset] hover:brightness-[1.01] active:brightness-[0.98] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 onClick={async () => {
                   if (!activeChannelId || !baseUrl || !primaryPin?.message?.id) return;
                   try {
@@ -882,14 +905,14 @@ export default function ChatWindow() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={normalizeAvatar(m.senderAvatarUrl)!} alt={m.senderName} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="h-full w-full grid place-items-center text-white/50">?</div>
+                        <div className="h-full w-full grid place-items-center text-[color:var(--foreground)]/60">?</div>
                       )}
                     </div>
                   )}
-                  <div className={`relative group max-w-[80%] rounded-2xl px-4 py-2 border ${mine ? "border-emerald-200/60" : "border-white/30"} text-white`}>
+                  <div className={`relative group max-w-[80%] rounded-2xl px-4 py-2 border ${mine ? "border-emerald-200/60" : "border-white/30"} text-[color:var(--foreground)]`}>
                     <button
                       type="button"
-                      className={`absolute -top-3 right-2 hidden group-hover:flex items-center justify-center h-6 w-6 rounded-full border border-white/20 bg-black/80 text-white/80 hover:text-white hover:bg-white/20 transition-colors`}
+                      className={`absolute -top-3 right-2 hidden group-hover:flex items-center justify-center h-6 w-6 rounded-full border border-white/20 bg-[color:var(--surface)] text-[color:var(--brand)] hover:text-[color:var(--brand)] hover:bg-white/20 transition-colors`}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (typeof document === "undefined") return;
@@ -921,7 +944,7 @@ export default function ChatWindow() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={normalizeAvatar(avatarUrl)!} alt="Me" className="h-full w-full object-cover" />
                       ) : (
-                        <div className="h-full w-full grid place-items-center text-white/50">?</div>
+                        <div className="h-full w-full grid place-items-center text-[color:var(--foreground)]/60">?</div>
                       )}
                     </div>
                   )}
@@ -1022,7 +1045,7 @@ export default function ChatWindow() {
             }}
             rows={1}
             placeholder={activeChannelId ? "Your message…" : "Select a channel to start"}
-            className="flex-1 bg-transparent outline-none resize-none text-base md:text-sm text-white placeholder-white/40 px-2 py-1"
+            className="flex-1 bg-transparent outline-none resize-none text-base md:text-sm text-[color:var(--foreground)] placeholder-white/40 px-2 py-1"
           />
           <input
             ref={fileInputRef}
@@ -1087,10 +1110,10 @@ export default function ChatWindow() {
               } catch {}
             }}
           />
-          <button type="button" onClick={() => fileInputRef.current?.click()} className="h-9 w-9 rounded-md border border-white/20 bg-black/40 grid place-items-center text-white hover:bg-white/10" title="Attach file">
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="h-9 w-9 rounded-md border border-white/20 bg-black/40 grid place-items-center text-[color:var(--foreground)] hover:bg-white/10" title="Attach file">
             {Icon.paperclip}
           </button>
-          <button type="submit" disabled={!activeChannelId} className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-white hover:bg-white/10 disabled:opacity-50" title="Send">
+          <button type="submit" disabled={!activeChannelId} className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-[color:var(--foreground)] hover:bg-white/10 disabled:opacity-50" title="Send">
             {Icon.send}
           </button>
         </div>
@@ -1099,14 +1122,14 @@ export default function ChatWindow() {
       {messageMenu && typeof document !== "undefined" ? createPortal(
         <div className="fixed inset-0 z-[70]" onClick={() => setMessageMenu(null)}>
           <div
-            className="absolute w-[190px] rounded-xl border border-white/15 bg-black/80 backdrop-blur-xl shadow-xl divide-y divide-white/10"
+            className="absolute w-[190px] rounded-xl border border-white/15 bg-white/80 backdrop-blur-xl shadow-xl divide-y divide-white/10"
             style={{ left: `${Math.max(8, messageMenu.x - 180)}px`, top: `${messageMenu.y + 8}px` }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
               className="w-full text-left px-3 py-3 hover:bg-white/10 text-sm"
               onClick={async () => {
-                if (!activeChannelId || !baseUrl) return;
+                if (!activeChannelId || !baseUrl || !messageMenu.id) return;
                 try {
                   const token = getToken();
                   const res = await fetch(`${baseUrl.replace(/\/$/, "")}/channels/${activeChannelId}/pin`, {
@@ -1129,7 +1152,7 @@ export default function ChatWindow() {
               <button
                 className="w-full text-left px-3 py-3 hover:bg-white/10 text-sm"
                 onClick={async () => {
-                  if (!activeChannelId || !baseUrl) return;
+                  if (!activeChannelId || !baseUrl || !messageMenu.id) return;
                   try {
                     const token = getToken();
                     await fetch(`${baseUrl.replace(/\/$/, "")}/channels/${activeChannelId}/pin?messageId=${encodeURIComponent(messageMenu.id)}`, {
@@ -1139,7 +1162,11 @@ export default function ChatWindow() {
                   } catch {}
                   setMessageMenu(null);
                 }}
-              >Unpin</button>
+              >
+                <span className="inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-white bg-gradient-to-b from-[var(--brand-2)] to-[var(--brand)] shadow-[0_14px_30px_-20px_rgba(234,88,12,0.60),0_0_0_1px_rgba(234,88,12,0.35)_inset]">
+                  Unpin
+                </span>
+              </button>
             ) : null}
           </div>
         </div>, document.body) : null}
@@ -1175,16 +1202,16 @@ export default function ChatWindow() {
 
       {showCall && typeof document !== "undefined" ? createPortal(
         <div className="fixed inset-0 z-[60]" onClick={() => { setShowCall(false); stopAudio(); }}>
-          <div className="absolute right-3 top-[120px] md:right-8 md:top-[120px] w-[92%] md:w-[420px] rounded-2xl border border-white/20 bg-black/80 backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute right-3 top-[120px] md:right-8 md:top-[120px] w-[92%] md:w-[420px] rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
-              <div className="text-white/80 text-sm">Start voice call</div>
-              <button className="text-[11px] text-white/60 hover:text-white" onClick={() => { setShowCall(false); stopAudio(); }}>Close</button>
+              <div className="text-[color:var(--foreground)]/80 text-sm">Start voice call</div>
+              <button className="text-[11px] text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]" onClick={() => { setShowCall(false); stopAudio(); }}>Close</button>
             </div>
             <div className="p-3 space-y-3">
-              <div className="rounded-xl border border-white/20 bg-black/40 p-3">
+              <div className="rounded-xl border border-white/20 bg-[color:var(--surface)]/70 p-3">
                 <div className="mt-1 flex gap-2 items-center">
                   <button
-                    className="ml-auto rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 px-2 py-1 text-xs"
+                    className="ml-auto rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 px-2 py-1 text-xs text-[color:var(--foreground)]"
                     onClick={async () => {
                       try {
                         if (!activeChannelId || !baseUrl) return;
@@ -1204,20 +1231,20 @@ export default function ChatWindow() {
 
       {incomingCall && typeof document !== "undefined" ? createPortal(
         <div className="fixed inset-0 z-[70]" onClick={() => setIncomingCall(null)}>
-          <div className="absolute right-3 top-[140px] md:right-8 md:top-[140px] w-[92%] md:w-[420px] rounded-2xl border border-white/20 bg-black/85 backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute right-3 top-[140px] md:right-8 md:top-[140px] w-[92%] md:w-[420px] rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
-              <div className="text-white/80 text-sm">Incoming {incomingCall.kind === 'video' ? 'video' : 'voice'} call</div>
-              <button className="text-[11px] text-white/60 hover:text-white" onClick={() => setIncomingCall(null)}>Dismiss</button>
+              <div className="text-[color:var(--foreground)]/80 text-sm">Incoming {incomingCall.kind === 'video' ? 'video' : 'voice'} call</div>
+              <button className="text-[11px] text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]" onClick={() => setIncomingCall(null)}>Dismiss</button>
             </div>
             <div className="p-3 space-y-3">
-              <div className="text-white/70 text-sm">{incomingCall.from || 'Someone'} is calling you.</div>
+              <div className="text-[color:var(--foreground)]/70 text-sm">{incomingCall.from || 'Someone'} is calling you.</div>
               <div className="flex gap-2 justify-end">
                 <button
-                  className="rounded-lg border border-red-300/40 bg-red-500/20 hover:bg-red-500/30 px-3 py-1.5 text-xs"
+                  className="rounded-lg border border-red-600/40 bg-red-600 hover:bg-red-700 px-3 py-1.5 text-xs text-white"
                   onClick={() => setIncomingCall(null)}
                 >Decline</button>
                 <button
-                  className="rounded-lg border border-emerald-300/40 bg-emerald-500/20 hover:bg-emerald-500/30 px-3 py-1.5 text-xs"
+                  className="rounded-lg border border-emerald-700/40 bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs text-white"
                   onClick={async () => {
                     try {
                       if (!incomingCall?.channelId) return;
@@ -1256,41 +1283,50 @@ export default function ChatWindow() {
 
       {inCall && typeof document !== "undefined" ? createPortal(
         <div className="fixed inset-0 z-[65]" onClick={(e) => e.stopPropagation()}>
-          <div className="absolute right-3 bottom-3 md:right-8 md:bottom-8 w-[92%] md:w-[680px] rounded-2xl border border-white/20 bg-black/85 backdrop-blur-xl shadow-xl p-3">
+          <div className="absolute right-3 bottom-3 md:right-8 md:bottom-8 w-[92%] md:w-[680px] rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl shadow-xl p-3">
             <div className="flex items-center gap-2 justify-between mb-2">
-              <div className="text-white/80 text-sm truncate">{callKind === 'video' ? 'Video call' : 'Voice call'}</div>
+              <div className="text-[color:var(--foreground)]/80 text-sm truncate">{callKind === 'video' ? 'Video call' : 'Voice call'}</div>
               <div className="flex items-center gap-2">
-                <button onClick={endCall} className="h-8 px-3 rounded-md border border-red-300/40 bg-red-500/20 hover:bg-red-500/30 text-xs text-white">End</button>
+                <button onClick={endCall} className="h-8 px-3 rounded-md border border-red-600/40 bg-red-600 hover:bg-red-700 text-xs text-white">End</button>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[220px] md:min-h-[320px]">
-              <div className="rounded-xl border border-white/15 bg-black/40 overflow-hidden min-h-[180px]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <video ref={videoElRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+            {callKind === "voice" ? (
+              <div className="rounded-xl border border-white/15 bg-[color:var(--surface)]/70 p-4 min-h-[160px] flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-sm text-[color:var(--foreground)]/80">Voice call in progress</div>
+                  <div className="mt-2 text-xs text-[color:var(--foreground)]/55">Microphone: {micOn ? "On" : "Off"}</div>
+                </div>
               </div>
-              <div className="rounded-xl border border-white/15 bg-black/40 overflow-hidden min-h-[180px]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <video
-                  autoPlay
-                  playsInline
-                  className="h-full w-full object-cover"
-                  ref={remoteVideoElRef}
-                />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[220px] md:min-h-[320px]">
+                <div className="rounded-xl border border-white/15 bg-black/40 overflow-hidden min-h-[180px]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <video ref={videoElRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+                </div>
+                <div className="rounded-xl border border-white/15 bg-black/40 overflow-hidden min-h-[180px]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <video
+                    autoPlay
+                    playsInline
+                    className="h-full w-full object-cover"
+                    ref={remoteVideoElRef}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>, document.body) : null}
 
       {showMore && typeof document !== "undefined" ? createPortal(
         <div className="fixed inset-0 z-[60]" onClick={() => setShowMore(false)}>
-          <div className="absolute right-3 top-[100px] md:right-8 md:top-[100px] w-[92%] md:w-[320px] rounded-2xl border border-white/20 bg-black/80 backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute right-3 top-[100px] md:right-8 md:top-[100px] w-[92%] md:w-[320px] rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
-              <div className="text-white/80 text-sm">More</div>
-              <button className="text-[11px] text-white/60 hover:text-white" onClick={() => setShowMore(false)}>Close</button>
+              <div className="text-[color:var(--foreground)]/80 text-sm">More</div>
+              <button className="text-[11px] text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]" onClick={() => setShowMore(false)}>Close</button>
             </div>
             <div className="divide-y divide-white/10">
               <button
-                className="w-full text-left px-3 py-3 hover:bg-white/10 text-sm"
+                className="w-full text-left px-3 py-3 hover:bg-white/10 text-sm text-[color:var(--foreground)]"
                 onClick={() => {
                   if (activeChannelId) {
                     setActive(activeChannelId); // clears unread for active via store logic
@@ -1299,14 +1335,14 @@ export default function ChatWindow() {
                 }}
               >Mark as read</button>
               <button
-                className="w-full text-left px-3 py-3 hover:bg-white/10 text-sm"
+                className="w-full text-left px-3 py-3 hover:bg-white/10 text-sm text-[color:var(--foreground)]"
                 onClick={() => {
                   setShowPinnedList(true);
                   setShowMore(false);
                 }}
               >Pinned messages ({currentPins.length})</button>
               <button
-                className="w-full text-left px-3 py-3 hover:bg-white/10 text-sm"
+                className="w-full text-left px-3 py-3 hover:bg-white/10 text-sm text-[color:var(--foreground)]"
                 onClick={() => {
                   setShowInfo(true);
                   setShowMore(false);
@@ -1318,36 +1354,36 @@ export default function ChatWindow() {
 
       {showInfo && typeof document !== "undefined" ? createPortal(
         <div className="fixed inset-0 z-[60]" onClick={() => setShowInfo(false)}>
-          <div className="absolute right-3 top-[120px] md:right-8 md:top-[120px] w-[92%] md:w-[420px] rounded-2xl border border-white/20 bg-black/80 backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute right-3 top-[120px] md:right-8 md:top-[120px] w-[92%] md:w-[420px] rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
-              <div className="text-white/80 text-sm">Channel info</div>
-              <button className="text-[11px] text-white/60 hover:text-white" onClick={() => setShowInfo(false)}>Close</button>
+              <div className="text-[color:var(--foreground)]/80 text-sm">Channel info</div>
+              <button className="text-[11px] text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]" onClick={() => setShowInfo(false)}>Close</button>
             </div>
             {(() => {
               const ch = channels.find(c => c.id === activeChannelId);
               return (
-                <div className="p-3 space-y-2 text-sm text-white/80">
-                  <div className="flex items-center justify-between gap-3"><div className="text-white/60">Name</div><div className="truncate">{ch?.name || ""}</div></div>
-                  <div className="flex items-center justify-between gap-3"><div className="text-white/60">Type</div><div className="truncate capitalize">{ch?.kind || ""}</div></div>
+                <div className="p-3 space-y-2 text-sm text-[color:var(--foreground)]/80">
+                  <div className="flex items-center justify-between gap-3"><div className="text-[color:var(--foreground)]/55">Name</div><div className="truncate">{ch?.name || ""}</div></div>
+                  <div className="flex items-center justify-between gap-3"><div className="text-[color:var(--foreground)]/55">Type</div><div className="truncate capitalize">{ch?.kind || ""}</div></div>
                   {ch?.kind !== "section-group" ? (
-                    <div className="flex items-center justify-between gap-3"><div className="text-white/60">Topic</div><div className="truncate">{ch?.topic || ""}</div></div>
+                    <div className="flex items-center justify-between gap-3"><div className="text-[color:var(--foreground)]/55">Topic</div><div className="truncate">{ch?.topic || ""}</div></div>
                   ) : null}
-                  <div className="flex items-center justify-between gap-3"><div className="text-white/60">ID</div><div className="truncate">{ch?.id || ""}</div></div>
+                  <div className="flex items-center justify-between gap-3"><div className="text-[color:var(--foreground)]/55">ID</div><div className="truncate">{ch?.id || ""}</div></div>
 
                   {ch?.kind === "section-group" ? (
                     <div className="pt-2 space-y-3">
-                      <div className="text-white/60 text-xs uppercase tracking-[0.24em]">Members</div>
+                      <div className="text-[color:var(--foreground)]/60 text-xs uppercase tracking-[0.24em]">Members</div>
                       {infoLoading ? (
-                        <div className="text-white/60">Loading…</div>
+                        <div className="text-[color:var(--foreground)]/60">Loading…</div>
                       ) : infoError ? (
                         <div className="text-red-300">{infoError}</div>
                       ) : (
-                        <div className="max-h-[180px] overflow-y-auto custom-scroll rounded-xl border border-white/10 bg-black/30">
+                        <div className="max-h-[180px] overflow-y-auto custom-scroll rounded-xl border border-white/10 bg-[color:var(--surface)]">
                           {(groupMembers || []).map((m) => (
                             <div key={m.id} className="px-3 py-2 border-b border-white/10 last:border-b-0 flex items-center justify-between gap-3">
                               <div className="min-w-0">
-                                <div className="text-white/90 truncate">{m.name}</div>
-                                <div className="text-xs text-white/50 truncate">{m.email}</div>
+                                <div className="text-[color:var(--foreground)]/90 truncate">{m.name}</div>
+                                <div className="text-xs text-[color:var(--foreground)]/50 truncate">{m.email}</div>
                               </div>
                               {m.isTeacher ? (
                                 <span className="shrink-0 inline-flex items-center rounded-full border border-emerald-300/30 bg-emerald-500/15 px-2 py-[2px] text-[9px] uppercase tracking-[0.22em] text-emerald-200">Teacher</span>
@@ -1355,19 +1391,19 @@ export default function ChatWindow() {
                             </div>
                           ))}
                           {(!groupMembers || groupMembers.length === 0) ? (
-                            <div className="px-3 py-3 text-white/60">No members.</div>
+                            <div className="px-3 py-3 text-[color:var(--foreground)]/60">No members.</div>
                           ) : null}
                         </div>
                       )}
 
                       {canManageGroup ? (
                         <div className="space-y-2">
-                          <div className="text-white/60 text-xs uppercase tracking-[0.24em]">Manage</div>
+                          <div className="text-[color:var(--foreground)]/60 text-xs uppercase tracking-[0.24em]">Manage</div>
                           <div className="flex items-center gap-2">
                             <input
                               value={renameValue}
                               onChange={(e) => setRenameValue(e.target.value)}
-                              className="flex-1 rounded-xl border border-white/20 bg-black/30 text-white/90 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                              className="flex-1 rounded-xl border border-white/20 bg-[color:var(--surface)] text-[color:var(--foreground)]/90 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
                               placeholder="Group name"
                             />
                             <button
@@ -1430,7 +1466,7 @@ export default function ChatWindow() {
                         </div>
                       ) : canClaimGroup ? (
                         <div className="space-y-2">
-                          <div className="text-xs text-white/60">This is a legacy group (created before rename/delete existed).</div>
+                          <div className="text-xs text-[color:var(--foreground)]/60">This is a legacy group (created before rename/delete existed).</div>
                           <button
                             className="w-full rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 px-3 py-2 text-sm"
                             onClick={async () => {
@@ -1455,10 +1491,10 @@ export default function ChatWindow() {
                               }
                             }}
                           >Claim ownership (enable rename/delete)</button>
-                          <div className="text-xs text-white/50">Only members can claim. First claim wins.</div>
+                          <div className="text-xs text-[color:var(--foreground)]/50">Only members can claim. First claim wins.</div>
                         </div>
                       ) : (
-                        <div className="text-xs text-white/50">Only the group creator can rename or delete this group.</div>
+                        <div className="text-xs text-[color:var(--foreground)]/50">Only the group creator can rename or delete this group.</div>
                       )}
                     </div>
                   ) : null}
@@ -1470,27 +1506,27 @@ export default function ChatWindow() {
 
       {showPinnedList && typeof document !== "undefined" ? createPortal(
         <div className="fixed inset-0 z-[60]" onClick={() => setShowPinnedList(false)}>
-          <div className="absolute right-3 top-[140px] md:right-8 md:top-[140px] w-[92%] md:w-[420px] rounded-2xl border border-white/20 bg-black/80 backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute right-3 top-[140px] md:right-8 md:top-[140px] w-[92%] md:w-[420px] rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
-              <div className="text-white/80 text-sm">Pinned messages</div>
-              <button className="text-[11px] text-white/60 hover:text-white" onClick={() => setShowPinnedList(false)}>Close</button>
+              <div className="text-[color:var(--foreground)]/80 text-sm">Pinned messages</div>
+              <button className="text-[11px] text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]" onClick={() => setShowPinnedList(false)}>Close</button>
             </div>
-            <div className="p-3 space-y-3 text-sm text-white/80">
+            <div className="p-3 space-y-3 text-sm text-[color:var(--foreground)]/80">
               {currentPins.length > 0 ? (
                 <div className="space-y-3">
                   {currentPins.map((pin) => (
-                    <div key={pin.id} className="rounded-xl border border-white/15 bg-black/40 p-3 space-y-2">
+                    <div key={pin.id} className="rounded-xl border border-white/15 bg-[color:var(--surface)] p-3 space-y-2">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="font-medium text-white truncate">{pin.message?.senderName || "Unknown"}</div>
-                          <div className="text-white/70 whitespace-pre-wrap break-words">{pin.message?.text || "(attachment)"}</div>
-                          <div className="text-xs text-white/50">
+                          <div className="font-medium text-[color:var(--foreground)]/90 truncate">{pin.message?.senderName || "Unknown"}</div>
+                          <div className="text-[color:var(--foreground)]/70 whitespace-pre-wrap break-words">{pin.message?.text || "(attachment)"}</div>
+                          <div className="text-xs text-[color:var(--foreground)]/50">
                             Pinned by {pin.pinnedByName || "Someone"}
                             {pin.pinnedAt ? ` • ${new Date(pin.pinnedAt).toLocaleString()}` : ""}
                           </div>
                         </div>
                         <button
-                          className="shrink-0 rounded-md border border-amber-200/40 bg-amber-500/15 hover:bg-amber-500/25 px-3 py-1 text-xs text-amber-100"
+                          className="inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-semibold tracking-wide text-white bg-gradient-to-b from-[var(--brand-2)] to-[var(--brand)] shadow-[0_14px_30px_-20px_rgba(234,88,12,0.60),0_0_0_1px_rgba(234,88,12,0.35)_inset] hover:brightness-[1.01] active:brightness-[0.98] transition disabled:opacity-60 disabled:cursor-not-allowed"
                           onClick={async () => {
                             if (!activeChannelId || !baseUrl || !pin.message?.id) return;
                             try {
@@ -1511,7 +1547,7 @@ export default function ChatWindow() {
                   ))}
                 </div>
               ) : (
-                <div className="text-white/60">No pinned messages yet.</div>
+                <div className="text-[color:var(--foreground)]/60">No pinned messages yet.</div>
               )}
             </div>
           </div>

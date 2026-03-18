@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { useChatStore } from "@/store/useChat";
 import { useConnection } from "@/store/useConnection";
 import { clearToken } from "@/lib/auth";
+import { useTheme } from "@/store/useTheme";
 
 const Icon = {
   profile: (
@@ -63,6 +64,7 @@ export default function LeftRail() {
   const setFilter = useUI((s) => s.setChannelFilter);
   const current = useUI((s) => s.channelFilter);
   const { avatarUrl } = useAuth();
+  const toggleTheme = useTheme((s) => s.toggle);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const channels = useChatStore((s) => s.channels);
@@ -105,7 +107,7 @@ export default function LeftRail() {
     <button
       type="button"
       onClick={onClick}
-      className={`grid place-items-center h-10 w-10 md:h-12 md:w-12 rounded-full border bg-black/40 hover:bg-white/10 transition-colors text-white ${
+      className={`grid place-items-center h-10 w-10 md:h-12 md:w-12 rounded-full border bg-black/40 hover:bg-white/10 transition-colors text-[color:var(--foreground)] ${
         active ? "border-white/60 ring-1 ring-white/70" : "border-white/20"
       }`}
     >
@@ -122,7 +124,7 @@ export default function LeftRail() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={normalizedAvatarUrl} alt="Me" className="h-full w-full object-cover" />
           ) : (
-            <div className="h-full w-full grid place-items-center text-white/90">
+            <div className="h-full w-full grid place-items-center text-[color:var(--foreground)]/90">
               {Icon.profile}
             </div>
           )}
@@ -130,14 +132,14 @@ export default function LeftRail() {
       </div>
 
       {/* Middle icons */}
-      <div className="flex-1 flex md:flex-col items-center justify-center gap-2 md:gap-6 text-white">
+      <div className="flex-1 flex md:flex-col items-center justify-center gap-2 md:gap-6 text-[color:var(--foreground)]">
         <Item onClick={() => setFilter("general")} active={current === "general"}>{Icon.globe}</Item>
         <Item onClick={() => setFilter("dm")} active={current === "dm"}>{Icon.dm}</Item>
         <Item onClick={() => setFilter("group")} active={current === "group"}>{Icon.group}</Item>
       </div>
 
       {/* Bottom / right icons */}
-      <div className="shrink-0 flex md:flex-col items-center justify-center gap-2 md:gap-6 text-white">
+      <div className="shrink-0 flex md:flex-col items-center justify-center gap-2 md:gap-6 text-[color:var(--foreground)]">
         <Item onClick={() => setShowNotifs((v) => !v)}>
           <div className="relative">
             {Icon.bell}
@@ -155,13 +157,13 @@ export default function LeftRail() {
         ? createPortal(
             <div className="fixed inset-0 z-[60]" onClick={() => setShowNotifs(false)}>
               <div
-                className="absolute right-3 top-[68px] md:right-6 md:top-[76px] w-[92%] md:w-96 rounded-2xl border border-white/20 bg-black/80 backdrop-blur-xl shadow-xl"
+                className="absolute right-3 top-[68px] md:right-6 md:top-[76px] w-[92%] md:w-96 rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl shadow-xl"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
-                  <div className="text-white/80 text-sm">Notifications</div>
+                  <div className="text-[color:var(--foreground)]/80 text-sm">Notifications</div>
                   <button
-                    className="text-[11px] text-white/60 hover:text-white"
+                    className="text-[11px] text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]"
                     onClick={() => {
                       const st = useChatStore.getState();
                       st.markAllRead();
@@ -173,7 +175,7 @@ export default function LeftRail() {
                 </div>
                 <div className="max-h-[60vh] overflow-y-auto custom-scroll divide-y divide-white/10">
                   {Object.entries(unreadCounts || {}).filter(([_, n]) => (n || 0) > 0).length === 0 ? (
-                    <div className="py-8 text-center text-white/60 text-sm">No new notifications</div>
+                    <div className="py-8 text-center text-[color:var(--foreground)]/60 text-sm">No new notifications</div>
                   ) : (
                     Object.entries(unreadCounts || {})
                       .filter(([_, n]) => (n || 0) > 0)
@@ -200,15 +202,15 @@ export default function LeftRail() {
                             }}
                             className="w-full text-left px-3 py-3 hover:bg-white/10 flex items-center gap-3"
                           >
-                            <div className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-white/80">
+                            <div className="h-9 w-9 rounded-full border border-white/20 bg-[color:var(--surface)] grid place-items-center text-[color:var(--foreground)]/80">
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2">
-                                <div className="truncate text-sm text-white/90">{title}</div>
-                                <span className="shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-500/30 border border-emerald-300/40 text-[10px] text-emerald-200">{count as number}</span>
+                                <div className="truncate text-sm text-[color:var(--foreground)]/90">{title}</div>
+                                <span className="shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-500/25 border border-emerald-300/50 text-[10px] text-[color:var(--foreground)]">{count as number}</span>
                               </div>
-                              <div className="truncate text-xs text-white/50">{subtitle}</div>
+                              <div className="truncate text-xs text-[color:var(--foreground)]/50">{subtitle}</div>
                             </div>
                           </button>
                         );
@@ -225,35 +227,27 @@ export default function LeftRail() {
         ? createPortal(
             <div className="fixed inset-0 z-[60]" onClick={() => setShowSettings(false)}>
               <div
-                className="absolute right-3 top-[68px] md:right-6 md:top-[76px] w-[92%] md:w-80 rounded-2xl border border-white/20 bg-black/80 backdrop-blur-xl shadow-xl"
+                className="absolute right-3 top-[68px] md:right-6 md:top-[76px] w-[92%] md:w-80 rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl shadow-xl"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
-                  <div className="text-white/80 text-sm">Settings</div>
-                  <button className="text-[11px] text-white/60 hover:text-white" onClick={() => setShowSettings(false)}>Close</button>
+                  <div className="text-[color:var(--foreground)]/80 text-sm">Settings</div>
+                  <button className="text-[11px] text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]" onClick={() => setShowSettings(false)}>Close</button>
                 </div>
                 <div className="divide-y divide-white/10">
                   <button
                     className="w-full text-left px-3 py-3 hover:bg-white/10 flex items-center gap-3"
                     onClick={() => {
-                      const el = document.documentElement;
-                      const isLight = el.classList.contains("light");
-                      if (isLight) {
-                        el.classList.remove("light");
-                        try { localStorage.setItem('chatbox.theme', 'dark'); } catch {}
-                      } else {
-                        el.classList.add("light");
-                        try { localStorage.setItem('chatbox.theme', 'light'); } catch {}
-                      }
+                      toggleTheme();
                       setShowSettings(false);
                     }}
                   >
-                    <div className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-white/80">
+                    <div className="h-9 w-9 rounded-full border border-white/20 bg-[color:var(--surface)] grid place-items-center text-[color:var(--foreground)]/80">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm text-white/90">Toggle theme</div>
-                      <div className="text-xs text-white/50">Switch between dark and light</div>
+                      <div className="text-sm text-[color:var(--foreground)]/90">Toggle theme</div>
+                      <div className="text-xs text-[color:var(--foreground)]/50">Switch between dark and light</div>
                     </div>
                   </button>
 
@@ -268,12 +262,12 @@ export default function LeftRail() {
                       }
                     }}
                   >
-                    <div className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-white/80">
+                    <div className="h-9 w-9 rounded-full border border-white/20 bg-[color:var(--surface)] grid place-items-center text-[color:var(--foreground)]/80">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M3 12h18"/><path d="M12 3c2.5 3 2.5 15 0 18"/></svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm text-white/90">Set LAN server</div>
-                      <div className="text-xs text-white/50">Change the backend URL for LAN mode</div>
+                      <div className="text-sm text-[color:var(--foreground)]/90">Set LAN server</div>
+                      <div className="text-xs text-[color:var(--foreground)]/50">Change the backend URL for LAN mode</div>
                     </div>
                   </button>
 
@@ -286,12 +280,12 @@ export default function LeftRail() {
                       window.location.href = "/login";
                     }}
                   >
-                    <div className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-white/80">
+                    <div className="h-9 w-9 rounded-full border border-white/20 bg-[color:var(--surface)] grid place-items-center text-[color:var(--foreground)]/80">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M10 17l-1 0c-2.2 0-4-1.8-4-4V8c0-2.2 1.8-4 4-4h1"/><path d="M15 7l5 5-5 5"/><path d="M20 12H9"/></svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm text-white/90">Logout</div>
-                      <div className="text-xs text-white/50">Sign out of your account</div>
+                      <div className="text-sm text-[color:var(--foreground)]/90">Logout</div>
+                      <div className="text-xs text-[color:var(--foreground)]/50">Sign out of your account</div>
                     </div>
                   </button>
                 </div>

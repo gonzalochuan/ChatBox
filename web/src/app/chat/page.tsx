@@ -5,6 +5,7 @@ import ChatWindow from "@/components/ChatWindow";
 import LeftRail from "@/components/LeftRail";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AvatarPicker from "@/components/AvatarPicker";
+import PrimaryButton from "@/components/PrimaryButton";
 import { useConnection } from "@/store/useConnection";
 import { useChatStore } from "@/store/useChat";
 import { fetchMe } from "@/lib/api";
@@ -28,9 +29,10 @@ export default function ChatPage() {
   const [showNotifs, setShowNotifs] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
-  const [profileData, setProfileData] = useState<{ name: string | null; nickname: string | null; schedule: string | null; email: string | null; studentId: string | null; avatarUrl: string | null; yearLevel?: string | null; block?: string | null } | null>(null);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [profileSaving, setProfileSaving] = useState(false);
   const [profileSubjects, setProfileSubjects] = useState<string[]>([]);
-  const [subjectsAll, setSubjectsAll] = useState<Array<{ id: string; name?: string | null }>>([]);
+  const [subjectsAll, setSubjectsAll] = useState<Array<{ id: string; name?: string }>>([]);
   const [subjectsLoading, setSubjectsLoading] = useState(false);
   const [subjectQuery, setSubjectQuery] = useState("");
   const yearOptions = useMemo(() => ["1", "2", "3", "4"], []);
@@ -55,8 +57,8 @@ export default function ChatPage() {
 
   // Auto-configure LAN from QR deep link: ?lan=... or #lan=...
   useEffect(() => {
-    if (typeof window === "undefined") return;
     try {
+      if (typeof window === "undefined") return;
       const url = new URL(window.location.href);
       const fromQuery = url.searchParams.get("lan");
       const fromHash = url.hash.startsWith("#lan=") ? decodeURIComponent(url.hash.slice(5)) : null;
@@ -69,25 +71,21 @@ export default function ChatPage() {
         } catch {}
         setUserLanUrl(lan);
         reinit();
-        return;
       }
-      // If no param, try restore from storage (check both keys)
-      const saved = (() => {
-        try {
-          return (
-            localStorage.getItem("chatbox.lan") ||
-            localStorage.getItem("chatbox.lanBaseUrl")
-          );
-        } catch {
-          return null;
-        }
-      })();
+    } catch {}
+  }, [setUserLanUrl, reinit]);
+
+  // Apply persisted LAN baseUrl if present
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined") return;
+      const saved = localStorage.getItem("chatbox.lanBaseUrl") || localStorage.getItem("chatbox.lan");
       if (saved && saved !== baseUrl) {
         setUserLanUrl(saved);
         reinit();
       }
     } catch {}
-  }, [setUserLanUrl, reinit, baseUrl]);
+  }, [baseUrl, reinit, setUserLanUrl]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -324,7 +322,7 @@ export default function ChatPage() {
   );
 
   return (
-    <div className="app-theme relative min-h-dvh text-white bg-black">
+    <div className="app-theme relative min-h-dvh">
       {/* Grid background only; keep default strength from CSS */}
       <div className="grid-layer" />
 
@@ -343,9 +341,9 @@ export default function ChatPage() {
                 </div>
               )}
             </button>
-            <div className="font-ethno-bold tracking-widest text-sm md:text-base">CB</div>
+            <div className="font-ethno-bold tracking-widest text-sm md:text-base text-[color:var(--foreground)]">CB</div>
           </div>
-          <div className="flex items-center gap-3 text-xs md:text-sm text-white/70">
+          <div className="flex items-center gap-3 text-xs md:text-sm text-[color:var(--foreground)]/70">
             {badge}
           </div>
         </header>
@@ -373,7 +371,6 @@ export default function ChatPage() {
             </div>
           </main>
         </div>
-      </div>
 
       {/* Mobile-only floating DM add button when in DM view */}
       {(channelFilter === 'dm' || activeIsDm) && (
@@ -414,83 +411,83 @@ export default function ChatPage() {
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/70" onClick={() => setShowProfile(false)} />
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-lg max-h-[85vh] rounded-2xl border border-white/20 bg-black/70 backdrop-blur-xl p-4 overflow-hidden">
+            <div className="w-full max-w-lg max-h-[85vh] rounded-2xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl p-4 overflow-hidden text-[color:var(--foreground)]">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-white/80 font-medium">My Profile</div>
-                <button className="text-white/60 hover:text-white" onClick={() => setShowProfile(false)}>✕</button>
+                <div className="text-[color:var(--foreground)]/85 font-medium">My Profile</div>
+                <button className="text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]" onClick={() => setShowProfile(false)}>✕</button>
               </div>
               {profileError && <div className="mb-2 text-sm text-red-300">{profileError}</div>}
               {profileLoading ? (
-                <div className="py-10 text-center text-white/70 text-sm">Loading…</div>
+                <div className="py-10 text-center text-[color:var(--foreground)]/70 text-sm">Loading…</div>
               ) : (
                 <div className="space-y-5 overflow-y-auto custom-scroll pr-1" style={{ maxHeight: "calc(85vh - 120px)" }}>
                   <div>
                     <AvatarPicker
                       value={profileData?.avatarUrl || null}
-                      onChange={(url) => setProfileData((p) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), avatarUrl: url }))}
+                      onChange={(url) => setProfileData((p: any) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), avatarUrl: url }))}
                     />
                   </div>
                   <div className="grid grid-cols-1 gap-3">
                     <div>
-                      <label className="block text-xs text-white/60 mb-1">Name</label>
+                      <label className="block text-xs text-[color:var(--foreground)]/60 mb-1">Name</label>
                       <input
-                        className="w-full rounded-xl border border-white/20 bg-black/30 text-white/90 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                        className="w-full rounded-xl border border-white/20 bg-white/10 text-[color:var(--foreground)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
                         value={profileData?.name ?? ""}
-                        onChange={(e) => setProfileData((p) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), name: e.target.value }))}
+                        onChange={(e) => setProfileData((p: any) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), name: e.target.value }))}
                         placeholder="Your full name"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-white/60 mb-1">Nickname</label>
+                      <label className="block text-xs text-[color:var(--foreground)]/60 mb-1">Nickname</label>
                       <input
-                        className="w-full rounded-xl border border-white/20 bg-black/30 text-white/90 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                        className="w-full rounded-xl border border-white/20 bg-white/10 text-[color:var(--foreground)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
                         value={profileData?.nickname ?? ""}
-                        onChange={(e) => setProfileData((p) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), nickname: e.target.value }))}
+                        onChange={(e) => setProfileData((p: any) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), nickname: e.target.value }))}
                         placeholder="Display name"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-white/60 mb-1">Schedule</label>
+                      <label className="block text-xs text-[color:var(--foreground)]/60 mb-1">Schedule</label>
                       <input
-                        className="w-full rounded-xl border border-white/20 bg-black/30 text-white/90 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                        className="w-full rounded-xl border border-white/20 bg-white/10 text-[color:var(--foreground)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
                         value={profileData?.schedule ?? ""}
-                        onChange={(e) => setProfileData((p) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), schedule: e.target.value }))}
+                        onChange={(e) => setProfileData((p: any) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), schedule: e.target.value }))}
                         placeholder="e.g. MWF 8-10am"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-white/60 mb-1">Email</label>
+                      <label className="block text-xs text-[color:var(--foreground)]/60 mb-1">Email</label>
                       <input
-                        className="w-full rounded-xl border border-white/20 bg-black/30 text-white/90 px-3 py-2 text-sm outline-none opacity-70"
+                        className="w-full rounded-xl border border-white/20 bg-white/10 text-[color:var(--foreground)] px-3 py-2 text-sm outline-none opacity-70"
                         value={profileData?.email ?? ""}
                         readOnly
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-white/60 mb-1">Student ID</label>
+                      <label className="block text-xs text-[color:var(--foreground)]/60 mb-1">Student ID</label>
                       <input
-                        className="w-full rounded-xl border border-white/20 bg-black/30 text-white/90 px-3 py-2 text-sm outline-none opacity-70"
+                        className="w-full rounded-xl border border-white/20 bg-white/10 text-[color:var(--foreground)] px-3 py-2 text-sm outline-none opacity-70"
                         value={profileData?.studentId ?? ""}
                         readOnly
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs text-white/60 mb-1">Year level</label>
+                      <label className="block text-xs text-[color:var(--foreground)]/60 mb-1">Year level</label>
                       <div className="relative mt-1" ref={yearMenuRef}>
                         <button
                           type="button"
                           onClick={() => setYearOpen((v) => !v)}
-                          className="w-full rounded-xl border border-white/20 bg-black/30 px-3 py-2 text-left text-white/90 outline-none focus:ring-2 focus:ring-white/20 flex items-center justify-between"
+                          className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-left text-[color:var(--foreground)] outline-none focus:ring-2 focus:ring-white/20 flex items-center justify-between"
                         >
                           <span>{profileData?.yearLevel ? `Year ${profileData.yearLevel}` : "(none)"}</span>
-                          <span className="text-white/70">▾</span>
+                          <span className="text-[color:var(--foreground)]/60">▾</span>
                         </button>
                         {yearOpen && (
-                          <div className="absolute z-40 mt-2 w-full rounded-xl border border-white/20 bg-black/60 backdrop-blur-xl shadow-xl overflow-hidden">
+                          <div className="absolute z-40 mt-2 w-full rounded-xl border border-white/20 bg-[color:var(--surface)] backdrop-blur-xl shadow-xl overflow-hidden">
                             <button
                               type="button"
-                              onClick={() => { setProfileData((p) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), yearLevel: null })); setYearOpen(false); }}
+                              onClick={() => { setProfileData((p: any) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), yearLevel: null })); setYearOpen(false); }}
                               className={`w-full text-left px-3 py-2 hover:bg-white/10 ${!profileData?.yearLevel ? "bg-white/10" : ""}`}
                             >
                               (none)
@@ -499,7 +496,7 @@ export default function ChatPage() {
                               <button
                                 key={y}
                                 type="button"
-                                onClick={() => { setProfileData((p) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), yearLevel: y })); setYearOpen(false); }}
+                                onClick={() => { setProfileData((p: any) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), yearLevel: y })); setYearOpen(false); }}
                                 className={`w-full text-left px-3 py-2 hover:bg-white/10 ${String(profileData?.yearLevel || "") === y ? "bg-white/10" : ""}`}
                               >
                                 Year {y}
@@ -510,34 +507,34 @@ export default function ChatPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs text-white/60 mb-1">Block</label>
+                      <label className="block text-xs text-[color:var(--foreground)]/60 mb-1">Block</label>
                       <input
-                        className="w-full rounded-xl border border-white/20 bg-black/30 text-white/90 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                        className="w-full rounded-xl border border-white/20 bg-white/10 text-[color:var(--foreground)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
                         value={String(profileData?.block ?? "")}
-                        onChange={(e) => setProfileData((p) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), block: e.target.value }))}
+                        onChange={(e) => setProfileData((p: any) => ({ ...(p || { name: null, nickname: null, schedule: null, email: null, studentId: null, avatarUrl: null }), block: e.target.value }))}
                         placeholder="e.g. B4"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs text-white/60 mb-1">Subjects</label>
-                      <div className="rounded-xl border border-white/20 bg-black/30 p-3">
+                      <label className="block text-xs text-[color:var(--foreground)]/60 mb-1">Subjects</label>
+                      <div className="rounded-xl border border-white/20 bg-white/10 p-3">
                         {subjectsLoading ? (
-                          <div className="text-sm text-white/60">Loading…</div>
+                          <div className="text-sm text-[color:var(--foreground)]/60">Loading…</div>
                         ) : subjectsAll.length === 0 ? (
-                          <div className="text-sm text-white/60">No subjects available.</div>
+                          <div className="text-sm text-[color:var(--foreground)]/60">No subjects available.</div>
                         ) : (
                           <div className="space-y-3">
                             <input
                               value={subjectQuery}
                               onChange={(e) => setSubjectQuery(e.target.value)}
                               placeholder="Search subjects"
-                              className="w-full rounded-xl border border-white/20 bg-black/30 text-white/90 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                              className="w-full rounded-xl border border-white/20 bg-white/10 text-[color:var(--foreground)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
                             />
 
                             {profileSubjects.length > 0 ? (
                               <div>
-                                <div className="text-[11px] text-white/60 mb-1">Selected</div>
+                                <div className="text-[11px] text-[color:var(--foreground)]/60 mb-1">Selected</div>
                                 <div className="flex flex-wrap gap-2">
                                   {profileSubjects
                                     .slice()
@@ -547,7 +544,7 @@ export default function ChatPage() {
                                         key={id}
                                         type="button"
                                         onClick={() => setProfileSubjects((prev) => prev.filter((x) => x !== id))}
-                                        className="text-[11px] px-2 py-1 rounded-full border border-emerald-300/40 bg-emerald-500/15 text-emerald-100 hover:bg-emerald-500/25"
+                                        className="text-[11px] px-2 py-1 rounded-full border border-emerald-300/40 bg-emerald-500/15 text-[color:var(--foreground)] hover:bg-emerald-500/25"
                                         title="Tap to remove"
                                       >
                                         {id}
@@ -565,74 +562,71 @@ export default function ChatPage() {
                                   return String(s.id).toLowerCase().includes(q) || String(s.name || "").toLowerCase().includes(q);
                                 })
                                 .map((s) => {
-                              const active = profileSubjects.includes(s.id);
-                              return (
-                                <button
-                                  key={s.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setProfileSubjects((prev) => {
-                                      const set = new Set(prev);
-                                      if (active) set.delete(s.id);
-                                      else set.add(s.id);
-                                      return Array.from(set);
-                                    });
-                                  }}
-                                  className={`text-[11px] px-2 py-1 rounded-full border ${active ? "border-emerald-300/40 bg-emerald-500/15 text-emerald-100" : "border-white/25 bg-white/10 text-white/80 hover:bg-white/15"}`}
-                                  title={s.name ? `${s.id} — ${s.name}` : s.id}
-                                >
-                                  {s.id}
-                                </button>
-                              );
-                            })}
+                                  const active = profileSubjects.includes(s.id);
+                                  return (
+                                    <button
+                                      key={s.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setProfileSubjects((prev) => {
+                                          const set = new Set(prev);
+                                          if (active) set.delete(s.id);
+                                          else set.add(s.id);
+                                          return Array.from(set);
+                                        });
+                                      }}
+                                      className={`text-[11px] px-2 py-1 rounded-full border ${active ? "border-emerald-300/40 bg-emerald-500/15 text-[color:var(--foreground)]" : "border-white/25 bg-white/10 text-[color:var(--foreground)]/80 hover:bg-white/15"}`}
+                                      title={s.name ? `${s.id} — ${s.name}` : s.id}
+                                    >
+                                      {s.id}
+                                    </button>
+                                  );
+                                })}
                             </div>
                           </div>
                         )}
                       </div>
-                      <div className="mt-1 text-[11px] text-white/50">Changing year/block/subjects will update your channel access.</div>
+                      <div className="mt-1 text-[11px] text-[color:var(--foreground)]/55">Changing year/block/subjects will update your channel access.</div>
                     </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <button className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-3 py-2 text-sm" onClick={() => setShowProfile(false)}>Close</button>
-                    <button
-                      className="rounded-xl border border-emerald-300/40 bg-emerald-500/20 hover:bg-emerald-500/30 px-3 py-2 text-sm"
-                      onClick={async () => {
-                        try {
-                          if (!apiBase) return;
-                          const { getToken } = await import("@/lib/auth");
-                          const token = getToken();
-                          if (!token) return;
-                          const res = await fetch(`${apiBase}/me`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                            body: JSON.stringify({
-                              name: profileData?.name ?? null,
-                              nickname: profileData?.nickname ?? null,
-                              schedule: profileData?.schedule ?? null,
-                              avatarUrl: profileData?.avatarUrl ?? null,
-                              yearLevel: (profileData as any)?.yearLevel ?? null,
-                              block: (profileData as any)?.block ?? null,
-                              subjectCodes: profileSubjects,
-                            }),
-                          });
-                          if (res.ok) {
-                            const data = await res.json();
-                            if (data?.user) setProfile(data.user);
-                            // Refresh channels so new section/subjects apply immediately
-                            try {
-                              const chRes = await fetch(`${apiBase}/channels`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
-                              if (chRes.ok) {
-                                const chData = await chRes.json().catch(() => ({}));
-                                if (Array.isArray(chData?.channels)) setChannels(chData.channels);
-                              }
-                            } catch {}
-                            setShowProfile(false);
+                    <div className="flex justify-end gap-2">
+                      <button className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-3 py-2 text-sm text-[color:var(--foreground)]" onClick={() => setShowProfile(false)}>Close</button>
+                      <PrimaryButton
+                        disabled={profileSaving}
+                        onClick={async () => {
+                          if (profileSaving) return;
+                          try {
+                            setProfileSaving(true);
+                            if (!apiBase) return;
+                            const { getToken } = await import("@/lib/auth");
+                            const token = getToken();
+                            if (!token) return;
+                            const res = await fetch(`${apiBase}/me`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                              body: JSON.stringify({
+                                name: profileData?.name ?? null,
+                                nickname: profileData?.nickname ?? null,
+                                schedule: profileData?.schedule ?? null,
+                                avatarUrl: profileData?.avatarUrl ?? null,
+                                yearLevel: (profileData as any)?.yearLevel ?? null,
+                                block: (profileData as any)?.block ?? null,
+                                subjectCodes: profileSubjects,
+                              }),
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              if (data?.user) setProfile(data.user);
+                              setShowProfile(false);
+                            }
+                          } catch {}
+                          finally {
+                            setProfileSaving(false);
                           }
-                        } catch {}
-                      }}
-                    >
-                      Save
-                    </button>
+                        }}
+                      >
+                        {profileSaving ? "Saving…" : "Save"}
+                      </PrimaryButton>
+                    </div>
                   </div>
                 </div>
               )}
@@ -723,6 +717,8 @@ export default function ChatPage() {
           </div>
         </div>
       )}
+
+      </div>
     </div>
   );
 }

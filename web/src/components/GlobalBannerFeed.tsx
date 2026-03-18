@@ -10,16 +10,16 @@ import { getToken } from "@/lib/auth";
 
 const KIND_STYLES: Record<BannerKind, { badge: string; card: string }> = {
   info: {
-    badge: "border-white/30 bg-white/10 text-white/80",
-    card: "border-white/30 bg-white/10 text-white",
+    badge: "border-[color:var(--border)] bg-[color:var(--surface)]/70 text-[color:var(--foreground)]/80",
+    card: "border-[color:var(--border)] bg-[color:var(--surface)]/70 text-[color:var(--foreground)]",
   },
   success: {
-    badge: "border-green-400/50 bg-green-500/10 text-green-200",
-    card: "border-green-400/30 bg-green-500/10 text-green-100",
+    badge: "border-green-500/25 bg-green-500/10 text-[color:var(--foreground)]/85",
+    card: "border-green-500/25 bg-green-500/10 text-[color:var(--foreground)]",
   },
   error: {
-    badge: "border-red-400/50 bg-red-500/10 text-red-200",
-    card: "border-red-400/30 bg-red-500/10 text-red-100",
+    badge: "border-red-500/25 bg-red-500/10 text-[color:var(--foreground)]/85",
+    card: "border-red-500/25 bg-red-500/10 text-[color:var(--foreground)]",
   },
 };
 
@@ -118,7 +118,7 @@ export default function GlobalBannerFeed() {
         return (
           <div
             key={banner.id}
-            className={`pointer-events-auto w-full max-w-full sm:max-w-5xl rounded-3xl border px-4 sm:px-6 ${isCollapsed ? "py-2 sm:py-3" : "py-3 sm:py-4"} shadow-[0_10px_45px_-14px_rgba(0,0,0,0.75)] backdrop-blur-2xl transition-transform duration-200 hover:-translate-y-0.5 ${styles.card}`}
+            className={`pointer-events-auto w-full max-w-full sm:max-w-5xl rounded-3xl border px-4 sm:px-6 ${isCollapsed ? "py-2 sm:py-3" : "py-3 sm:py-4"} shadow-[0_10px_45px_-14px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition-transform duration-200 hover:-translate-y-0.5 ${styles.card}`}
           >
             <div className="flex flex-col gap-2 sm:gap-3">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -129,26 +129,26 @@ export default function GlobalBannerFeed() {
                   <button
                     type="button"
                     onClick={() => setCollapsed((prev) => ({ ...prev, [banner.id]: !isCollapsed }))}
-                    className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-white/70 hover:bg-white/10"
+                    className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-[color:var(--border)] bg-[color:var(--surface)]/60 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-[color:var(--foreground)]/70 hover:bg-[color:var(--surface)]/80"
                   >
                     {isCollapsed ? "Show" : "Hide"}
                   </button>
                 </div>
-                <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.28em] text-white/55">
+                <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.28em] text-[color:var(--foreground)]/55">
                   Live update • {now.toLocaleString()}
                 </div>
               </div>
               {!isCollapsed && (
                 <>
                   <div className="space-y-2">
-                    <div className="text-lg sm:text-[28px] font-semibold tracking-wide text-white">
+                    <div className="text-lg sm:text-[28px] font-semibold tracking-wide text-[color:var(--foreground)]">
                       {banner.title}
                     </div>
-                    <div className="text-sm sm:text-base leading-relaxed text-white/85 whitespace-pre-wrap break-words">
+                    <div className="text-sm sm:text-base leading-relaxed text-[color:var(--foreground)]/85 whitespace-pre-wrap break-words">
                       {banner.message}
                     </div>
                   </div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/45">
+                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[color:var(--foreground)]/45">
                     {formatWindow(banner.startsAt, banner.endsAt)}
                   </div>
                 </>

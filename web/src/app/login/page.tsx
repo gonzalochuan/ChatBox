@@ -7,6 +7,7 @@ import { SERVER_URL } from "@/lib/config";
 import { setToken } from "@/lib/auth";
 import AlertBanner from "@/components/AlertBanner";
 import PasswordInput from "@/components/PasswordInput";
+import PrimaryButton from "@/components/PrimaryButton";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -68,7 +69,7 @@ export default function LoginPage() {
       {/* Centered form card */}
       <div className="relative z-10 min-h-[100dvh] flex items-center justify-center p-6 pt-24 sm:pt-28">
         <div className="w-full max-w-md rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset,0_10px_40px_-10px_rgba(0,0,0,0.6)] p-6 sm:p-8">
-          <h1 className="text-2xl font-akira-bold tracking-wide">Sign in</h1>
+          <h1 className="text-2xl font-akira-bold text-[var(--foreground)]/95 tracking-wide">Sign in</h1>
           <p className="text-sm text-white/70 mt-4">Welcome to ChatBox</p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-5">
@@ -93,18 +94,14 @@ export default function LoginPage() {
                 placeholder="••••••••"
               />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-full border border-white/25 bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-md py-3 font-medium tracking-wide transition-colors disabled:opacity-60"
-            >
+            <PrimaryButton type="submit" disabled={loading} fullWidth>
               {loading ? "Signing in…" : "Sign in"}
-            </button>
+            </PrimaryButton>
           </form>
 
           <div className="mt-5 text-sm text-white/70 flex items-center justify-between">
-            <Link href="/claim" className="hover:text-white">Claim account</Link>
-            <Link href="/chat" className="hover:text-white">Continue as guest</Link>
+            <Link href="/claim" className="text-[var(--foreground)]/95 hover:text-[var(--foreground)]">Claim account</Link>
+            <Link href="/chat" className="text-[var(--foreground)]/95 hover:text-[var(--foreground)]">Continue as guest</Link>
           </div>
         </div>
       </div>

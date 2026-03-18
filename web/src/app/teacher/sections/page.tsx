@@ -6,6 +6,7 @@ import { SERVER_URL } from "@/lib/config";
 import { useConnection } from "@/store/useConnection";
 import { getToken } from "@/lib/auth";
 import PasswordInput from "@/components/PasswordInput";
+import PrimaryButton from "@/components/PrimaryButton";
 
 interface SectionInfo {
   id: string;
@@ -327,7 +328,7 @@ export default function TeacherSectionsPage() {
                     </div>
                     <div className="flex flex-col gap-1 items-start">
                       <div className="text-[11px] text-white/50">Recommended: square image. Max 8MB.</div>
-                      <label className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-md px-3 py-1.5 text-xs cursor-pointer">
+                      <label className="cursor-pointer">
                         <input
                           type="file"
                           accept="image/*"
@@ -355,7 +356,11 @@ export default function TeacherSectionsPage() {
                             }
                           }}
                         />
-                        <span>Upload</span>
+                        <span className="inline-flex">
+                          <PrimaryButton type="button" className="px-4 py-2 text-xs font-semibold">
+                            Upload
+                          </PrimaryButton>
+                        </span>
                       </label>
                     </div>
                   </div>
@@ -427,9 +432,9 @@ export default function TeacherSectionsPage() {
                     <div className="text-[11px] text-white/60 mb-1">Subject Codes</div>
                     <div className="mt-1 flex flex-wrap items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-3 py-2">
                       {addSubjects.map((code, idx) => (
-                        <span key={`${code}-${idx}`} className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs">
+                        <span key={`${code}-${idx}`} className="inline-flex items-center gap-2 rounded-full border border-transparent ring-0 outline-none shadow-none bg-gradient-to-b from-[var(--brand-2)] to-[var(--brand)] px-3 py-1 text-xs font-semibold text-white">
                           {code}
-                          <button type="button" className="text-white/70 hover:text-white" onClick={() => setAddSubjects(addSubjects.filter((_, i) => i !== idx))}>×</button>
+                          <button type="button" className="text-white/70 hover:text-white ring-0 outline-none shadow-none" onClick={() => setAddSubjects(addSubjects.filter((_, i) => i !== idx))}>×</button>
                         </span>
                       ))}
                       <input
@@ -463,7 +468,7 @@ export default function TeacherSectionsPage() {
                                 const cleaned = String(code || "").trim().toUpperCase();
                                 if (cleaned && !addSubjects.includes(cleaned)) setAddSubjects([...addSubjects, cleaned]);
                               }}
-                              className="text-[11px] px-2 py-0.5 rounded-full border border-white/25 bg-white/10 hover:bg-white/15"
+                              className="text-[11px] px-2 py-0.5 rounded-full bg-[color:var(--brand)]/20 text-white hover:bg-[color:var(--brand)]/25"
                             >
                               {code}
                             </button>
@@ -475,7 +480,7 @@ export default function TeacherSectionsPage() {
                   </div>
                   <textarea value={addSchedule} onChange={(e) => setAddSchedule(e.target.value)} rows={2} placeholder="Schedules (optional)" className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/40 outline-none" />
                   <div className="flex justify-end">
-                    <button
+                    <PrimaryButton
                       type="button"
                       disabled={adding}
                       onClick={async () => {
@@ -522,10 +527,9 @@ export default function TeacherSectionsPage() {
                           setAdding(false);
                         }
                       }}
-                      className="rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 px-4 py-2 text-sm"
                     >
                       {adding ? "Adding…" : "Add Student"}
-                    </button>
+                    </PrimaryButton>
                   </div>
                 </div>
               </div>

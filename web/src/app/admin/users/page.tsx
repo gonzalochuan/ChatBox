@@ -7,6 +7,7 @@ import { getToken } from "@/lib/auth";
 import { SERVER_URL } from "@/lib/config";
 import PasswordInput from "@/components/PasswordInput";
 import AvatarPicker from "@/components/AvatarPicker";
+import PrimaryButton from "@/components/PrimaryButton";
 
 const YEAR_OPTIONS = ["1", "2", "3", "4"];
 
@@ -88,9 +89,9 @@ function AddStaffModal({ onClose, onDone, baseUrl }: { onClose: () => void; onDo
       footer={
         <>
           <button onClick={onClose} className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5">Cancel</button>
-          <button disabled={saving} onClick={submit} className="rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 px-3 py-1.5">
+          <PrimaryButton disabled={saving} onClick={submit}>
             {saving ? "Saving…" : "Save"}
-          </button>
+          </PrimaryButton>
         </>
       }
     >
@@ -225,104 +226,115 @@ export default function AdminUsersPage() {
             </Link>
             <div className="font-ethno-bold tracking-widest text-sm md:text-base">USERS & ROLES</div>
           </div>
-          <div className="text-xs text-white/70">
-            <div className="flex items-center gap-2">
-              <button onClick={() => setShowAddStudent(true)} className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-2 py-1">Add Student</button>
-              <button onClick={() => setShowAddStaff(true)} className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-2 py-1">Add Admins/Teacher</button>
-              <button onClick={load} className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-2 py-1">Refresh</button>
-            </div>
-          </div>
+          <div className="text-xs text-white/70">Mode: {baseUrl ? "CUSTOM" : "SERVER"}</div>
         </header>
 
-        <div className="p-3 md:p-4">
-          {error && (
-            <div className="mb-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-200 px-3 py-2 text-sm">
-              {error}
+        <div className="p-3 md:p-4 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-3 md:gap-4 min-h-0">
+          <aside className="rounded-2xl border border-white/15 bg-black/40 backdrop-blur-sm p-3 md:p-4 h-fit lg:sticky lg:top-[76px]">
+            <div className="text-xs uppercase tracking-widest text-white/60">Actions</div>
+            <div className="mt-3 grid gap-2">
+              <PrimaryButton onClick={() => setShowAddStudent(true)} fullWidth className="px-3 py-1.5 text-[12px] font-medium">
+                Add Student
+              </PrimaryButton>
+              <PrimaryButton onClick={() => setShowAddStaff(true)} fullWidth className="px-3 py-1.5 text-[12px] font-medium">
+                Add Admins/Teacher
+              </PrimaryButton>
+              <PrimaryButton onClick={load} fullWidth className="px-3 py-1.5 text-[12px] font-medium">
+                Refresh
+              </PrimaryButton>
             </div>
-          )}
+          </aside>
 
-          <div className="rounded-2xl border border-white/15 bg-black/40 backdrop-blur-sm overflow-hidden">
-            <div className="px-3 py-2 border-b border-white/10 text-sm text-white/80 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div>Total: {users.length}</div>
-                <div className="text-white/50">Showing: {filteredUsers.length}</div>
+          <div className="min-h-0">
+            {error && (
+              <div className="mb-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-200 px-3 py-2 text-sm">
+                {error}
               </div>
-            </div>
+            )}
 
-            <div className="px-3 py-2 border-b border-white/10 bg-black/30">
-              <div className="flex flex-col md:flex-row md:items-center gap-2">
-                <div className="relative flex-1">
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search name, email, student ID…"
-                    className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
-                  />
-                  {query ? (
-                    <button
-                      type="button"
-                      onClick={() => setQuery("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-sm"
-                      aria-label="Clear search"
-                    >
-                      ×
-                    </button>
-                  ) : null}
+            <div className="rounded-2xl border border-white/15 bg-black/40 backdrop-blur-sm overflow-hidden">
+              <div className="px-3 py-2 border-b border-white/10 text-sm text-white/80 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div>Total: {users.length}</div>
+                  <div className="text-white/50">Showing: {filteredUsers.length}</div>
                 </div>
+              </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-xs uppercase tracking-widest text-white/50">Role</span>
-                  <div className="relative" ref={roleMenuRef}>
-                    <button
-                      type="button"
-                      onClick={() => setRoleOpen((v) => !v)}
-                      className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:ring-2 focus:ring-white/30 flex items-center justify-between min-w-[150px]"
-                    >
-                      <span>
-                        {roleFilter === "ALL" ? "All" : roleFilter === "STUDENT" ? "Student" : roleFilter === "TEACHER" ? "Teacher" : "Admin"}
-                      </span>
-                      <span className="text-white/60">▾</span>
-                    </button>
-                    {roleOpen && (
-                      <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-white/15 bg-black/80 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-                        {([
-                          { value: "ALL", label: "All" },
-                          { value: "STUDENT", label: "Student" },
-                          { value: "TEACHER", label: "Teacher" },
-                          { value: "ADMIN", label: "Admin" },
-                        ] as const).map((opt) => (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => {
-                              setRoleFilter(opt.value);
-                              setRoleOpen(false);
-                            }}
-                            className={`w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 ${roleFilter === opt.value ? "bg-white/10" : ""}`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+              <div className="px-3 py-2 border-b border-white/10 bg-black/30">
+                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search name, email, student ID…"
+                      className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
+                    />
+                    {query ? (
+                      <button
+                        type="button"
+                        onClick={() => setQuery("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-sm"
+                        aria-label="Clear search"
+                      >
+                        ×
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs uppercase tracking-widest text-white/50">Role</span>
+                    <div className="relative" ref={roleMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setRoleOpen((v) => !v)}
+                        className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:ring-2 focus:ring-white/30 flex items-center justify-between min-w-[150px]"
+                      >
+                        <span>
+                          {roleFilter === "ALL" ? "All" : roleFilter === "STUDENT" ? "Student" : roleFilter === "TEACHER" ? "Teacher" : "Admin"}
+                        </span>
+                        <span className="text-white/60">▾</span>
+                      </button>
+                      {roleOpen && (
+                        <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-white/15 bg-black/40 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+                          {([
+                            { value: "ALL", label: "All" },
+                            { value: "STUDENT", label: "Student" },
+                            { value: "TEACHER", label: "Teacher" },
+                            { value: "ADMIN", label: "Admin" },
+                          ] as const).map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => {
+                                setRoleFilter(opt.value);
+                                setRoleOpen(false);
+                              }}
+                              className={`w-full px-3 py-2.5 text-left text-sm hover:bg-white/5 ${roleFilter === opt.value ? "bg-white/10" : ""}`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="max-h-[calc(100dvh-180px)] md:max-h-[calc(100dvh-180px)] overflow-y-auto">
-              {loading ? (
-                <div className="p-4 text-white/60 text-sm">Loading…</div>
-              ) : filteredUsers.length === 0 ? (
-                <div className="p-4 text-white/60 text-sm">No users found.</div>
-              ) : (
-                <UserList
-                  users={filteredUsers}
-                  onEdit={setShowEdit}
-                  onRoles={setShowRoles}
-                  onDelete={setConfirmDelete}
-                />
-              )}
+              <div className="max-h-[calc(100dvh-180px)] md:max-h-[calc(100dvh-180px)] overflow-y-auto">
+                {loading ? (
+                  <div className="p-4 text-white/60 text-sm">Loading…</div>
+                ) : filteredUsers.length === 0 ? (
+                  <div className="p-4 text-white/60 text-sm">No users found.</div>
+                ) : (
+                  <UserList
+                    users={filteredUsers}
+                    onEdit={setShowEdit}
+                    onRoles={setShowRoles}
+                    onDelete={setConfirmDelete}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -396,13 +408,13 @@ function YearLevelSelect({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className={`w-full rounded-xl border ${error ? "border-red-400/60" : "border-white/20"} bg-white/5 px-3 py-2.5 text-left text-white/90 outline-none focus:ring-2 focus:ring-white/30 flex items-center justify-between`}
+          className={`w-full rounded-xl border ${error ? "border-red-400/60" : "border-white/20"} bg-white/5 px-3 py-2.5 text-left text-[color:var(--foreground)]/80 outline-none focus:ring-2 focus:ring-white/30 flex items-center justify-between`}
         >
           <span>{value ? `Year ${value}` : "Select year"}</span>
-          <span className="text-white/70">▾</span>
+          <span className="text-[color:var(--foreground)]/50">▾</span>
         </button>
         {open && (
-          <div className="absolute z-40 mt-2 w-full rounded-xl border border-white/20 bg-black/70 backdrop-blur-xl shadow-xl overflow-hidden">
+          <div className="absolute z-40 mt-2 w-full rounded-xl border border-white/20 bg-black/40 backdrop-blur-xl shadow-xl overflow-hidden">
             {YEAR_OPTIONS.map((y) => (
               <button
                 key={y}
@@ -411,7 +423,7 @@ function YearLevelSelect({
                   onChange(y);
                   setOpen(false);
                 }}
-                className={`w-full text-left px-3 py-2 hover:bg-white/10 ${value === y ? "bg-white/10" : ""}`}
+                className={`w-full text-left px-3 py-2 text-[color:var(--foreground)]/40 hover:bg-white/10 ${value === y ? "bg-white/10" : ""}`}
               >
                 Year {y}
               </button>
@@ -633,9 +645,9 @@ function AddStudentModal({ onClose, onDone, baseUrl }: { onClose: () => void; on
     <Modal title="Add Student" onClose={onClose} footer={
       <>
         <button onClick={onClose} className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5">Cancel</button>
-        <button disabled={saving} onClick={submit} className="rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 px-3 py-1.5">
+        <PrimaryButton disabled={saving} onClick={submit}>
           {saving ? "Saving…" : "Save"}
-        </button>
+        </PrimaryButton>
       </>
     }>
       {error && <div className="mb-2 text-sm text-red-300">{error}</div>}
@@ -733,9 +745,9 @@ function EditUserModal({ user, onClose, onDone, baseUrl }: { user: AdminUser; on
       footer={
         <>
           <button onClick={onClose} className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5">Cancel</button>
-          <button disabled={saving} onClick={submit} className="rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 px-3 py-1.5">
+          <PrimaryButton disabled={saving} onClick={submit}>
             {saving ? "Saving…" : "Save"}
-          </button>
+          </PrimaryButton>
         </>
       }
     >

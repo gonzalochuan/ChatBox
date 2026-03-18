@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useConnection } from "@/store/useConnection";
 import { SERVER_URL } from "@/lib/config";
 import { getToken } from "@/lib/auth";
-import { useConnection } from "@/store/useConnection";
+import PrimaryButton from "@/components/PrimaryButton";
 import type { Banner, BannerKind } from "@/types";
 
 interface EditableBanner extends Banner {
@@ -90,7 +91,7 @@ export default function AdminBannersPage() {
   }, [apiBase]);
 
   return (
-    <div className="app-theme relative min-h-dvh text-white bg-black">
+    <div className="app-theme relative min-h-dvh">
       <div className="grid-layer" />
       <div className="relative z-10 h-dvh grid grid-rows-[64px_1fr] min-h-0">
         <header className="flex items-center justify-between px-4 md:px-6 border-b border-white/10 bg-black/40 backdrop-blur-sm">
@@ -104,34 +105,28 @@ export default function AdminBannersPage() {
             </Link>
             <div className="font-ethno-bold tracking-widest text-sm md:text-base">BANNERS & ALERTS</div>
           </div>
-          <div className="text-xs text-white/70 flex items-center gap-2">
-            <button
-              onClick={() => setShowAdd(true)}
-              className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-3 py-1"
-            >
+          <div className="flex items-center gap-2">
+            <PrimaryButton type="button" onClick={() => setShowAdd(true)} className="px-4 py-2 text-xs font-semibold">
               New Banner
-            </button>
-            <button
-              onClick={load}
-              className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-3 py-1"
-            >
+            </PrimaryButton>
+            <PrimaryButton type="button" onClick={load} className="px-4 py-2 text-xs font-semibold">
               Refresh
-            </button>
+            </PrimaryButton>
           </div>
         </header>
 
         <div className="p-3 md:p-4 space-y-3 overflow-y-auto">
           {error && (
-            <div className="rounded-xl border border-red-400/30 bg-red-500/10 text-red-200 px-3 py-2 text-sm">
+            <div className="rounded-xl border border-red-500/25 bg-red-500/10 text-[color:var(--foreground)] px-3 py-2 text-sm">
               {error}
             </div>
           )}
           {loading ? (
-            <div className="rounded-xl border border-white/15 bg-black/40 backdrop-blur-sm px-4 py-6 text-white/70 text-sm">
+            <div className="rounded-xl border border-white/15 bg-black/40 backdrop-blur-sm px-4 py-6 text-[color:var(--foreground)]/70 text-sm">
               Loading…
             </div>
           ) : banners.length === 0 ? (
-            <div className="rounded-xl border border-white/15 bg-black/40 backdrop-blur-sm px-4 py-6 text-white/60 text-sm">
+            <div className="rounded-xl border border-white/15 bg-black/40 backdrop-blur-sm px-4 py-6 text-[color:var(--foreground)]/60 text-sm">
               No banners yet. Create one to broadcast an alert.
             </div>
           ) : (
@@ -260,45 +255,40 @@ function BannerRow({
     <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-4 xl:gap-8 px-4 sm:px-6 py-5">
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="rounded-full border border-white/20 bg-white/5 px-2.5 py-0.5 uppercase tracking-widest text-[11px] text-white/75">
+          <span className="rounded-full border border-[color:var(--border)] bg-[color:var(--surface)]/60 px-2.5 py-0.5 uppercase tracking-widest text-[11px] text-[color:var(--foreground)]/75">
             {banner.kind}
           </span>
           {banner.isActive && (
-            <span className="rounded-full border border-green-400/40 bg-green-500/10 px-2.5 py-0.5 text-[11px] text-green-300">
+            <span className="rounded-full border border-green-500/25 bg-green-500/10 px-2.5 py-0.5 text-[11px] text-[color:var(--foreground)]/80">
               Active
             </span>
           )}
         </div>
-        <div className="text-xl sm:text-2xl font-semibold text-white whitespace-pre-wrap break-words">{banner.title}</div>
-        <div className="text-sm sm:text-base text-white/75 whitespace-pre-wrap break-words">{banner.message}</div>
-        <div className="text-xs sm:text-[13px] text-white/55">
+        <div className="text-xl sm:text-2xl font-semibold text-[color:var(--foreground)] whitespace-pre-wrap break-words">{banner.title}</div>
+        <div className="text-sm sm:text-base text-[color:var(--foreground)]/75 whitespace-pre-wrap break-words">{banner.message}</div>
+        <div className="text-xs sm:text-[13px] text-[color:var(--foreground)]/55">
           {banner.startsAt ? `Starts ${formatDateLabel(banner.startsAt)}` : "Starts immediately"}
           {" • "}
           {banner.endsAt ? `Ends ${formatDateLabel(banner.endsAt)}` : "No end"}
         </div>
-        <div className="text-[11px] sm:text-xs text-white/35">
+        <div className="text-[11px] sm:text-xs text-[color:var(--foreground)]/35">
           Updated {formatDateLabel(banner.updatedAt)}
         </div>
       </div>
       <div className="flex flex-wrap md:flex-col gap-2 justify-end md:items-end">
-        <button
-          onClick={onToggle}
-          className={`rounded-lg border px-3 py-1 text-xs ${banner.isActive ? "border-yellow-400/40 bg-yellow-500/10 text-yellow-200" : "border-white/20 bg-white/5 hover:bg-white/10"}`}
-        >
+        <PrimaryButton type="button" onClick={onToggle} className="px-3 py-1.5 text-[11px] font-semibold">
           {banner.isActive ? "Deactivate" : "Activate"}
-        </button>
-        <button
-          onClick={onEdit}
-          className="rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 px-3 py-1 text-xs"
-        >
+        </PrimaryButton>
+        <PrimaryButton type="button" onClick={onEdit} className="px-3 py-1.5 text-[11px] font-semibold">
           Edit
-        </button>
-        <button
+        </PrimaryButton>
+        <PrimaryButton
+          type="button"
           onClick={onDelete}
-          className="rounded-lg border border-red-400/30 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 text-xs"
+          className="px-3 py-1.5 text-[11px] font-semibold bg-gradient-to-b from-red-500 to-red-600 shadow-[0_14px_30px_-20px_rgba(239,68,68,0.55),0_0_0_1px_rgba(239,68,68,0.35)_inset]"
         >
           Delete
-        </button>
+        </PrimaryButton>
       </div>
     </div>
   );
@@ -424,13 +414,9 @@ function BannerModal({
         </div>
         <div className="mt-4 flex justify-end gap-2">
           <button onClick={onClose} className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5">Cancel</button>
-          <button
-            disabled={saving}
-            onClick={submit}
-            className="rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 px-3 py-1.5"
-          >
+          <PrimaryButton disabled={saving} onClick={submit}>
             {saving ? "Saving…" : "Save"}
-          </button>
+          </PrimaryButton>
         </div>
       </div>
     </div>

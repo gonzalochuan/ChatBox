@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, useId } from "react";
 import { SERVER_URL } from "@/lib/config";
 import { useConnection } from "@/store/useConnection";
 import { getToken } from "@/lib/auth";
+import PrimaryButton from "@/components/PrimaryButton";
 
 interface SummaryResponse {
   users: number;
@@ -106,7 +107,7 @@ export default function AdminAnalyticsPage() {
   const maxMessages = usage?.days.reduce((max, day) => Math.max(max, day.messages), 0) || 1;
 
   return (
-    <div className="app-theme relative min-h-dvh text-white bg-black">
+    <div className="app-theme relative min-h-dvh">
       <div className="grid-layer" />
       <div className="relative z-10 h-dvh grid grid-rows-[64px_1fr] min-h-0">
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-6 py-3 border-b border-white/10 bg-black/40 backdrop-blur-sm">
@@ -120,16 +121,16 @@ export default function AdminAnalyticsPage() {
             </Link>
             <div className="font-ethno-bold tracking-widest text-sm md:text-base">SYSTEM & ANALYTICS</div>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-white/70">
-            <button onClick={load} className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-3 py-1">
+          <div className="flex flex-wrap gap-2">
+            <PrimaryButton type="button" onClick={load} className="px-4 py-2 text-xs font-semibold">
               Refresh Data
-            </button>
+            </PrimaryButton>
           </div>
         </header>
 
         <div className="p-3 sm:p-4 space-y-4 overflow-y-auto">
           {error && (
-            <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</div>
+            <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-[color:var(--foreground)]">{error}</div>
           )}
 
           <section className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -138,8 +139,8 @@ export default function AdminAnalyticsPage() {
             ) : (
               cards.map((card) => (
                 <div key={card.label} className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md p-3 sm:p-4">
-                  <div className="text-[10px] uppercase tracking-[0.35em] text-white/50">{card.label}</div>
-                  <div className="mt-2 text-2xl font-semibold text-white">{formatNumber(card.value)}</div>
+                  <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--foreground)]/55">{card.label}</div>
+                  <div className="mt-2 text-2xl font-semibold text-[color:var(--foreground)]">{formatNumber(card.value)}</div>
                 </div>
               ))
             )}
@@ -149,10 +150,10 @@ export default function AdminAnalyticsPage() {
             <div className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md p-4 flex flex-col">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <div className="text-[10px] uppercase tracking-[0.35em] text-white/50">Messages (7 Days)</div>
-                  <div className="text-sm text-white/70">Daily message volume</div>
+                  <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--foreground)]/55">Messages (7 Days)</div>
+                  <div className="text-sm text-[color:var(--foreground)]/70">Daily message volume</div>
                 </div>
-                <div className="text-xs text-white/50">Period: {usage?.period ?? "—"}</div>
+                <div className="text-xs text-[color:var(--foreground)]/55">Period: {usage?.period ?? "—"}</div>
               </div>
               <div className="mt-4 flex-1 min-h-[12rem] sm:min-h-[14rem] relative">
                 {usage?.days.length ? (
@@ -164,19 +165,19 @@ export default function AdminAnalyticsPage() {
             </div>
 
             <div className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md p-4 flex flex-col">
-              <div className="text-[10px] uppercase tracking-[0.35em] text-white/50">Recent Messages</div>
-              <div className="mt-2 text-sm text-white/70">Last activity across channels</div>
+              <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--foreground)]/55">Recent Messages</div>
+              <div className="mt-2 text-sm text-[color:var(--foreground)]/70">Last activity across channels</div>
               <div className="mt-3 flex-1 overflow-y-auto space-y-3">
                 {summary?.latestMessages.length ? (
                   summary.latestMessages.map((msg) => (
                     <div key={msg.id} className="rounded-xl border border-white/10 bg-black/30 px-3 py-3">
-                      <div className="flex justify-between text-[11px] text-white/50">
+                      <div className="flex justify-between text-[11px] text-[color:var(--foreground)]/50">
                         <span className="uppercase tracking-[0.35em]">{formatPriority(msg.priority)}</span>
                         <span>{formatTimestamp(msg.createdAt)}</span>
                       </div>
-                      <div className="mt-1 text-sm font-semibold text-white break-words">{msg.senderName}</div>
-                      <div className="mt-1 text-sm text-white/80 line-clamp-3 break-words">{msg.text}</div>
-                      <div className="mt-2 text-[11px] text-white/50">Channel: {msg.channelId}</div>
+                      <div className="mt-1 text-sm font-semibold text-[color:var(--foreground)] break-words">{msg.senderName}</div>
+                      <div className="mt-1 text-sm text-[color:var(--foreground)]/80 line-clamp-3 break-words">{msg.text}</div>
+                      <div className="mt-2 text-[11px] text-[color:var(--foreground)]/50">Channel: {msg.channelId}</div>
                     </div>
                   ))
                 ) : (
@@ -223,18 +224,18 @@ function MiniLineChart({ data, max }: { data: { date: string; messages: number }
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
           <defs>
             <linearGradient id={`${uid}-lineGrad`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-              <stop offset="100%" stopColor="rgba(255,255,255,0.5)" />
+              <stop offset="0%" stopColor="rgba(234,88,12,0.95)" />
+              <stop offset="100%" stopColor="rgba(194,65,12,0.65)" />
             </linearGradient>
             <linearGradient id={`${uid}-fillGrad`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.25)" />
-              <stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
+              <stop offset="0%" stopColor="rgba(234,88,12,0.18)" />
+              <stop offset="100%" stopColor="rgba(234,88,12,0.02)" />
             </linearGradient>
           </defs>
 
           {Array.from({ length: 4 }).map((_, i) => {
             const y = padTop + (i / 4) * chartH;
-            return <line key={i} x1={0} y1={y} x2={W} y2={y} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />;
+            return <line key={i} x1={0} y1={y} x2={W} y2={y} stroke="rgba(15,23,42,0.10)" strokeWidth={1} />;
           })}
 
           {areaPath && <path d={areaPath} fill={`url(#${uid}-fillGrad)`} />}
@@ -242,7 +243,7 @@ function MiniLineChart({ data, max }: { data: { date: string; messages: number }
             <path d={linePath} fill="none" stroke={`url(#${uid}-lineGrad)`} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
           )}
           {showPoints &&
-            points.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={3} fill="white" fillOpacity={0.9} />)}
+            points.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={3} fill="rgba(194,65,12,1)" fillOpacity={0.95} />)}
         </svg>
       </div>
 
@@ -251,8 +252,8 @@ function MiniLineChart({ data, max }: { data: { date: string; messages: number }
           <div key={d.date} className="min-w-0 text-center flex flex-col gap-[2px]">
             {i % tickStep === 0 ? (
               <>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-white/60 leading-tight">{formatDayLabel(d.date)}</div>
-                <div className="text-[10px] text-white/60 leading-tight">{formatNumber(d.messages)}</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[color:var(--foreground)]/60 leading-tight">{formatDayLabel(d.date)}</div>
+                <div className="text-[10px] text-[color:var(--foreground)]/60 leading-tight">{formatNumber(d.messages)}</div>
               </>
             ) : (
               <div className="h-[16px]" />
