@@ -3322,6 +3322,79 @@ app.post("/admin/users", requireAdmin, async (req, res) => {
   res.status(201).json({ id: user.id });
 });
 
+app.post("/admin/users/bulk-import", requireAdmin, async (req, res) => {
+  try {
+    const { users = [] } = req.body || {};
+    if (!Array.isArray(users) || users.length === 0) {
+      return res.status(400).json({ error: "users_array_required" });
+    }
+    const created = [];
+    const failed = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < users.length; i++) {
+      const row = users[i];
+      try {
+        const {
+          email,
+          password,
+          name,
+          nickname,
+          studentId,
+          role,
+          yearLevel,
+          block,
+          schedule,
+          subjectCodes,
+          profession,
+          instructor,
+          avatarUrl,
+        } = row || {};
+        if (!email || !role) throw new Error("Email and role are required");
+        const primaryRole = String(role).trim().toUpperCase();
+        if (!["STUDENT", "TEACHER", "ADMIN"].includes(primaryRole)) throw new Error("Invalid role");
+        const hashedPassword = password ? await bcrypt.hash(password, 10) : await bcrypt.hash("Temp123A", 10);
+        const user = await prisma.user.create({
+          data: {
+            email: String(email).trim().toLowerCase(),
+            password: hashedPassword,
+            name: name ? String(name).trim() : null,
+            nickname: nickname ? String(nickname).trim() : null,
+            studentId: studentId ? String(studentId).trim() : null,
+            yearLevel: yearLevel ? String(yearLevel).trim() : null,
+            block: block ? String(block).trim() : null,
+            schedule: schedule ? String(schedule).trim() : null,
+            avatarUrl: avatarUrl ? String(avatarUrl).trim() : null,
+            profession: primaryRole === "TEACHER" && (instructor || profession) ? String(instructor || profession).trim() : null,
+          },
+        });
+        await prisma.userRole.create({
+          data: { userId: user.id, role: primaryRole },
+        });
+        if (primaryRole === "STUDENT" && Array.isArray(subjectCodes) && subjectCodes.length > 0) {
+          for (const code of subjectCodes) {
+            if (code && typeof code === "string") {
+              await prisma.userSubject.upsert({
+                where: { userId_subjectCode: { userId: user.id, subjectCode: code.trim().toUpperCase() } },
+                update: {},
+                create: { userId: user.id, subjectCode: code.trim().toUpperCase() },
+              });
+            }
+          }
+        }
+        created.push({ id: user.id, email: user.email });
+      } catch (e: any) {
+        failed.push({ index: i, email: row.email || "", error: e.message });
+        errors.push(`Row ${i + 1}: ${e.message}`);
+      }
+    }
+    res.json({ created: created.length, failed: failed.length, errors: errors.length ? errors : undefined });
+  } catch (e: any) {
+    console.error("[bulk-import]", e);
+    res.status(500).json({ error: "internal_error", message: e.message });
+  }
+});
+
 app.post("/admin/users/bulk-temp", requireAdmin, async (req, res) => {
   try {
     const {

@@ -161,6 +161,7 @@ export default function AdminUsersPage() {
   const [roleOpen, setRoleOpen] = useState(false);
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showAddStaff, setShowAddStaff] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [showEdit, setShowEdit] = useState<AdminUser | null>(null);
   const [showRoles, setShowRoles] = useState<AdminUser | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<AdminUser | null>(null);
@@ -238,6 +239,9 @@ export default function AdminUsersPage() {
               </PrimaryButton>
               <PrimaryButton onClick={() => setShowAddStaff(true)} fullWidth className="px-3 py-1.5 text-[12px] font-medium">
                 Add Admins/Teacher
+              </PrimaryButton>
+              <PrimaryButton onClick={() => setShowImport(true)} fullWidth className="px-3 py-1.5 text-[12px] font-medium">
+                Import
               </PrimaryButton>
               <PrimaryButton onClick={load} fullWidth className="px-3 py-1.5 text-[12px] font-medium">
                 Refresh
@@ -342,10 +346,191 @@ export default function AdminUsersPage() {
 
       {showAddStudent && <AddStudentModal onClose={() => setShowAddStudent(false)} onDone={() => { setShowAddStudent(false); load(); }} baseUrl={baseUrl || SERVER_URL} />}
       {showAddStaff && <AddStaffModal onClose={() => setShowAddStaff(false)} onDone={() => { setShowAddStaff(false); load(); }} baseUrl={baseUrl || SERVER_URL} />}
+      {showImport && <ImportModal onClose={() => setShowImport(false)} onDone={() => { setShowImport(false); load(); }} baseUrl={baseUrl || SERVER_URL} />}
       {showEdit && <EditUserModal user={showEdit} onClose={() => setShowEdit(null)} onDone={() => { setShowEdit(null); load(); }} baseUrl={baseUrl || SERVER_URL} />}
       {showRoles && <RolesModal user={showRoles} onClose={() => setShowRoles(null)} onDone={() => { setShowRoles(null); load(); }} baseUrl={baseUrl || SERVER_URL} />}
       {confirmDelete && <DeleteUserModal user={confirmDelete} onClose={() => setConfirmDelete(null)} onDone={() => { setConfirmDelete(null); load(); }} baseUrl={baseUrl || SERVER_URL} />}
     </div>
+  );
+}
+
+function ImportModal({ onClose, onDone, baseUrl }: { onClose: () => void; onDone: () => void; baseUrl: string; }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [parsing, setParsing] = useState(false);
+  const [rows, setRows] = useState<any[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ created: number; failed: number; errors?: string[] } | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) setFile(f);
+  };
+
+  const parseCSV = (text: string) => {
+    const lines = text.split(/\r?\n/).filter(line => line.trim());
+    if (lines.length < 2) throw new Error("File must contain at least a header row and one data row");
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const requiredHeaders = ['email', 'role'];
+    const missing = requiredHeaders.filter(h => !headers.includes(h));
+    if (missing.length) throw new Error(`Missing required columns: ${missing.join(', ')}`);
+    const parsed = lines.slice(1).map((line, idx) => {
+      const values = line.split(',').map(v => v.trim());
+      const row: any = {};
+      headers.forEach((h, i) => { row[h] = values[i] || ''; });
+      row._line = idx + 2;
+      return row;
+    });
+    return parsed;
+  };
+
+  const parseFile = async () => {
+    if (!file) return;
+    setParsing(true);
+    setErrors([]);
+    setRows([]);
+    try {
+      const text = await file.text();
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      let parsed: any[] = [];
+      if (ext === 'csv') {
+        parsed = parseCSV(text);
+      } else if (ext === 'xlsx' || ext === 'xls') {
+        // TODO: integrate xlsx library for Excel parsing
+        throw new Error('Excel parsing not yet supported. Please save as CSV.');
+      } else {
+        throw new Error('Unsupported file type. Use CSV or Excel.');
+      }
+      // Basic validation
+      const errs: string[] = [];
+      parsed.forEach((row, i) => {
+        if (!row.email) errs.push(`Row ${row._line}: Email is required`);
+        if (!row.role) errs.push(`Row ${row._line}: Role is required`);
+        if (row.role && !['student', 'teacher', 'admin'].includes(row.role.toLowerCase())) {
+          errs.push(`Row ${row._line}: Role must be one of: student, teacher, admin`);
+        }
+      });
+      if (errs.length) {
+        setErrors(errs);
+      } else {
+        setRows(parsed);
+      }
+    } catch (e: any) {
+      setErrors([e.message || 'Failed to parse file']);
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const doImport = async () => {
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const api = baseUrl.replace(/\/$/, '');
+      const token = getToken();
+      if (!token) throw new Error('No auth token');
+      const res = await fetch(`${api}/admin/users/bulk-import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ users: rows }),
+      });
+      if (!res.ok) throw new Error(`Import failed: ${res.status}`);
+      const result = await res.json();
+      setImportResult(result);
+      if (result.created > 0) {
+        setTimeout(() => onDone(), 1200);
+      }
+    } catch (e: any) {
+      setErrors([e.message || 'Import failed']);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  return (
+    <Modal title="Import Users (CSV/Excel)" onClose={onClose} footer={
+      <>
+        <button onClick={onClose} className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5">Cancel</button>
+        {rows.length > 0 && !importResult && (
+          <PrimaryButton disabled={importing} onClick={doImport}>
+            {importing ? 'Importing…' : `Import ${rows.length} rows`}
+          </PrimaryButton>
+        )}
+      </>
+    }>
+      {errors.length > 0 && (
+        <div className="mb-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-200 px-3 py-2 text-sm">
+          {errors.map((e, i) => <div key={i}>{e}</div>)}
+        </div>
+      )}
+      {importResult && (
+        <div className="mb-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-200 px-3 py-2 text-sm">
+          <div>✅ Created: {importResult.created}</div>
+          {importResult.failed > 0 && <div>❌ Failed: {importResult.failed}</div>}
+          {importResult.errors?.map((e, i) => <div key={i}>{e}</div>)}
+        </div>
+      )}
+      {!importResult && (
+        <div className="space-y-3">
+          <div className="text-xs text-white/60">
+            <div className="font-semibold mb-1">Required columns:</div>
+            <div>email, role</div>
+            <div className="font-semibold mb-1 mt-2">Optional columns:</div>
+            <div>password, name, nickname, studentId, year, block, schedule, subjectCodes (comma-separated, e.g., IT-1234,CS-101), instructor (for instructors only), avatarUrl</div>
+            <div className="font-semibold mb-1 mt-2">Role values:</div>
+            <div>student, teacher, admin</div>
+            <div className="mt-2">
+              <a
+                href="data:text/csv;charset=utf-8,email%2Crole%2Cpassword%2Cname%2Cnickname%2CstudentId%2Cyear%2Cblock%2Cschedule%2CsubjectCodes%2Cinstructor%0Astudent1%40school.edu%2Cstudent%2CTemp123A%2CJuan%20Dela%20Cruz%2Cjuanc%2C20230001%2C1%2CA%2CMon%209-11%2CIT-1234%2CCS-101%2C%0Ateacher1%40school.edu%2Cteacher%2CTemp123A%2CMaria%20Santos%2C%2C%2C%2C%2C%2C%2C%2C%2CPhysics"
+                download="bulk-import-template.csv"
+                className="inline-block underline text-emerald-300 hover:text-emerald-200"
+              >
+                Download CSV template
+              </a>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-white/60 mb-2">Upload CSV/Excel</label>
+            <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileChange} className="block w-full text-sm text-black file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-black hover:file:bg-white/20" />
+          </div>
+          {file && !rows.length && (
+            <PrimaryButton disabled={parsing} onClick={parseFile}>
+              {parsing ? 'Parsing…' : 'Parse & Preview'}
+            </PrimaryButton>
+          )}
+          {rows.length > 0 && (
+            <div className="max-h-[300px] overflow-auto rounded-xl border border-white/15 bg-white/5 p-3">
+              <div className="text-xs uppercase tracking-widest text-white/60 mb-2">Preview (first 5 rows)</div>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-white/40">
+                    <th className="text-left p-1">Email</th>
+                    <th className="text-left p-1">Role</th>
+                    <th className="text-left p-1">Name</th>
+                    <th className="text-left p-1">Student ID</th>
+                    <th className="text-left p-1">Year</th>
+                    <th className="text-left p-1">Block</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.slice(0, 5).map((row, i) => (
+                    <tr key={i}>
+                      <td className="p-1">{row.email || ''}</td>
+                      <td className="p-1">{row.role || ''}</td>
+                      <td className="p-1">{row.name || ''}</td>
+                      <td className="p-1">{row.studentid || ''}</td>
+                      <td className="p-1">{row.year || ''}</td>
+                      <td className="p-1">{row.block || ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {rows.length > 5 && <div className="text-xs text-white/40 mt-2">…and {rows.length - 5} more rows</div>}
+            </div>
+          )}
+        </div>
+      )}
+    </Modal>
   );
 }
 
