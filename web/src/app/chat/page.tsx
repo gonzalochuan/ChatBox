@@ -3,13 +3,17 @@
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatWindow from "@/components/ChatWindow";
 import LeftRail from "@/components/LeftRail";
-import { useEffect, useMemo, useRef, useState } from "react";
 import AvatarPicker from "@/components/AvatarPicker";
 import PrimaryButton from "@/components/PrimaryButton";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SERVER_URL } from "@/lib/config";
+import { clearToken, getToken } from "@/lib/auth";
 import { useConnection } from "@/store/useConnection";
 import { useChatStore } from "@/store/useChat";
 import { fetchMe } from "@/lib/api";
-import { getToken } from "@/lib/auth";
 import { useAuth } from "@/store/useAuth";
 import { useUI } from "@/store/useUI";
 
@@ -341,7 +345,10 @@ export default function ChatPage() {
                 </div>
               )}
             </button>
-            <div className="font-ethno-bold tracking-widest text-sm md:text-base text-[color:var(--foreground)]">CB</div>
+            <div className="flex items-center gap-2 font-ethno-bold tracking-widest text-sm md:text-base text-[color:var(--foreground)]">
+              <span>CB ﾒ</span>
+              <Image src="/seaitlogo.png" alt="SEAIT" width={48} height={48} className="h-[40px] w-auto" priority />
+            </div>
           </div>
           <div className="flex items-center gap-3 text-xs md:text-sm text-[color:var(--foreground)]/70">
             {badge}

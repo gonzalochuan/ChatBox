@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import PrimaryButton from "@/components/PrimaryButton";
@@ -167,7 +168,10 @@ export default function Intro() {
       <canvas ref={sparkleCanvasRef} className="fixed inset-0 z-[8] pointer-events-none" />
 
       {/* Top chrome */}
-      <div className="absolute top-6 left-6 z-20 text-xs md:text-sm tracking-widest text-[var(--foreground)]/80 font-ethno-bold">CB</div>
+      <div className="absolute top-6 left-6 z-20 flex items-center gap-2 text-xs md:text-sm tracking-widest text-[var(--foreground)]/80 font-ethno-bold">
+        <span>CB ﾒ</span>
+        <Image src="/seaitlogo.png" alt="SEAIT" width={48} height={48} className="h-[40px] w-auto" priority />
+      </div>
       <a
         className="absolute top-6 right-6 z-20 text-xs md:text-sm tracking-wider text-[var(--foreground)]/80 hover:text-[var(--foreground)]"
         href="#"

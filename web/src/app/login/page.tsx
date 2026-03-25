@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import SparkleGridOverlay from "@/components/SparkleGridOverlay";
 import { useState } from "react";
@@ -63,7 +64,10 @@ export default function LoginPage() {
       <SparkleGridOverlay />
 
       {/* Top chrome to match Intro */}
-      <div className="absolute top-6 left-6 z-30 text-xs md:text-sm tracking-widest text-white/80 font-ethno-bold">CB</div>
+      <div className="absolute top-6 left-6 z-30 flex items-center gap-2 text-xs md:text-sm tracking-widest text-white/80 font-ethno-bold">
+        <span>CB ﾒ</span>
+        <Image src="/seaitlogo.png" alt="SEAIT" width={48} height={48} className="h-[40px] w-auto" priority />
+      </div>
       <Link href="/" className="absolute top-6 right-6 z-30 text-xs md:text-sm tracking-wider text-white/80 hover:text-white">Back</Link>
 
       {/* Centered form card */}
