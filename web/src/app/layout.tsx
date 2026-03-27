@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import ClientInit from "@/components/ClientInit";
@@ -43,15 +43,29 @@ const poppinsLocal = localFont({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "ChatBox",
   description: "ChatBox — Intranet Based Communication Platform",
   manifest: "/manifest.json",
-  themeColor: "#000000",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ChatBox",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
-    icon: "/cb-icon.svg",
-    shortcut: "/cb-icon.svg",
-    apple: "/cb-icon.svg",
+    icon: "/icons/icon-192.png",
+    shortcut: "/icons/icon-192.png",
+    apple: "/icons/icon-192.png",
   },
 };
 
