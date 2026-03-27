@@ -61,6 +61,19 @@ export default function ChatPage() {
   const [dmPeople, setDmPeople] = useState<Array<{ id: string; name: string; handle?: string }>>([]);
   const createDm = useChatStore((s) => s.createDm);
 
+  const [isOffline, setIsOffline] = useState(typeof navigator !== "undefined" ? !navigator.onLine : false);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
   const lastFetchRef = useRef<Record<string, number>>({});
 
   // Auto-configure LAN from QR deep link: ?lan=... or #lan=...
@@ -317,15 +330,17 @@ export default function ChatPage() {
 
   const badge = (
     <span
-      className={`text-xs px-2 py-1 rounded-full border ${
-        mode === "lan"
+      className={`text-[10px] md:text-xs px-2 py-1 rounded-full border transition-colors ${
+        isOffline
+          ? "bg-red-500 text-white border-red-400 animate-pulse"
+          : mode === "lan"
           ? "bg-green-50 text-green-700 border-green-200"
           : mode === "cloud"
           ? "bg-blue-50 text-blue-700 border-blue-200"
           : "bg-gray-100 text-gray-600 border-gray-200"
       }`}
     >
-      {initializing ? "Connecting…" : mode.toUpperCase()}
+      {isOffline ? "OFFLINE" : initializing ? "Connecting…" : mode.toUpperCase()}
     </span>
   );
 

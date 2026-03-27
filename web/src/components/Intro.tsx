@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import PrimaryButton from "@/components/PrimaryButton";
+import { useAuth } from "@/store/useAuth";
+import { getToken } from "@/lib/auth";
 
 export default function Intro() {
   const [leaving, setLeaving] = useState(false);
@@ -12,6 +14,15 @@ export default function Intro() {
   const router = useRouter();
   const bgVideoRef = useRef<HTMLVideoElement | null>(null);
   const sparkleCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const { userId } = useAuth();
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (userId && getToken()) {
+      router.replace("/chat");
+    }
+  }, [userId, router]);
 
   // Lock page scroll while intro is shown so the overlay feels truly full-screen
   useEffect(() => {

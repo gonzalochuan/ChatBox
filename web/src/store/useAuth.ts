@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 interface ProfilePayload {
   id?: string | null;
@@ -17,27 +18,46 @@ interface AuthState {
   roles: string[];
   isTeacher: boolean;
   setProfile: (u: ProfilePayload) => void;
+  logout: () => void;
 }
 
-export const useAuth = create<AuthState>((set, get) => ({
-  userId: null,
-  email: null,
-  displayName: null,
-  avatarUrl: null,
-  roles: [],
-  isTeacher: false,
-  setProfile: (u) => {
-    const prev = get();
-    const roles = Array.isArray(u.roles) ? u.roles : prev.roles;
-    const isTeacher = roles.includes("TEACHER") || roles.includes("ADMIN");
-    const display = u.nickname || u.name || u.email || prev.displayName || "You";
-    set({
-      userId: typeof u.id !== "undefined" ? (u.id || null) : prev.userId,
-      email: typeof u.email !== "undefined" ? (u.email || null) : prev.email,
-      displayName: display,
-      avatarUrl: typeof u.avatarUrl !== "undefined" ? (u.avatarUrl || null) : prev.avatarUrl,
-      roles,
-      isTeacher,
-    });
-  },
-}));
+export const useAuth = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      userId: null,
+      email: null,
+      displayName: null,
+      avatarUrl: null,
+      roles: [],
+      isTeacher: false,
+      setProfile: (u) => {
+        const prev = get();
+        const roles = Array.isArray(u.roles) ? u.roles : prev.roles;
+        const isTeacher = roles.includes("TEACHER") || roles.includes("ADMIN");
+        const display = u.nickname || u.name || u.email || prev.displayName || "You";
+        set({
+          userId: typeof u.id !== "undefined" ? (u.id || null) : prev.userId,
+          email: typeof u.email !== "undefined" ? (u.email || null) : prev.email,
+          displayName: display,
+          avatarUrl: typeof u.avatarUrl !== "undefined" ? (u.avatarUrl || null) : prev.avatarUrl,
+          roles,
+          isTeacher,
+        });
+      },
+      logout: () => {
+        set({
+          userId: null,
+          email: null,
+          displayName: null,
+          avatarUrl: null,
+          roles: [],
+          isTeacher: false,
+        });
+      },
+    }),
+    {
+      name: "auth-storage",
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);

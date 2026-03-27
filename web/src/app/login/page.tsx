@@ -3,18 +3,31 @@
 import Image from "next/image";
 import Link from "next/link";
 import SparkleGridOverlay from "@/components/SparkleGridOverlay";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { SERVER_URL } from "@/lib/config";
-import { setToken } from "@/lib/auth";
+import { getToken, setToken } from "@/lib/auth";
 import AlertBanner from "@/components/AlertBanner";
 import PasswordInput from "@/components/PasswordInput";
 import PrimaryButton from "@/components/PrimaryButton";
+import { useAuth } from "@/store/useAuth";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { userId, roles, setProfile } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (userId && getToken()) {
+      if (roles.includes("ADMIN")) router.replace("/admin");
+      else if (roles.includes("TEACHER")) router.replace("/teacher");
+      else router.replace("/chat");
+    }
+  }, [userId, roles, router]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
