@@ -384,18 +384,18 @@ export default function ChatPage() {
 
           {/* Menu view (mobile only) */}
           {channelFilter === 'menu' && !activeChannelId && (
-            <div className="md:hidden col-span-12 h-full rounded-3xl border border-white/15 bg-white backdrop-blur-sm shadow-sm overflow-hidden flex flex-col min-h-0">
+            <div className="md:hidden col-span-12 h-full rounded-3xl border border-white/15 bg-white dark:bg-[#1a1a1a] backdrop-blur-sm shadow-sm overflow-hidden flex flex-col min-h-0">
                {/* I will fill this with MenuView content later */}
                <div className="p-6">
                  <h1 className="text-2xl font-bold mb-6">Menu</h1>
                  <div className="space-y-4">
-                    <button onClick={openProfile} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 transition-colors">
+                    <button onClick={openProfile} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-[#2a2a2a] transition-colors">
                       <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
                         {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-gray-400">👤</div>}
                       </div>
                       <div className="text-left">
                         <div className="font-bold">{displayName || "Set Name"}</div>
-                        <div className="text-sm text-gray-500">View Profile</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">View Profile</div>
                       </div>
                     </button>
                     <div className="h-px bg-gray-100 my-2" />
@@ -407,7 +407,7 @@ export default function ChatPage() {
                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
                           {theme === 'dark' ? '☀️' : '🌙'}
                         </div>
-                        <div className="font-medium text-gray-900">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</div>
+                        <div className="font-medium text-gray-900 dark:text-white">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</div>
                       </div>
                       <div className="text-gray-400 text-sm">{theme === 'dark' ? 'On' : 'Off'}</div>
                     </button>
@@ -423,7 +423,7 @@ export default function ChatPage() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">🌐</div>
-                        <div className="font-medium text-gray-900">LAN Server</div>
+                        <div className="font-medium text-gray-900 dark:text-white">LAN Server</div>
                       </div>
                       <div className="text-blue-500 text-sm truncate max-w-[150px]">{baseUrl || "Not set"}</div>
                     </button>

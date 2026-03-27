@@ -107,7 +107,7 @@ export default function ClaimPage() {
 
           <form onSubmit={onSubmit} className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
-              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-white/60 font-medium">Email <span className="text-red-500">*</span></label>
+              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-gray-300 font-medium">Email <span className="text-red-500">*</span></label>
               <input
                 type="email"
                 required
@@ -119,7 +119,7 @@ export default function ClaimPage() {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-white/60 font-medium">Student ID <span className="text-red-500">*</span></label>
+              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-gray-300 font-medium">Student ID <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 required
@@ -131,7 +131,7 @@ export default function ClaimPage() {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-white/60 font-medium">Temporary password <span className="text-red-500">*</span></label>
+              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-gray-300 font-medium">Temporary password <span className="text-red-500">*</span></label>
               <PasswordInput
                 required
                 value={tempPassword}
@@ -142,7 +142,7 @@ export default function ClaimPage() {
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-white/60 font-medium">New password <span className="text-red-500">*</span></label>
+              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-gray-300 font-medium">New password <span className="text-red-500">*</span></label>
               <PasswordInput
                 required
                 value={newPassword}
@@ -154,7 +154,7 @@ export default function ClaimPage() {
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-white/60 font-medium">Confirm password <span className="text-red-500">*</span></label>
+              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-gray-300 font-medium">Confirm password <span className="text-red-500">*</span></label>
               <PasswordInput
                 required
                 value={confirmPassword}

@@ -74,11 +74,11 @@ export default function LoginPage() {
       <div className="relative z-10 min-h-[100dvh] flex items-center justify-center p-6 pt-24 sm:pt-28">
         <div className="w-full max-w-md rounded-2xl border border-gray-200/50 dark:border-white/5 bg-white dark:bg-[#1a1a1a] backdrop-blur-md shadow-xl dark:shadow-2xl p-6 sm:p-8">
           <h1 className="text-2xl font-akira-bold text-slate-900 dark:text-white/95 tracking-wide">Sign in</h1>
-          <p className="text-sm text-slate-500 dark:text-white/70 mt-4">Welcome to ChatBox</p>
+          <p className="text-sm text-slate-500 dark:text-gray-300 mt-4">Welcome to ChatBox</p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-5">
             <div>
-              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-white/60 font-medium">Email</label>
+              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-gray-300 font-medium">Email</label>
               <input
                 type="email"
                 required
@@ -89,7 +89,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-white/60 font-medium">Password</label>
+              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-gray-300 font-medium">Password</label>
               <PasswordInput
                 required
                 value={password}

@@ -701,14 +701,14 @@ export default function ChatWindow() {
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="truncate font-bold text-gray-900 text-sm">{active?.name ?? "Chat"}</span>
+              <span className="truncate font-bold text-gray-900 dark:text-white text-sm">{active?.name ?? "Chat"}</span>
               {active?.kind === 'dm' && activeOtherIsTeacher && (
                 <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-[1px] text-[9px] font-bold uppercase tracking-wider text-blue-600">
                   Teacher
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-gray-500 truncate">{active?.kind === 'dm' ? 'Active now' : (active?.topic ?? '')}</div>
+            <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{active?.kind === 'dm' ? 'Active now' : (active?.topic ?? '')}</div>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -743,14 +743,14 @@ export default function ChatWindow() {
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="truncate tracking-wider font-medium text-[color:var(--foreground)]">{active?.name ?? "Chat"}</span>
+              <span className="truncate tracking-wider font-medium text-[color:var(--foreground)] dark:text-white">{active?.name ?? "Chat"}</span>
               {active?.kind === 'dm' && activeOtherIsTeacher && (
                 <span className="inline-flex items-center rounded-full border border-emerald-300/40 bg-emerald-500/20 px-2 py-[1px] text-[9px] uppercase tracking-[0.22em] text-emerald-200">
                   Teacher
                 </span>
               )}
             </div>
-            <div className="text-xs text-[color:var(--foreground)]/55 truncate">{active?.kind === 'dm' ? 'Online' : (active?.topic ?? '')}</div>
+            <div className="text-xs text-[color:var(--foreground)]/55 dark:text-gray-400 truncate">{active?.kind === 'dm' ? 'Online' : (active?.topic ?? '')}</div>
           </div>
         </div>
         <div className="flex items-center gap-2 text-[color:var(--foreground)]/80">
