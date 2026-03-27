@@ -48,7 +48,7 @@ export default function BottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-t border-black/5 flex items-center justify-around pb-safe-area-inset-bottom h-[64px] transition-all">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#1a1a1a] border-t border-gray-100 dark:border-white/5 flex items-center justify-around pb-safe-area-inset-bottom h-[64px] shadow-lg transition-all">
       {navItems.map((item) => {
         const isActive = channelFilter === item.id;
         return (
@@ -66,7 +66,7 @@ export default function BottomNav() {
             <div className="relative">
               {item.icon}
               {item.id === "chats" && totalUnread > 0 && (
-                <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center ring-2 ring-white">
+                <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-[#1a1a1a]">
                   {totalUnread > 9 ? "9+" : totalUnread}
                 </div>
               )}
