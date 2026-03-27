@@ -46,6 +46,8 @@ const poppinsLocal = localFont({
 export const metadata: Metadata = {
   title: "ChatBox",
   description: "ChatBox — Intranet Based Communication Platform",
+  manifest: "/manifest.json",
+  themeColor: "#000000",
   icons: {
     icon: "/cb-icon.svg",
     shortcut: "/cb-icon.svg",
