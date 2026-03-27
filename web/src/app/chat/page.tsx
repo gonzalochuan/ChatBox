@@ -16,6 +16,8 @@ import { useChatStore } from "@/store/useChat";
 import { fetchMe } from "@/lib/api";
 import { useAuth } from "@/store/useAuth";
 import { useUI } from "@/store/useUI";
+import { useTheme } from "@/store/useTheme";
+import BottomNav from "@/components/BottomNav";
 
 export default function ChatPage() {
   const { mode, baseUrl, init, initializing, setUserLanUrl, reinit } = useConnection();
@@ -29,6 +31,8 @@ export default function ChatPage() {
   const activeChannelId = useChatStore((s) => s.activeChannelId);
   const { displayName, avatarUrl, setProfile, userId, email } = useAuth() as any;
   const channelFilter = useUI((s) => s.channelFilter);
+  const toggleTheme = useTheme((s) => s.toggle);
+  const theme = useTheme((s) => s.theme);
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
@@ -357,62 +361,90 @@ export default function ChatPage() {
 
         {/* 3-box responsive layout */}
         <div className="grid grid-cols-12 gap-2 md:gap-4 h-full p-2 md:p-4 min-h-0">
-          {/* Left rail (horizontal pill on mobile, vertical pill on desktop) */}
-          <div className="col-span-12 md:col-span-1 xl:col-span-1 min-h-0">
-            <div className="h-14 md:h-full rounded-full md:rounded-[28px] border border-white/15 bg-black/40 backdrop-blur-sm shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset] overflow-hidden flex items-center justify-center">
+          {/* Left rail (desktop only) */}
+          <div className="hidden md:block col-span-12 md:col-span-1 xl:col-span-1 min-h-0">
+            <div className="h-full rounded-[28px] border border-white/15 bg-white backdrop-blur-sm shadow-sm overflow-hidden flex items-center justify-center">
               <LeftRail />
             </div>
           </div>
 
-          {/* Messages list card (hidden on mobile when a chat is open) */}
-          <aside className={`col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-3 min-h-0 ${activeChannelId ? "hidden md:block" : "block"}`}>
-            <div className="h-full rounded-3xl border border-white/15 bg-black/40 backdrop-blur-sm shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset] overflow-hidden flex flex-col min-h-0">
+          {/* Messages list card (hidden on mobile when a chat is open or when in Menu/Global) */}
+          <aside className={`col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-3 min-h-0 ${activeChannelId || channelFilter === 'menu' ? "hidden md:block" : "block"}`}>
+            <div className="h-full rounded-3xl border border-white/15 bg-white backdrop-blur-sm shadow-sm overflow-hidden flex flex-col min-h-0">
               <ChatSidebar />
             </div>
           </aside>
 
           {/* Chat window card (shown on mobile only when a chat is open) */}
           <main className={`${activeChannelId ? "col-span-12" : "hidden"} md:block md:col-span-7 lg:col-span-8 xl:col-span-8 min-h-0`}>
-            <div className="h-full rounded-[28px] border border-white/15 bg-black/40 backdrop-blur-sm shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset] overflow-hidden flex flex-col min-h-0">
+            <div className="h-full rounded-[28px] border border-white/15 bg-white backdrop-blur-sm shadow-sm overflow-hidden flex flex-col min-h-0">
               <ChatWindow />
             </div>
           </main>
+
+          {/* Menu view (mobile only) */}
+          {channelFilter === 'menu' && !activeChannelId && (
+            <div className="md:hidden col-span-12 h-full rounded-3xl border border-white/15 bg-white backdrop-blur-sm shadow-sm overflow-hidden flex flex-col min-h-0">
+               {/* I will fill this with MenuView content later */}
+               <div className="p-6">
+                 <h1 className="text-2xl font-bold mb-6">Menu</h1>
+                 <div className="space-y-4">
+                    <button onClick={openProfile} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 transition-colors">
+                      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
+                        {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-gray-400">👤</div>}
+                      </div>
+                      <div className="text-left">
+                        <div className="font-bold">{displayName || "Set Name"}</div>
+                        <div className="text-sm text-gray-500">View Profile</div>
+                      </div>
+                    </button>
+                    <div className="h-px bg-gray-100 my-2" />
+                    <button
+                      onClick={toggleTheme}
+                      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
+                          {theme === 'dark' ? '☀️' : '🌙'}
+                        </div>
+                        <div className="font-medium text-gray-900">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</div>
+                      </div>
+                      <div className="text-gray-400 text-sm">{theme === 'dark' ? 'On' : 'Off'}</div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const newUrl = prompt("Enter LAN Server URL:", baseUrl || "");
+                        if (newUrl !== null) {
+                          setUserLanUrl(newUrl);
+                          reinit();
+                        }
+                      }}
+                      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">🌐</div>
+                        <div className="font-medium text-gray-900">LAN Server</div>
+                      </div>
+                      <div className="text-blue-500 text-sm truncate max-w-[150px]">{baseUrl || "Not set"}</div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        clearToken();
+                        window.location.href = "/";
+                      }}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-600 transition-colors mt-auto"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-xl">🚪</div>
+                      <div className="font-medium">Log Out</div>
+                    </button>
+                 </div>
+               </div>
+            </div>
+          )}
         </div>
 
-      {/* Mobile-only floating DM add button when in DM view */}
-      {(channelFilter === 'dm' || activeIsDm) && (
-        <>
-          <button
-            className="fixed md:hidden z-50 bottom-20 right-4 h-12 w-12 rounded-full bg-white/10 border border-white/20 text-white text-2xl grid place-items-center shadow-lg backdrop-blur-sm"
-            title="New chat"
-            onClick={() => setShowMobileDm(true)}
-          >
-            ＋
-          </button>
-          <button
-            className="fixed md:hidden z-50 bottom-36 right-4 h-12 w-12 rounded-full bg-white/10 border border-white/20 text-white text-xl grid place-items-center shadow-lg backdrop-blur-sm"
-            title="Menu"
-            onClick={() => setShowMobileDm(true)}
-          >
-            ☰
-          </button>
-        </>
-      )}
-
-      {/* Mobile-only floating Group add button when in Group view */}
-      {channelFilter === 'group' && !activeIsDm && (
-        <button
-          className="fixed md:hidden z-50 bottom-20 right-4 h-12 w-12 rounded-full bg-white/10 border border-white/20 text-white text-2xl grid place-items-center shadow-lg backdrop-blur-sm"
-          title="Create group"
-          onClick={() => {
-            try {
-              window.dispatchEvent(new CustomEvent('chatbox:create-group'));
-            } catch {}
-          }}
-        >
-          ＋
-        </button>
-      )}
+      {/* Mobile navigation */}
+      {!activeChannelId && <BottomNav />}
 
       {showProfile && (
         <div className="fixed inset-0 z-50">

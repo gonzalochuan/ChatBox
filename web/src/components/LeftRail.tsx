@@ -116,7 +116,7 @@ export default function LeftRail() {
   );
 
   return (
-    <nav className="w-full h-full flex md:flex-col items-center md:items-center justify-between md:justify-start gap-2 md:gap-6 py-2 md:py-6 px-2 md:px-3 md:w-16">
+    <nav className="w-full h-full flex flex-col items-center justify-start gap-6 py-6 px-3 w-16">
       {/* Profile (bigger on desktop) */}
       <div className="shrink-0">
         <div className="h-10 w-10 md:h-14 md:w-14 rounded-full border border-white/20 bg-white/5 overflow-hidden">
@@ -132,10 +132,9 @@ export default function LeftRail() {
       </div>
 
       {/* Middle icons */}
-      <div className="flex-1 flex md:flex-col items-center justify-center gap-2 md:gap-6 text-[color:var(--foreground)]">
-        <Item onClick={() => setFilter("general")} active={current === "general"}>{Icon.globe}</Item>
-        <Item onClick={() => setFilter("dm")} active={current === "dm"}>{Icon.dm}</Item>
-        <Item onClick={() => setFilter("group")} active={current === "group"}>{Icon.group}</Item>
+      <div className="flex-1 flex md:flex-col items-center justify-center gap-6 text-[color:var(--foreground)]">
+        <Item onClick={() => setFilter("chats")} active={current === "chats"}>{Icon.dm}</Item>
+        <Item onClick={() => setFilter("global")} active={current === "global"}>{Icon.globe}</Item>
       </div>
 
       {/* Bottom / right icons */}
@@ -187,9 +186,8 @@ export default function LeftRail() {
                         const title = ch?.name || (ch?.kind === 'dm' ? 'Direct Message' : 'Channel');
                         const subtitle = last?.senderName ? `${last.senderName}: ${last.text?.slice(0, 80)}` : (ch?.topic || '');
                         const resolveFilter = () => {
-                          if (ch?.kind === 'dm' || channelId.startsWith('dm-')) return 'dm' as const;
-                          if (ch?.kind === 'general' || channelId === 'gen') return 'general' as const;
-                          return 'group' as const;
+                          if (ch?.kind === 'general' || channelId === 'gen' || ch?.name.toLowerCase() === "general") return 'global' as const;
+                          return 'chats' as const;
                         };
                         return (
                           <button

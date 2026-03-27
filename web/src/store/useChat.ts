@@ -47,7 +47,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: {
     gen: [],
   },
-  activeChannelId: "gen",
+  activeChannelId: null,
   pinnedByChannel: {},
   unreadCounts: {},
   typingByChannel: {},

@@ -49,7 +49,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] text-white bg-black overflow-hidden">
+    <div className="relative min-h-[100dvh] text-[color:var(--foreground)] bg-[color:var(--background)] overflow-hidden">
       {error && <AlertBanner kind="error" message={error} />}
       {/* Background layers */}
       <video
@@ -64,37 +64,37 @@ export default function LoginPage() {
       <SparkleGridOverlay />
 
       {/* Top chrome to match Intro */}
-      <div className="absolute top-6 left-6 z-30 flex items-center gap-2 text-xs md:text-sm tracking-widest text-white/80 font-ethno-bold">
+      <div className="absolute top-6 left-6 z-30 flex items-center gap-2 text-xs md:text-sm tracking-widest text-slate-800/80 dark:text-white/80 font-ethno-bold">
         <span>CB ﾒ</span>
         <Image src="/seaitlogo.png" alt="SEAIT" width={48} height={48} className="h-[40px] w-auto" priority />
       </div>
-      <Link href="/" className="absolute top-6 right-6 z-30 text-xs md:text-sm tracking-wider text-white/80 hover:text-white">Back</Link>
+      <Link href="/" className="absolute top-6 right-6 z-30 text-xs md:text-sm tracking-wider text-slate-600 dark:text-white/80 hover:text-slate-900">Back</Link>
 
       {/* Centered form card */}
       <div className="relative z-10 min-h-[100dvh] flex items-center justify-center p-6 pt-24 sm:pt-28">
-        <div className="w-full max-w-md rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset,0_10px_40px_-10px_rgba(0,0,0,0.6)] p-6 sm:p-8">
-          <h1 className="text-2xl font-akira-bold text-[var(--foreground)]/95 tracking-wide">Sign in</h1>
-          <p className="text-sm text-white/70 mt-4">Welcome to ChatBox</p>
+        <div className="w-full max-w-md rounded-2xl border border-gray-200/50 dark:border-white/5 bg-white dark:bg-[#1a1a1a] backdrop-blur-md shadow-xl dark:shadow-2xl p-6 sm:p-8">
+          <h1 className="text-2xl font-akira-bold text-slate-900 dark:text-white/95 tracking-wide">Sign in</h1>
+          <p className="text-sm text-slate-500 dark:text-white/70 mt-4">Welcome to ChatBox</p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-5">
             <div>
-              <label className="block text-xs uppercase tracking-widest text-white/60">Email</label>
+              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-white/60 font-medium">Email</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2.5 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
                 placeholder="name@school.edu"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-widest text-white/60">Password</label>
+              <label className="block text-xs uppercase tracking-widest text-slate-500 dark:text-white/60 font-medium">Password</label>
               <PasswordInput
                 required
                 value={password}
                 onChange={setPassword}
-                className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2.5 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
                 placeholder="••••••••"
               />
             </div>
@@ -103,9 +103,9 @@ export default function LoginPage() {
             </PrimaryButton>
           </form>
 
-          <div className="mt-5 text-sm text-white/70 flex items-center justify-between">
-            <Link href="/claim" className="text-[var(--foreground)]/95 hover:text-[var(--foreground)]">Claim account</Link>
-            <Link href="/chat" className="text-[var(--foreground)]/95 hover:text-[var(--foreground)]">Continue as guest</Link>
+          <div className="mt-5 text-sm flex items-center justify-between">
+            <Link href="/claim" className="text-orange-600 dark:text-white/95 hover:underline font-medium">Claim account</Link>
+            <Link href="/chat" className="text-slate-500 dark:text-white/95 hover:text-slate-700">Continue as guest</Link>
           </div>
         </div>
       </div>

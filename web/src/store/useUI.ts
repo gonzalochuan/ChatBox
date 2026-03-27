@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ChannelFilter = "general" | "dm" | "group";
+export type ChannelFilter = "chats" | "global" | "menu";
 
 interface UIState {
   channelFilter: ChannelFilter;
@@ -8,6 +8,6 @@ interface UIState {
 }
 
 export const useUI = create<UIState>((set) => ({
-  channelFilter: "general",
+  channelFilter: "chats",
   setChannelFilter: (f) => set({ channelFilter: f }),
 }));

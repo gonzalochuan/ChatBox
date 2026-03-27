@@ -5,6 +5,7 @@ export interface Person {
   name: string;
   handle?: string;
   isTeacher?: boolean;
+  avatarUrl?: string | null;
 }
 
 interface PeopleState {

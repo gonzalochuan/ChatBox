@@ -63,6 +63,28 @@ export default function ChatSidebar(): ReactElement {
   const [groupQuery, setGroupQuery] = useState("");
   const [peopleLoading, setPeopleLoading] = useState(false);
   const [peopleError, setPeopleError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+
+  const normalizeAvatar = useCallback((u?: string | null) => {
+    if (!u) return null;
+    try {
+      const api = apiBase || "";
+      if (u.startsWith("/")) {
+        if (api) return `${api}${u}`;
+        const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
+        return `http://${host}:4000${u}`;
+      }
+      if (api) {
+        return u.replace("http://localhost:4000", api).replace("http://127.0.0.1:4000", api);
+      }
+      return u;
+    } catch {
+      return u;
+    }
+  }, [apiBase]);
+
   const filteredPeople = useMemo(() => {
     const q = query.trim().toLowerCase();
     const base = people.filter((p) => p.id !== "u-me" && p.name !== "You");
@@ -80,17 +102,17 @@ export default function ChatSidebar(): ReactElement {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = () => {
-      if (filter !== "group") return;
+      if (filter !== "chats") return;
       setShowNewGroup(true);
     };
     window.addEventListener("chatbox:create-group", handler as any);
     return () => window.removeEventListener("chatbox:create-group", handler as any);
   }, [filter]);
 
-  // Load recent DM conversations automatically when entering DM filter
+  // Load recent DM conversations automatically when entering "chats" filter
   useEffect(() => {
     (async () => {
-      if (filter !== "dm") return;
+      if (filter !== "chats") return;
       const token = getToken();
       try {
         const res = await fetch(`${apiBase}/dms`, { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
@@ -107,11 +129,13 @@ export default function ChatSidebar(): ReactElement {
             otherId: e.other?.id || null,
             otherEmail: e.other?.email || null,
             otherIsTeacher: Boolean(e.other?.isTeacher),
+            avatarUrl: e.other?.avatarUrl || null,
           },
         }));
         // Merge with existing channels (preserve non-DM and avoid duplicates by id)
+        const currentChannels = useChatStore.getState().channels;
         const byId: Record<string, Channel> = {};
-        for (const ch of channels) byId[ch.id] = ch;
+        for (const ch of currentChannels) byId[ch.id] = ch;
         for (const ch of dmChannels) {
           if (byId[ch.id]) {
             byId[ch.id] = { ...byId[ch.id], ...ch, meta: { ...(byId[ch.id].meta || {}), ...(ch.meta || {}) } };
@@ -120,29 +144,10 @@ export default function ChatSidebar(): ReactElement {
           }
         }
         const merged = Object.values(byId);
-        let changed = merged.length !== channels.length;
-        if (!changed) {
-          for (let i = 0; i < merged.length; i += 1) {
-            const m = merged[i];
-            const existing = channels.find((c) => c.id === m.id);
-            if (!existing) {
-              changed = true;
-              break;
-            }
-            const sameName = existing.name === m.name;
-            const sameTopic = (existing.topic || "") === (m.topic || "");
-            const sameKind = existing.kind === m.kind;
-            const sameMeta = JSON.stringify(existing.meta || {}) === JSON.stringify(m.meta || {});
-            if (!(sameName && sameTopic && sameKind && sameMeta)) {
-              changed = true;
-              break;
-            }
-          }
-        }
-        if (changed) setChannels(merged);
+        setChannels(merged);
       } catch {}
     })();
-  }, [filter, apiBase, channels, setChannels]);
+  }, [filter, apiBase, setChannels, mounted]);
 
   const timeFmt = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
@@ -150,13 +155,10 @@ export default function ChatSidebar(): ReactElement {
     hour12: true,
     timeZone: "Asia/Manila",
   });
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  // Load dynamic students + teachers list for DM picker when entering DM filter and opening modal
+  // Load dynamic students + teachers list for DM picker when entering chats filter and opening modal
   useEffect(() => {
     (async () => {
-      if (filter !== "dm" || !showNewChat) return;
+      if (filter !== "chats" || !showNewChat) return;
       try {
         setPeopleLoading(true);
         setPeopleError(null);
@@ -189,10 +191,10 @@ export default function ChatSidebar(): ReactElement {
     })();
   }, [filter, showNewChat, apiBase, setPeople]);
 
-  // Load people list for Group creation modal (independent from DM)
+  // Load people list for Group creation modal
   useEffect(() => {
     (async () => {
-      if (!showNewGroup || filter !== "group") return;
+      if (!showNewGroup || filter !== "chats") return;
       try {
         setPeopleLoading(true);
         setPeopleError(null);
@@ -236,22 +238,13 @@ export default function ChatSidebar(): ReactElement {
 
   const filtered = useMemo(() => {
     return channels.filter((c) => {
-      if (filter === "general") {
+      // Messenger-style: "Chats" includes DMs and Groups
+      if (filter === "chats") {
+        return c.kind === "dm" || c.kind === "section-group" || c.kind === "section-subject" || (c.kind === "subject" && !sectionSubjectCodes.has(c.id));
+      }
+      // "Global" includes general channels
+      if (filter === "global") {
         return c.kind === "general" || c.id === "gen" || c.name.toLowerCase() === "general";
-      }
-      if (filter === "dm") {
-        return c.kind === "dm";
-      }
-      if (filter === "group") {
-        if (c.kind === "section-subject") return true;
-        if (c.kind === "section-group") return true;
-        const name = (c.name || "").trim();
-        const isNumeric = /^[0-9]+$/.test(name);
-        if (c.kind === "subject" && !isNumeric) {
-          if (sectionSubjectCodes.has(c.id)) return false;
-          return true;
-        }
-        return false;
       }
       return false;
     });
@@ -324,7 +317,7 @@ export default function ChatSidebar(): ReactElement {
       }
       const newChannelId = data?.channel?.id;
       if (typeof newChannelId === "string" && newChannelId) {
-        setFilter("group");
+        setFilter("chats");
         setActive(newChannelId);
       }
       closeGroupModal();
@@ -335,128 +328,118 @@ export default function ChatSidebar(): ReactElement {
     }
   }, [apiBase, closeGroupModal, groupName, selectedGroupMembers, setActive, setChannels, setFilter, userId]);
 
-  // When the filter changes, auto-select the first channel in that filter.
+  // When the filter changes, auto-select the first channel in that filter (Desktop only).
   useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) return;
+
     if (filtered.length === 0) {
       if (activeChannelId !== null) setActive(null);
       return;
     }
     const currentInView = filtered.some((c) => c.id === activeChannelId);
     if (!currentInView) {
+      // For desktop, we usually want one open. But don't force if it was explicitly cleared.
+      // Actually, legacy behavior was to always have one. Let's keep for desktop.
       setActive(filtered[0].id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, channels, filtered, activeChannelId]);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-white dark:bg-[#1a1a1a]">
       {/* Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-white/10 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm md:text-base tracking-wide text-white/80">Messages</h2>
-          {isTeacher && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/40 bg-emerald-500/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.22em] text-emerald-200">
-              Teacher
-            </span>
-          )}
+      <div className="px-4 pt-6 pb-2 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Chats</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowNewGroup(true)}
+            className="w-9 h-9 rounded-full bg-gray-100 dark:bg-[#323232] flex items-center justify-center text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#3e3e3e] transition-colors"
+            title="Create Group"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </button>
+          <button
+            onClick={() => setShowNewChat(true)}
+            className="w-9 h-9 rounded-full bg-gray-100 dark:bg-[#323232] flex items-center justify-center text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#3e3e3e] transition-colors"
+            title="New Chat"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
         </div>
-        {filter === "dm" && (
-          <div className="flex items-center gap-2">
-            <button
-              title="New chat"
-              className="h-8 w-8 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 grid place-items-center"
-              onClick={() => { console.log("New chat"); setShowNewChat(true); }}
-            >
-              ＋
-            </button>
-          </div>
-        )}
-        {filter === "group" && (
-          <div className="flex items-center gap-2">
-            <button
-              title="Create group"
-              className="h-8 w-8 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 grid place-items-center"
-              onClick={() => setShowNewGroup(true)}
-            >
-              ＋
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Tools */}
-      {filter === "dm" && (
-        <div className="p-3 border-b border-white/10 flex items-center gap-2">
-          <div className="flex-1 relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">🔎</span>
-            <input
-              placeholder="Search"
-              className="w-full rounded-full border border-white/20 bg-black/30 text-white/90 pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
+      {/* Search */}
+      <div className="px-4 py-2">
+        <div className="relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input
+            placeholder="Search"
+            className="w-full bg-gray-100 dark:bg-[#242526] text-gray-900 dark:text-gray-100 rounded-xl py-2 pl-10 pr-4 text-sm outline-none focus:bg-gray-200/80 dark:focus:bg-[#323232] transition-colors"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </div>
-      )}
+      </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto custom-scroll px-3 py-3 space-y-2">
+      <div className="flex-1 overflow-y-auto custom-scroll px-2 py-2">
         {filtered.map((c) => {
-          const meta = (c.meta || {}) as Record<string, unknown>;
-          const otherIsTeacher = Boolean(meta.otherIsTeacher);
+          const isActive = activeChannelId === c.id;
+          const unread = unreadCounts[c.id] || 0;
+          const lastMsg = messagesMap[c.id]?.[messagesMap[c.id].length - 1];
+          const isTyping = Object.keys(typingByChannel[c.id] || {}).length > 0;
+
           return (
-          <button
-            key={c.id}
-            onClick={() => setActive(c.id)}
-            className={`w-full text-left rounded-2xl border border-white/15 px-3 py-3 bg-black/30 hover:bg-white/10 transition-colors flex items-center gap-3 ${
-              activeChannelId === c.id ? "ring-1 ring-white/30" : ""
-            }`}
-          >
-            <div className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-white/80 shrink-0">
-              {/* simple avatar glyph */}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0 flex items-center gap-2">
-                  <span className="truncate text-sm font-medium tracking-wide">
+            <button
+              key={c.id}
+              onClick={() => setActive(c.id)}
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${
+                isActive ? "bg-blue-50/50 dark:bg-blue-500/10" : "hover:bg-gray-50 dark:hover:bg-[#2a2a2a] text-gray-900 dark:text-gray-100"
+              }`}
+            >
+              <div className="relative shrink-0">
+                <div className="w-14 h-14 rounded-full bg-gray-200 border border-gray-100 flex items-center justify-center overflow-hidden">
+                  {c.meta?.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={normalizeAvatar((c.meta as any)?.avatarUrl)!} alt={c.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+                  )}
+                </div>
+                {/* Active Indicator (Mock) */}
+                <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white dark:border-[#1a1a1a]" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-baseline mb-0.5">
+                  <span className={`truncate text-[15px] ${unread > 0 ? "font-bold text-black dark:text-white" : "font-semibold text-gray-900 dark:text-gray-100"}`}>
                     {c.kind === "section-subject" ? formatSectionSubjectName(c) : c.name}
                   </span>
-                  {c.kind === "dm" && otherIsTeacher && (
-                    <span className="shrink-0 inline-flex items-center rounded-full border border-emerald-300/30 bg-emerald-500/15 px-2 py-[2px] text-[9px] uppercase tracking-[0.22em] text-emerald-200">
-                      Teacher
-                    </span>
+                  <span className="text-[11px] text-gray-500 shrink-0">
+                    {lastMsg ? timeFmt.format(new Date(lastMsg.createdAt)) : ""}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className={`truncate text-sm ${unread > 0 ? "font-bold text-black" : "text-gray-500"}`}>
+                    {isTyping ? "Typing..." : (lastMsg?.text || c.topic || "Start a conversation")}
+                  </span>
+                  {unread > 0 && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
                   )}
                 </div>
-                <div className="shrink-0 flex items-center gap-2">
-                  {/* Unread badge */}
-                  {unreadCounts[c.id] > 0 && (
-                    <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-500/30 border border-emerald-300/40 text-[10px] text-emerald-200">
-                      {unreadCounts[c.id]}
-                    </span>
-                  )}
-                  <div className="text-[10px] text-white/50">
-                    {mounted && messagesMap[c.id]?.length ? timeFmt.format(new Date(messagesMap[c.id][messagesMap[c.id].length-1].createdAt)) : ""}
-                  </div>
-                </div>
               </div>
-              <div className="truncate text-xs text-white/50">
-                {c.kind === "dm" && Object.keys(typingByChannel[c.id] || {}).length > 0
-                  ? "Typing…"
-                  : c.kind === "section-group"
-                    ? "Group"
-                    : (c.topic || "")}
-              </div>
-            </div>
-          </button>
-        );
+            </button>
+          );
         })}
-        {channels.length === 0 && (
-          <div className="p-4 text-sm text-white/50">No channels yet.</div>
+        {filtered.length === 0 && (
+          <div className="px-4 py-8 text-center">
+            <p className="text-gray-500 text-sm">No conversations yet.</p>
+          </div>
         )}
       </div>
-      {/* DM people picker modal */}
-      {mounted && showNewChat && filter === "dm" && createPortal(
+
+      {/* DM Modal (Portal remains similar but styled) */}
+      {mounted && showNewChat && createPortal(
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/70" onClick={() => setShowNewChat(false)} />
           <div className="absolute inset-0 flex items-center justify-center p-4">
@@ -490,7 +473,10 @@ export default function ChatSidebar(): ReactElement {
                       key={p.id}
                       onClick={async () => {
                         if (!userId) return;
-                        const newId = createDm(userId, p.id, p.name, { otherIsTeacher: Boolean(p.isTeacher) });
+                        const newId = createDm(userId, p.id, p.name, { 
+                          otherIsTeacher: Boolean(p.isTeacher),
+                          avatarUrl: p.avatarUrl || null
+                        });
                         setShowNewChat(false);
                         setQuery("");
                         // Backfill history from legacy IDs so past chats appear
@@ -530,8 +516,13 @@ export default function ChatSidebar(): ReactElement {
                       }}
                       className="w-full text-left px-3 py-3 hover:bg-white/10 flex items-center gap-3"
                     >
-                      <div className="h-9 w-9 rounded-full border border-white/20 bg-[color:var(--surface)] grid place-items-center text-[color:var(--foreground)]/70">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
+                      <div className="h-9 w-9 rounded-full border border-white/20 bg-[color:var(--surface)] grid place-items-center text-[color:var(--foreground)]/70 overflow-hidden">
+                        {p.avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={normalizeAvatar(p.avatarUrl)!} alt={p.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm text-[color:var(--foreground)]/90 truncate">{p.name}</div>
@@ -548,7 +539,7 @@ export default function ChatSidebar(): ReactElement {
       )}
 
       {/* Section Group creation modal */}
-      {mounted && showNewGroup && filter === "group" && createPortal(
+      {mounted && showNewGroup && createPortal(
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/70" onClick={closeGroupModal} />
           <div className="absolute inset-0 flex items-center justify-center p-4">

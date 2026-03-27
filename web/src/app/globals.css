@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --background: #f3f4f6;
+  --foreground: #111827;
   --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --border: rgba(15, 23, 42, 0.14);
+  --surface-2: #ffffff;
+  --border: rgba(15, 23, 42, 0.08);
   --muted: rgba(15, 23, 42, 0.74);
   --muted-2: rgba(15, 23, 42, 0.60);
-  --shadow: 0 12px 30px rgba(17, 24, 39, 0.10);
+  --shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
   --brand: #c2410c;
   --brand-2: #ea580c;
   --brand-contrast: #ffffff;
-  --ring: rgba(249, 115, 22, 0.35);
+  --ring: rgba(249, 115, 22, 0.2);
 }
 
 @theme inline {
@@ -140,81 +140,55 @@ body {
 
 /* Dark mode tokens (toggle by adding .dark on <html>) */
 .dark {
-  --background: #050505;
+  --background: #0b0b0b;
   --foreground: #f3f4f6;
-  --surface: rgba(255,255,255,0.06);
-  --surface-2: rgba(255,255,255,0.04);
-  --border: rgba(255,255,255,0.14);
+  --surface: #1a1a1a;
+  --surface-2: #242526;
+  --border: rgba(255,255,255,0.08);
   --muted: rgba(243,244,246,0.72);
   --muted-2: rgba(243,244,246,0.55);
-  --shadow: 0 14px 34px rgba(0,0,0,0.55);
-  --ring: rgba(249,115,22,0.35);
+  --shadow: 0 10px 40px rgba(0,0,0,0.8);
+  --ring: rgba(249,115,22,0.30);
 }
 
 /* Generic helpers used by existing pages */
 .app-theme .surface {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 .app-theme .surface-2 {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-}
-.app-theme .brand {
-  background: linear-gradient(180deg, var(--brand-2), var(--brand));
-  color: var(--brand-contrast);
-}
-.app-theme .btn-primary {
-  background: linear-gradient(180deg, var(--brand-2), var(--brand));
-  color: var(--brand-contrast);
-  border: 1px solid color-mix(in oklab, var(--brand) 55%, black);
-}
-.app-theme .btn-primary:hover {
-  filter: brightness(0.98);
-}
-.app-theme .btn-primary:active {
-  filter: brightness(0.95);
-}
-.app-theme .ring-brand:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--ring);
+  background: #f9f9f9;
+  border: 1px solid #eeeeee;
 }
 
-/* Make legacy Tailwind alpha classes look good in light mode */
-.app-theme .text-white\/80 { color: var(--muted) !important; }
-.app-theme .text-white\/70 { color: var(--muted) !important; }
-.app-theme .text-white\/60 { color: var(--muted-2) !important; }
-.app-theme .text-white\/50 { color: var(--muted-2) !important; }
-.app-theme .placeholder-white\/40::placeholder { color: rgba(15,23,42,0.42) !important; }
-
-.app-theme .border-white\/10 { border-color: var(--border) !important; }
-.app-theme .border-white\/15 { border-color: var(--border) !important; }
-.app-theme .border-white\/20 { border-color: var(--border) !important; }
-
-.app-theme .bg-black { background-color: var(--surface) !important; }
-.app-theme .bg-black\/40 { background-color: color-mix(in oklab, var(--surface) 75%, transparent) !important; }
-.app-theme .bg-black\/30 { background-color: color-mix(in oklab, var(--surface) 80%, transparent) !important; }
-
-.app-theme .bg-white\/5 { background-color: color-mix(in oklab, var(--surface) 92%, transparent) !important; }
-.app-theme .bg-white\/10 { background-color: color-mix(in oklab, var(--surface) 88%, transparent) !important; }
-.app-theme .bg-white\/15 { background-color: color-mix(in oklab, var(--surface) 84%, transparent) !important; }
-.app-theme .bg-white\/20 { background-color: color-mix(in oklab, var(--surface) 80%, transparent) !important; }
-
-.app-theme .hover\:bg-white\/10:hover { background-color: color-mix(in oklab, var(--surface) 84%, transparent) !important; }
-.app-theme .hover\:bg-white\/5:hover { background-color: color-mix(in oklab, var(--surface) 88%, transparent) !important; }
-
-/* Turn common "ghost" buttons into visible orange buttons in light mode */
-.app-theme .rounded-full.border.border-white\/25.bg-white\/10,
-.app-theme .rounded-full.border.border-white\/20.bg-white\/10,
-.app-theme .rounded-full.border.border-white\/25.bg-white\/10.backdrop-blur-md,
-.app-theme .rounded-full.border.border-white\/20.bg-white\/10.backdrop-blur-md {
-  background: linear-gradient(180deg, var(--brand-2), var(--brand)) !important;
-  color: var(--brand-contrast) !important;
+/* Override common Tailwind classes for "Messenger" look in Light mode */
+html:not(.dark) .app-theme .bg-black\/40,
+html:not(.dark) .app-theme .bg-black\/70 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
 }
-.app-theme .rounded-full.border.border-white\/25.bg-white\/10:hover,
-.app-theme .rounded-full.border.border-white\/20.bg-white\/10:hover {
-  filter: brightness(0.99);
+
+html:not(.dark) .app-theme .text-white\/80,
+html:not(.dark) .app-theme .text-white\/70,
+html:not(.dark) .app-theme .text-white\/60 {
+  color: #4b5563 !important;
+}
+
+html:not(.dark) .app-theme .border-white\/10,
+html:not(.dark) .app-theme .border-white\/15,
+html:not(.dark) .app-theme .border-white\/20 {
+  border-color: #f3f4f6 !important;
+}
+
+html:not(.dark) .app-theme .bg-white\/5,
+html:not(.dark) .app-theme .bg-white\/10,
+html:not(.dark) .app-theme .bg-white\/15,
+html:not(.dark) .app-theme .bg-white\/20 {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .app-theme .grid-layer {
+  opacity: 0.15;
 }
 
 .app-theme input, .app-theme textarea, .app-theme select { color: var(--foreground) !important; }
