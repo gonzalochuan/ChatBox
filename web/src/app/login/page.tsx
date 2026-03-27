@@ -49,7 +49,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] text-[color:var(--foreground)] bg-[color:var(--background)] overflow-hidden">
+    <div className="app-theme relative min-h-[100dvh] text-[color:var(--foreground)] bg-[color:var(--background)] overflow-hidden">
       {error && <AlertBanner kind="error" message={error} />}
       {/* Background layers */}
       <video
@@ -84,7 +84,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:!text-white placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
                 placeholder="name@school.edu"
               />
             </div>
@@ -94,7 +94,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={setPassword}
-                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:!text-white placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
                 placeholder="••••••••"
               />
             </div>

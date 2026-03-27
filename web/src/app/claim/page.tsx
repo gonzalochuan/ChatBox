@@ -79,7 +79,7 @@ export default function ClaimPage() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] text-[color:var(--foreground)] bg-[color:var(--background)] overflow-hidden">
+    <div className="app-theme relative min-h-[100dvh] text-[color:var(--foreground)] bg-[color:var(--background)] overflow-hidden">
       {submitError && <AlertBanner kind="error" message={submitError} />}
       {successMsg && <AlertBanner kind="success" message={successMsg} />}
 
@@ -113,7 +113,7 @@ export default function ClaimPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:!text-white placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
                 placeholder="yourname@gmail.com"
               />
             </div>
@@ -125,7 +125,7 @@ export default function ClaimPage() {
                 required
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:!text-white placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
                 placeholder="2022-12345"
               />
             </div>
@@ -136,7 +136,7 @@ export default function ClaimPage() {
                 required
                 value={tempPassword}
                 onChange={setTempPassword}
-                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:!text-white placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
                 placeholder="(given by admin)"
               />
             </div>
@@ -147,7 +147,7 @@ export default function ClaimPage() {
                 required
                 value={newPassword}
                 onChange={setNewPassword}
-                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:!text-white placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
                 placeholder="NewPass1"
               />
               <p className="mt-1 text-xs text-slate-400 dark:text-white/50">Must include 1 uppercase + 1 number (min 6 chars).</p>
@@ -159,7 +159,7 @@ export default function ClaimPage() {
                 required
                 value={confirmPassword}
                 onChange={setConfirmPassword}
-                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-[#242526] px-3 py-2.5 text-slate-800 dark:!text-white placeholder-slate-400 dark:placeholder-white/40 outline-none focus:ring-2 focus:ring-orange-500/20"
                 placeholder="NewPass1"
               />
             </div>
