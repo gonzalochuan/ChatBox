@@ -1,12 +1,13 @@
 {
   "name": "ChatBox",
   "short_name": "ChatBox",
+  "id": "/",
   "description": "Intranet Based Communication Platform",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -22,3 +23,4 @@
     }
   ]
 }
+
