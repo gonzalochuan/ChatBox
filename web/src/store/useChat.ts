@@ -140,7 +140,15 @@ export const useChatStore = create<ChatState>()(
         get().setChannelPins(channelId, pins);
       },
       setChannelMessages: (channelId, msgs) => {
-        set({ messages: { ...get().messages, [channelId]: msgs } });
+        const current = get().messages[channelId] || [];
+        const pending = current.filter(m => m.status === "pending");
+        // Filter out any pending messages that now exist on the server (matched by ID)
+        const serverIds = new Set(msgs.map(m => m.id));
+        const relevantPending = pending.filter(m => !serverIds.has(m.id));
+        const merged = [...msgs, ...relevantPending.map(m => ({ ...m, status: "pending" as const }))];
+        // Sort by createdAt to ensure correct chronological order
+        merged.sort((a, b) => a.createdAt - b.createdAt);
+        set({ messages: { ...get().messages, [channelId]: merged } });
       },
       addIncoming: (msg) => {
         if (!msg?.channelId) return;
