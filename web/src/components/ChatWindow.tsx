@@ -144,42 +144,14 @@ export default function ChatWindow() {
     };
   }, []);
 
+  const { messages: allMessagesForSync, syncPendingMessages } = useChatStore();
+
   // Sync pending messages when coming back online
   useEffect(() => {
-    if (isOnline && activeChannelId && baseUrl) {
-      (async () => {
-        const { messages: allMessages } = useChatStore.getState();
-        const pending = (allMessages[activeChannelId] || []).filter(m => m.status === 'pending');
-        if (pending.length === 0) return;
-
-        try {
-          const { getSocket, joinRoom } = await import("@/lib/socket");
-          const socket = await getSocket(baseUrl);
-          if (!socket.connected) {
-            await new Promise<void>((resolve, reject) => {
-              const t = setTimeout(() => reject(new Error("connect_timeout")), 3000);
-              socket.once("connect", () => { clearTimeout(t); resolve(); });
-              socket.connect();
-            });
-          }
-          await joinRoom(baseUrl, activeChannelId);
-
-          for (const m of pending) {
-            socket.emit("message:send", {
-              channelId: m.channelId,
-              text: m.text,
-              senderName: m.senderName,
-              senderAvatarUrl: m.senderAvatarUrl,
-              senderId: m.senderId || undefined,
-            });
-          }
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.error("[offline] Sync failed", err);
-        }
-      })();
+    if (isOnline && baseUrl) {
+      syncPendingMessages(baseUrl);
     }
-  }, [isOnline, activeChannelId, baseUrl]);
+  }, [isOnline, baseUrl, syncPendingMessages]);
 
   const [messageMenu, setMessageMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -975,13 +947,7 @@ export default function ChatWindow() {
                       )}
                     </div>
                   )}
-                  <div className={`relative group ${isImageUrl(m.text ?? '') ? 'max-w-[75%]' : 'max-w-[70%]'} rounded-[20px] overflow-hidden ${mine ? "bg-[color:var(--brand)] text-white" : "bg-[color:var(--surface-2)] text-[color:var(--foreground)]"} ${m.status === 'pending' ? 'opacity-70 grayscale-[0.5]' : ''} transition-all`}>
-                    {m.status === 'pending' && (
-                      <div className="absolute top-1 right-2 inline-flex items-center gap-1.5 text-[9px] font-bold bg-black/10 px-1.5 py-0.5 rounded-full pointer-events-none">
-                        <svg className="animate-spin" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                        QUEUED
-                      </div>
-                    )}
+                  <div className={`relative group ${isImageUrl(m.text ?? '') ? 'max-w-[75%]' : 'max-w-[70%]'} rounded-[20px] overflow-hidden ${mine ? "bg-[color:var(--brand)] text-white" : "bg-[color:var(--surface-2)] text-[color:var(--foreground)]"} ${m.status === 'pending' ? 'opacity-[0.6] scale-[0.98]' : ''} transition-all`}>
                     <button
                       type="button"
                       className={`absolute top-1 right-1 z-10 hidden group-hover:flex items-center justify-center h-6 w-6 rounded-full border border-white/20 bg-black/40 text-white hover:bg-black/60 transition-colors`}
@@ -1031,6 +997,17 @@ export default function ChatWindow() {
                 {/* Meta row: time and tiny avatar-as-seen for own messages */}
                 <div className={`flex items-center ${mine ? "justify-end" : "justify-start"} gap-2 px-10 md:px-16`}>
                   <div className="text-[10px] opacity-70">{timeFmt.format(new Date(m.createdAt))}</div>
+                  {mine && (
+                    <div className="flex items-center">
+                      {m.status === 'pending' ? (
+                        <div className="h-3 w-3 rounded-full border-[1.5px] border-[color:var(--brand)] border-t-transparent animate-spin ml-1" />
+                      ) : m.status === 'sent' ? (
+                        <div className="flex items-center h-3 w-3 rounded-full bg-[color:var(--brand)] ml-1 shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
                   {mine && seenMessageId === m.id && normalizeAvatar(lastOtherAvatar) && (
                     <div className="h-4 w-4 rounded-full overflow-hidden border border-white/30">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1051,7 +1028,7 @@ export default function ChatWindow() {
           e.preventDefault();
           if (!text.trim() || !activeChannelId) return;
           const body = text.trim();
-          send(activeChannelId, body);
+          const msgId = send(activeChannelId, body);
 
           if (baseUrl) {
             try {
@@ -1068,6 +1045,7 @@ export default function ChatWindow() {
               }
               try { await joinRoom(baseUrl, activeChannelId); } catch {}
               socket.emit("message:send", {
+                id: msgId,
                 channelId: activeChannelId,
                 text: body,
                 senderName: displayName || "You",
@@ -1152,18 +1130,21 @@ export default function ChatWindow() {
                       const data = await resp.json();
                       const path = typeof data?.url === 'string' ? data.url : null;
                       if (!path) return;
-                      send(activeChannelId, path);
+                      const msgId = send(activeChannelId, path);
                       if (baseUrl) {
-                        const { getSocket, joinRoom } = await import('@/lib/socket');
-                        const socket = await getSocket(baseUrl);
-                        try { await joinRoom(baseUrl, activeChannelId); } catch {}
-                        socket.emit('message:send', {
-                          channelId: activeChannelId,
-                          text: path,
-                          senderName: displayName || 'You',
-                          senderAvatarUrl: avatarUrl || null,
-                          senderId: userId || undefined,
-                        });
+                        try {
+                          const { getSocket, joinRoom } = await import('@/lib/socket');
+                          const socket = await getSocket(baseUrl);
+                          try { await joinRoom(baseUrl, activeChannelId); } catch {}
+                          socket.emit('message:send', {
+                            id: msgId,
+                            channelId: activeChannelId,
+                            text: path,
+                            senderName: displayName || 'You',
+                            senderAvatarUrl: avatarUrl || null,
+                            senderId: userId || undefined,
+                          });
+                        } catch {}
                       }
                     } catch {}
                   };

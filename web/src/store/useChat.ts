@@ -8,7 +8,7 @@ interface ChatState {
   messages: Record<string, Message[]>; // channelId -> messages
   activeChannelId: string | null;
   setActiveChannel: (id: string | null) => void;
-  sendMessage: (channelId: string, text: string, context?: Message["context"]) => void;
+  sendMessage: (channelId: string, text: string, context?: Message["context"]) => string;
   setChannels: (chs: Channel[]) => void;
   setChannelMessages: (channelId: string, msgs: Message[]) => void;
   addIncoming: (msg: Message) => void;
@@ -25,6 +25,7 @@ interface ChatState {
   totalUnread: () => number;
   markAllRead: () => void;
   incrementUnread: (channelId: string, amount?: number) => void;
+  syncPendingMessages: (baseUrl: string) => Promise<void>;
 }
 
 function genId(): string {
@@ -61,15 +62,18 @@ export const useChatStore = create<ChatState>()(
         set({ activeChannelId: id, unreadCounts: unread });
       },
       sendMessage: (channelId, text, context) => {
+        const auth = useAuth.getState();
+        const msgId = genId();
         const msg: Message = {
-          id: genId(),
+          id: msgId,
           channelId,
-          senderId: "me",
-          senderName: "You",
+          senderId: auth.userId || "anonymous",
+          senderName: auth.displayName || "You",
+          senderAvatarUrl: auth.avatarUrl || null,
           text,
           createdAt: Date.now(),
           priority: "normal",
-          senderIsTeacher: useAuth.getState().isTeacher,
+          senderIsTeacher: auth.isTeacher,
           context: context ?? null,
           status: "pending",
         };
@@ -78,6 +82,7 @@ export const useChatStore = create<ChatState>()(
           messages: { ...get().messages, [channelId]: [...current, msg] },
           channels: get().channels.map(ch => ch.id === channelId ? { ...ch, lastActiveAt: msg.createdAt } : ch)
         });
+        return msgId;
       },
       setChannels: (chs) => set({ channels: chs }),
       setChannelPins: (channelId, pins) => {
@@ -227,6 +232,47 @@ export const useChatStore = create<ChatState>()(
         }
         set({ activeChannelId: id });
         return id;
+      },
+      syncPendingMessages: async (baseUrl) => {
+        if (!baseUrl) return;
+        const state = get();
+        const allPending: Message[] = [];
+        for (const chId in state.messages) {
+          const chMsgs = state.messages[chId];
+          const pendingInCh = chMsgs.filter((m: Message) => m.status === "pending");
+          allPending.push(...pendingInCh);
+        }
+        if (allPending.length === 0) return;
+
+        try {
+          const { getSocket, joinRoom } = await import("@/lib/socket");
+          const socket = await getSocket(baseUrl);
+          
+          if (!socket.connected) {
+            await new Promise<void>((resolve, reject) => {
+              const t = setTimeout(() => reject(new Error("connect_timeout")), 5000);
+              socket.once("connect", () => { clearTimeout(t); resolve(); });
+              socket.connect();
+            });
+          }
+
+          for (const m of allPending) {
+            await joinRoom(baseUrl, m.channelId);
+            socket.emit("message:send", {
+              id: m.id,
+              channelId: m.channelId,
+              text: m.text,
+              senderId: m.senderId,
+              senderName: m.senderName,
+              senderAvatarUrl: m.senderAvatarUrl,
+              priority: m.priority,
+              context: m.context
+            });
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error("[sync] Background sync failed", err);
+        }
       },
     }),
     {

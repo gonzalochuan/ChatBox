@@ -3101,16 +3101,34 @@ app.post("/channels/:id/messages", async (req, res) => {
       const overrides = normalizeContextMetaInput(req.body?.contextMeta);
       context = await buildContextForMessage(text, overrides);
     } catch {}
-    const created = await prisma.message.create({
-      data: {
-        channelId,
-        senderId: decoded.uid,
-        senderName: user?.name || user?.email || "User",
-        senderAvatarUrl: user?.avatarUrl || null,
-        text,
-        ...serializeContextForStorage(context),
-      },
-    });
+    const msgId = req.body?.id || undefined;
+    const created = await (msgId
+      ? prisma.message.upsert({
+          where: { id: msgId },
+          update: {
+            text,
+            ...serializeContextForStorage(context),
+          },
+          create: {
+            id: msgId,
+            channelId,
+            senderId: decoded.uid,
+            senderName: user?.name || user?.email || "User",
+            senderAvatarUrl: user?.avatarUrl || null,
+            text,
+            ...serializeContextForStorage(context),
+          },
+        })
+      : prisma.message.create({
+          data: {
+            channelId,
+            senderId: decoded.uid,
+            senderName: user?.name || user?.email || "User",
+            senderAvatarUrl: user?.avatarUrl || null,
+            text,
+            ...serializeContextForStorage(context),
+          },
+        }));
     // Update channel recency
     await prisma.channel.update({
       where: { id: channelId },
@@ -4716,18 +4734,36 @@ io.on("connection", (socket) => {
           context = await buildContextForMessage(payload.text, overrides);
         } catch {}
       }
-      const created = await prisma.message.create({
-        data: {
-          channelId: payload.channelId,
-          // Only save senderId when the client supplies a real user id
-          senderId: payload.senderId ?? null,
-          senderName: payload.senderName || "User",
-          senderAvatarUrl: payload.senderAvatarUrl || null,
-          text: payload.text,
-          priority: payload.priority || "normal",
-          ...serializeContextForStorage(context),
-        },
-      });
+      const created = await (payload.id
+        ? prisma.message.upsert({
+            where: { id: payload.id },
+            update: {
+              text: payload.text,
+              priority: payload.priority || "normal",
+              ...serializeContextForStorage(context),
+            },
+            create: {
+              id: payload.id,
+              channelId: payload.channelId,
+              senderId: payload.senderId ?? null,
+              senderName: payload.senderName || "User",
+              senderAvatarUrl: payload.senderAvatarUrl || null,
+              text: payload.text,
+              priority: payload.priority || "normal",
+              ...serializeContextForStorage(context),
+            },
+          })
+        : prisma.message.create({
+            data: {
+              channelId: payload.channelId,
+              senderId: payload.senderId ?? null,
+              senderName: payload.senderName || "User",
+              senderAvatarUrl: payload.senderAvatarUrl || null,
+              text: payload.text,
+              priority: payload.priority || "normal",
+              ...serializeContextForStorage(context),
+            },
+          }));
       // Update channel recency
       await prisma.channel.update({
         where: { id: payload.channelId },

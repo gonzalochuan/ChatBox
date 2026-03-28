@@ -65,6 +65,8 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
           const userId = key.startsWith("user:") ? key.slice(5) : key;
           socket.emit("user:join", userId);
         }
+        // Trigger sync for any pending messages
+        useChatStore.getState().syncPendingMessages(currentBase);
       } catch {}
     });
     socket.on("connect_error", (err: any) => {
