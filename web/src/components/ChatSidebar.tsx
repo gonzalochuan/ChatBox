@@ -132,6 +132,7 @@ export default function ChatSidebar(): ReactElement {
             otherIsTeacher: Boolean(e.other?.isTeacher),
             avatarUrl: e.other?.avatarUrl || null,
           },
+          lastActiveAt: e.lastActiveAt,
         }));
         // Merge with existing channels (preserve non-DM and avoid duplicates by id)
         const currentChannels = useChatStore.getState().channels;
@@ -238,10 +239,15 @@ export default function ChatSidebar(): ReactElement {
   }, [channels]);
 
   const filtered = useMemo(() => {
-    return channels.filter((c) => {
+    const list = channels.filter((c) => {
       // Messenger-style: "Chats" includes DMs and Groups
       if (filter === "chats") {
-        return c.kind === "dm" || c.kind === "section-group" || c.kind === "section-subject" || (c.kind === "subject" && !sectionSubjectCodes.has(c.id));
+        return (
+          c.kind === "dm" ||
+          c.kind === "section-group" ||
+          c.kind === "section-subject" ||
+          (c.kind === "subject" && !sectionSubjectCodes.has(c.id))
+        );
       }
       // "Global" includes general channels
       if (filter === "global") {
@@ -249,7 +255,21 @@ export default function ChatSidebar(): ReactElement {
       }
       return false;
     });
-  }, [channels, filter, sectionSubjectCodes]);
+
+    // Sort by last active timestamp (descending)
+    return list.sort((a, b) => {
+      const msgsA = messagesMap[a.id] || [];
+      const msgsB = messagesMap[b.id] || [];
+      
+      const getTs = (ch: Channel, msgs: any[]) => {
+        const lastMsgTs = msgs.length > 0 ? msgs[msgs.length - 1].createdAt : 0;
+        const lastActiveTs = ch.lastActiveAt ? new Date(ch.lastActiveAt).getTime() : 0;
+        return Math.max(lastMsgTs, lastActiveTs);
+      };
+
+      return getTs(b, msgsB) - getTs(a, msgsA);
+    });
+  }, [channels, filter, sectionSubjectCodes, messagesMap]);
 
   const closeGroupModal = useCallback(() => {
     setShowNewGroup(false);

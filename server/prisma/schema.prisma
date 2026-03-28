@@ -30,14 +30,17 @@ model User {
 }
 
 model Channel {
-  id        String    @id @default(cuid())
-  name      String
-  topic     String?
-  kind      String
-  createdAt DateTime  @default(now())
-  messages  Message[]
-  members   Enrollment[]
-  pins      ChannelPin[]
+  id           String    @id @default(cuid())
+  name         String
+  topic        String?
+  kind         String
+  createdAt    DateTime  @default(now())
+  lastActiveAt DateTime  @default(now())
+  messages     Message[]
+  members      Enrollment[]
+  pins         ChannelPin[]
+
+  @@index([lastActiveAt])
 }
 
 model Message {

@@ -7,6 +7,7 @@ export interface Channel {
   kind: ChannelKind;
   meta?: Record<string, unknown>;
   pins?: PinnedMessageInfo[];
+  lastActiveAt?: string | number | Date;
 }
 
 export type MessagePriority = "normal" | "high" | "emergency";

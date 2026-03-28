@@ -1909,7 +1909,7 @@ app.get("/dms", async (req, res) => {
       dms: entries.map((e) => ({
         channelId: e.channelId,
         other: infoMap[e.otherId] || { id: e.otherId, name: null, email: e.otherId, avatarUrl: null, isTeacher: false },
-        lastAt: e.lastAt,
+        lastActiveAt: e.lastAt,
       })),
     });
   } catch {
@@ -3111,6 +3111,11 @@ app.post("/channels/:id/messages", async (req, res) => {
         ...serializeContextForStorage(context),
       },
     });
+    // Update channel recency
+    await prisma.channel.update({
+      where: { id: channelId },
+      data: { lastActiveAt: new Date() }
+    }).catch(() => null);
     // Broadcast if socket.io is active
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -4543,7 +4548,10 @@ app.get("/channels", async (req, res) => {
       for (const e of enrollments) if (e.subjectId) channelIds.add(e.subjectId);
     }
     channelIds.add("gen");
-    const list = await prisma.channel.findMany({ where: { id: { in: Array.from(channelIds) } }, orderBy: { name: "asc" } });
+    const list = await prisma.channel.findMany({ 
+      where: { id: { in: Array.from(channelIds) } }, 
+      orderBy: { lastActiveAt: "desc" } 
+    });
     return res.json({ channels: list });
   }
 
@@ -4720,6 +4728,11 @@ io.on("connection", (socket) => {
           ...serializeContextForStorage(context),
         },
       });
+      // Update channel recency
+      await prisma.channel.update({
+        where: { id: payload.channelId },
+        data: { lastActiveAt: new Date() }
+      }).catch(() => null);
       let senderIsTeacher = false;
       if (payload.senderId) {
         const roles = await prisma.userRole.findMany({ where: { userId: payload.senderId }, select: { role: true } });

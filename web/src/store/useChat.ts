@@ -73,7 +73,10 @@ export const useChatStore = create<ChatState>()(
           context: context ?? null,
         };
         const current = get().messages[channelId] ?? [];
-        set({ messages: { ...get().messages, [channelId]: [...current, msg] } });
+        set({
+          messages: { ...get().messages, [channelId]: [...current, msg] },
+          channels: get().channels.map(ch => ch.id === channelId ? { ...ch, lastActiveAt: msg.createdAt } : ch)
+        });
       },
       setChannels: (chs) => set({ channels: chs }),
       setChannelPins: (channelId, pins) => {
@@ -142,11 +145,18 @@ export const useChatStore = create<ChatState>()(
             const updated = [...current];
             updated[idx] = { ...updated[idx], ...msg };
             const nextMessages = { ...get().messages, [msg.channelId]: updated };
-            set({ messages: nextMessages });
+            set({
+              messages: nextMessages,
+              channels: get().channels.map(ch => ch.id === msg.channelId ? { ...ch, lastActiveAt: msg.createdAt } : ch)
+            });
             return;
           }
         }
         const nextMessages = { ...get().messages, [msg.channelId]: [...current, msg] };
+        set({
+          messages: nextMessages,
+          channels: get().channels.map(ch => ch.id === msg.channelId ? { ...ch, lastActiveAt: msg.createdAt } : ch)
+        });
         const active = get().activeChannelId;
         const unread = { ...get().unreadCounts };
         const myId = useAuth.getState().userId;
