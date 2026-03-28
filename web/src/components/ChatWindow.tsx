@@ -148,6 +148,12 @@ export default function ChatWindow() {
 
   // Sync pending messages when coming back online
   useEffect(() => {
+    if (baseUrl) {
+      startBackgroundSync(baseUrl);
+    }
+  }, [baseUrl, startBackgroundSync]);
+
+  useEffect(() => {
     if (isOnline && baseUrl) {
       syncPendingMessages(baseUrl);
     }
@@ -870,10 +876,22 @@ export default function ChatWindow() {
       </div>
 
       <div ref={listRef} className="relative flex-1 overflow-y-auto custom-scroll" style={{padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '2px'}}>
+        {/* Offline Banner */}
         {!isOnline && (
-          <div className="sticky top-0 z-20 mx-[-12px] mt-[-16px] mb-4 bg-orange-600/90 backdrop-blur-md text-white text-[11px] font-bold py-2 px-4 flex items-center justify-center gap-2 animate-pulse shadow-md rounded-b-xl border-b border-white/20">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            OFFLINE MODE - Your messages are safely queued for sync
+          <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center justify-between animate-in fade-in slide-in-from-top duration-300">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              Offline Mode — Your messages are safely saved on this device
+            </div>
+            <button 
+              onClick={() => syncPendingMessages(baseUrl || "")}
+              className="text-[9px] font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 px-2 py-1 rounded transition-colors uppercase border border-amber-500/30"
+            >
+              Retry Sync
+            </button>
           </div>
         )}
         {primaryPin ? (
@@ -1035,6 +1053,12 @@ export default function ChatWindow() {
           if (!text.trim() || !activeChannelId) return;
           const body = text.trim();
           const msgId = send(activeChannelId, body);
+          
+          // Provide instant offline feedback
+          if (!isOnline) {
+            // We could show a tiny toast here, or just rely on the "SENDING..." indicator
+            // which I've already added. Let's make the label even more reassuring.
+          }
 
           if (baseUrl) {
             try {

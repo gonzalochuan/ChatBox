@@ -26,6 +26,7 @@ interface ChatState {
   markAllRead: () => void;
   incrementUnread: (channelId: string, amount?: number) => void;
   syncPendingMessages: (baseUrl: string) => Promise<void>;
+  startBackgroundSync: (baseUrl: string) => void;
 }
 
 function genId(): string {
@@ -247,18 +248,21 @@ export const useChatStore = create<ChatState>()(
         const allPending: Message[] = [];
         for (const chId in state.messages) {
           const chMsgs = state.messages[chId];
-          const pendingInCh = chMsgs.filter((m: Message) => m.status === "pending");
+          const pendingInCh = (chMsgs || []).filter((m: Message) => m.status === "pending");
           allPending.push(...pendingInCh);
         }
         if (allPending.length === 0) return;
 
         try {
+          // If we're offline, don't even try to import/connect
+          if (typeof window !== "undefined" && !window.navigator.onLine) return;
+
           const { getSocket, joinRoom } = await import("@/lib/socket");
           const socket = await getSocket(baseUrl);
           
           if (!socket.connected) {
             await new Promise<void>((resolve, reject) => {
-              const t = setTimeout(() => reject(new Error("connect_timeout")), 5000);
+              const t = setTimeout(() => reject(new Error("connect_timeout")), 3000);
               socket.once("connect", () => { clearTimeout(t); resolve(); });
               socket.connect();
             });
@@ -279,8 +283,16 @@ export const useChatStore = create<ChatState>()(
           }
         } catch (err) {
           // eslint-disable-next-line no-console
-          console.error("[sync] Background sync failed", err);
+          console.log("[sync] Attempt failed (offline or no load)", err);
         }
+      },
+      startBackgroundSync: (baseUrl) => {
+        if (!baseUrl) return;
+        // avoid double intervals
+        if ((globalThis as any)._chatSyncInterval) clearInterval((globalThis as any)._chatSyncInterval);
+        (globalThis as any)._chatSyncInterval = setInterval(() => {
+          get().syncPendingMessages(baseUrl);
+        }, 10000); // Try every 10 seconds
       },
     }),
     {
