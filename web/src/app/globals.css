@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f3f4f6;
-  --foreground: #111827;
+  --background: #ffffff;
+  --foreground: #000000;
   --surface: #ffffff;
-  --surface-2: #ffffff;
-  --border: rgba(15, 23, 42, 0.08);
-  --muted: rgba(15, 23, 42, 0.74);
-  --muted-2: rgba(15, 23, 42, 0.60);
-  --shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
-  --brand: #c2410c;
-  --brand-2: #ea580c;
+  --surface-2: #f0f2f5;
+  --border: #e4e6eb;
+  --muted: #65676b;
+  --muted-2: #8c939d;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --brand: #ea580c;
+  --brand-2: #c2410c;
   --brand-contrast: #ffffff;
-  --ring: rgba(249, 115, 22, 0.2);
+  --ring: rgba(234, 88, 12, 0.2);
 }
 
 @theme inline {
@@ -95,12 +95,12 @@ body {
 }
 
 /* Visible, monochrome scrollbars */
-* { scrollbar-width: thin; scrollbar-color: rgba(249,115,22,0.40) transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(234,88,12,0.40) transparent; }
 .custom-scroll { scrollbar-gutter: stable; }
-.custom-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
 .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-.custom-scroll::-webkit-scrollbar-thumb { background: rgba(249,115,22,0.30); border-radius: 9999px; border: 2px solid rgba(0,0,0,0); background-clip: padding-box; }
-.custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(249,115,22,0.45); box-shadow: inset 0 0 0 1px rgba(249,115,22,0.12); }
+.custom-scroll::-webkit-scrollbar-thumb { background: rgba(234,88,12,0.30); border-radius: 9999px; }
+.custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(234,88,12,0.45); }
 
 /* Force viewport height utility */
 .vh-100 {
@@ -140,15 +140,17 @@ body {
 
 /* Dark mode tokens (toggle by adding .dark on <html>) */
 .dark {
-  --background: #0b0b0b;
-  --foreground: #f3f4f6;
-  --surface: #1a1a1a;
-  --surface-2: #242526;
-  --border: rgba(255,255,255,0.08);
-  --muted: rgba(243,244,246,0.72);
-  --muted-2: rgba(243,244,246,0.55);
-  --shadow: 0 10px 40px rgba(0,0,0,0.8);
-  --ring: rgba(249,115,22,0.30);
+  --background: #000000;
+  --foreground: #e4e6eb;
+  --surface: #242526;
+  --surface-2: #3a3b3c;
+  --border: #3e4042;
+  --muted: #b0b3b8;
+  --muted-2: #8a8d91;
+  --shadow: 0 4px 12px rgba(0,0,0,0.5);
+  --ring: rgba(234,88,12,0.30);
+  --brand: #ea580c;
+  --brand-2: #c2410c;
 }
 
 /* Generic helpers used by existing pages */

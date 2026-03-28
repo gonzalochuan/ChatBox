@@ -61,9 +61,10 @@ export default function ChatPage() {
   const [dmPeople, setDmPeople] = useState<Array<{ id: string; name: string; handle?: string }>>([]);
   const createDm = useChatStore((s) => s.createDm);
 
-  const [isOffline, setIsOffline] = useState(typeof navigator !== "undefined" ? !navigator.onLine : false);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
+    setIsOffline(!navigator.onLine);
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     window.addEventListener("online", handleOnline);
@@ -336,7 +337,7 @@ export default function ChatPage() {
           : mode === "lan"
           ? "bg-green-50 text-green-700 border-green-200"
           : mode === "cloud"
-          ? "bg-blue-50 text-blue-700 border-blue-200"
+          ? "bg-orange-50 text-orange-700 border-orange-200"
           : "bg-gray-100 text-gray-600 border-gray-200"
       }`}
     >
@@ -352,7 +353,7 @@ export default function ChatPage() {
       {/* App shell */}
       <div className="relative z-10 h-dvh grid grid-rows-[64px_1fr] min-h-0">
         {/* Top bar */}
-        <header className="flex items-center justify-between px-4 md:px-6 border-b border-white/10 bg-black/40 backdrop-blur-sm">
+        <header className="flex items-center justify-between px-4 md:px-6 border-b border-[color:var(--border)] bg-[color:var(--surface)]">
           <div className="flex items-center gap-3">
             <button onClick={openProfile} title="View profile" className="h-8 w-8 rounded-full overflow-hidden border border-white/20 bg-white/10">
               {avatarUrl ? (
@@ -375,57 +376,65 @@ export default function ChatPage() {
         </header>
 
         {/* 3-box responsive layout */}
-        <div className="grid grid-cols-12 gap-2 md:gap-4 h-full p-2 md:p-4 min-h-0">
+        <div className="grid grid-cols-12 gap-0 md:gap-4 h-full md:p-4 min-h-0 bg-[color:var(--background)]">
           {/* Left rail (desktop only) */}
           <div className="hidden md:block col-span-12 md:col-span-1 xl:col-span-1 min-h-0">
-            <div className="h-full rounded-[28px] border border-white/15 bg-white backdrop-blur-sm shadow-sm overflow-hidden flex items-center justify-center">
+            <div className="h-full rounded-[28px] border border-[color:var(--border)] bg-[color:var(--surface)] overflow-hidden flex items-center justify-center">
               <LeftRail />
             </div>
           </div>
 
           {/* Messages list card (hidden on mobile when a chat is open or when in Menu/Global) */}
-          <aside className={`col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-3 min-h-0 ${activeChannelId || channelFilter === 'menu' ? "hidden md:block" : "block"}`}>
-            <div className="h-full rounded-3xl border border-white/15 bg-white backdrop-blur-sm shadow-sm overflow-hidden flex flex-col min-h-0">
+          <aside className={`col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-3 min-h-0 ${activeChannelId || channelFilter === 'menu' ? "hidden md:block" : "block pb-[64px] md:pb-0"}`}>
+            <div className="h-full md:rounded-3xl border-r md:border border-[color:var(--border)] bg-[color:var(--surface)] overflow-hidden flex flex-col min-h-0">
               <ChatSidebar />
             </div>
           </aside>
 
           {/* Chat window card (shown on mobile only when a chat is open) */}
           <main className={`${activeChannelId ? "col-span-12" : "hidden"} md:block md:col-span-7 lg:col-span-8 xl:col-span-8 min-h-0`}>
-            <div className="h-full rounded-[28px] border border-white/15 bg-white backdrop-blur-sm shadow-sm overflow-hidden flex flex-col min-h-0">
+            <div className="h-full md:rounded-[28px] md:border border-[color:var(--border)] bg-[color:var(--surface)] overflow-hidden flex flex-col min-h-0">
               <ChatWindow />
             </div>
           </main>
 
           {/* Menu view (mobile only) */}
           {channelFilter === 'menu' && !activeChannelId && (
-            <div className="md:hidden col-span-12 h-full rounded-3xl border border-white/15 bg-white dark:bg-[#1a1a1a] backdrop-blur-sm shadow-sm overflow-hidden flex flex-col min-h-0">
-               {/* I will fill this with MenuView content later */}
-               <div className="p-6">
-                 <h1 className="text-2xl font-bold mb-6">Menu</h1>
-                 <div className="space-y-4">
-                    <button onClick={openProfile} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-[#2a2a2a] transition-colors">
-                      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
-                        {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-gray-400">👤</div>}
-                      </div>
-                      <div className="text-left">
-                        <div className="font-bold">{displayName || "Set Name"}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">View Profile</div>
-                      </div>
-                    </button>
-                    <div className="h-px bg-gray-100 my-2" />
+            <div className="md:hidden col-span-12 h-full bg-[color:var(--surface)] overflow-hidden flex flex-col min-h-0">
+               <div className="p-4 overflow-y-auto custom-scroll">
+                 <div className="flex items-center justify-between mb-6">
+                   <h1 className="text-2xl font-bold text-[color:var(--foreground)]">Menu</h1>
+                   <div className="flex gap-2 text-[color:var(--foreground)]">
+                     <button className="h-9 w-9 rounded-full bg-[color:var(--surface-2)] flex items-center justify-center">
+                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                     </button>
+                   </div>
+                 </div>
+                 
+                 <div className="bg-[color:var(--surface-2)] rounded-[20px] p-3 mb-4 flex items-center gap-3 text-[color:var(--foreground)]" onClick={openProfile}>
+                   <div className="w-12 h-12 rounded-full border border-[color:var(--border)] overflow-hidden shrink-0">
+                     {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center bg-[color:var(--background)]">👤</div>}
+                   </div>
+                   <div className="min-w-0 flex-1">
+                     <div className="font-bold truncate text-[17px]">{displayName || "Set Name"}</div>
+                     <div className="text-[13px] text-[color:var(--muted)]">View profile</div>
+                   </div>
+                 </div>
+
+                 <div className="space-y-1">
                     <button
                       onClick={toggleTheme}
-                      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 transition-colors"
+                      className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-[color:var(--surface-2)] transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
-                          {theme === 'dark' ? '☀️' : '🌙'}
+                        <div className="w-9 h-9 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center">
+                          {theme === 'dark' ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg> : <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>}
                         </div>
-                        <div className="font-medium text-gray-900 dark:text-white">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</div>
+                        <div className="font-medium text-[color:var(--foreground)] text-[15px]">Dark mode</div>
                       </div>
-                      <div className="text-gray-400 text-sm">{theme === 'dark' ? 'On' : 'Off'}</div>
+                      <div className="text-[color:var(--muted)] text-[15px]">{theme === 'dark' ? 'On' : 'Off'}</div>
                     </button>
+
                     <button
                       onClick={() => {
                         const newUrl = prompt("Enter LAN Server URL:", baseUrl || "");
@@ -434,23 +443,25 @@ export default function ChatPage() {
                           reinit();
                         }
                       }}
-                      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 transition-colors"
+                      className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[color:var(--surface-2)] transition-colors"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">🌐</div>
-                        <div className="font-medium text-gray-900 dark:text-white">LAN Server</div>
+                      <div className="w-9 h-9 rounded-full bg-[color:var(--border)] text-[color:var(--foreground)] flex items-center justify-center">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                       </div>
-                      <div className="text-blue-500 text-sm truncate max-w-[150px]">{baseUrl || "Not set"}</div>
+                      <div className="flex-1 text-left">
+                        <div className="font-medium text-[color:var(--foreground)] text-[15px]">LAN Server</div>
+                        <div className="text-[12px] text-orange-500 truncate max-w-[200px]">{baseUrl || "Not set"}</div>
+                      </div>
                     </button>
+
                     <button
-                      onClick={() => {
-                        clearToken();
-                        window.location.href = "/";
-                      }}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-600 transition-colors mt-auto"
+                      onClick={() => { clearToken(); window.location.href = "/"; }}
+                      className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[color:var(--surface-2)] transition-colors mt-4"
                     >
-                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-xl">🚪</div>
-                      <div className="font-medium">Log Out</div>
+                      <div className="w-9 h-9 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                      </div>
+                      <div className="font-medium text-red-600 text-[15px]">Log Out</div>
                     </button>
                  </div>
                </div>

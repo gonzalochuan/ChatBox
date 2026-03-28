@@ -137,6 +137,14 @@ export default function ChatWindow() {
   const [renameValue, setRenameValue] = useState("");
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // Voice recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingChunksRef = useRef<BlobPart[]>([]);
+  const recordingStreamRef = useRef<MediaStream | null>(null);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recordingAutoStopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
@@ -684,76 +692,105 @@ export default function ChatWindow() {
     <div className="h-full flex flex-col">
       <audio ref={remoteAudioElRef} autoPlay playsInline />
       {/* Mobile header */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/10 bg-white dark:bg-[#0b0b0b]">
+      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-[color:var(--border)] bg-[color:var(--surface)]">
         <div className="flex items-center gap-3 min-w-0">
-          <button onClick={() => setActive(null)} className="md:hidden mr-1">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-500"><path d="M15 18l-6-6 6-6"/></svg>
+          <button onClick={() => setActive(null)} className="md:hidden mr-1 text-[color:var(--brand)]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <div className="h-9 w-9 rounded-full overflow-hidden border border-gray-100 bg-gray-50">
+          <div className="h-[36px] w-[36px] rounded-full overflow-hidden border border-[color:var(--border)] bg-[color:var(--surface-2)]">
             {active?.kind === 'dm' && lastOtherAvatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={normalizeAvatar(lastOtherAvatar)!} alt="User" className="h-full w-full object-cover" />
+            ) : active?.kind !== 'dm' && active?.name ? (
+              <div className="h-full w-full grid place-items-center text-[color:var(--brand)] font-bold text-sm">
+                {active.name.charAt(0).toUpperCase()}
+              </div>
             ) : (
-              <div className="h-full w-full grid place-items-center text-gray-400">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
+              <div className="h-full w-full grid place-items-center text-[color:var(--muted)]">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
               </div>
             )}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="truncate font-bold text-gray-900 dark:text-white text-sm">{active?.name ?? "Chat"}</span>
+              <span className="truncate font-bold text-[color:var(--foreground)] text-[15px]">{active?.name ?? "Chat"}</span>
               {active?.kind === 'dm' && activeOtherIsTeacher && (
                 <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-[1px] text-[9px] font-bold uppercase tracking-wider text-blue-600">
                   Teacher
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{active?.kind === 'dm' ? 'Active now' : (active?.topic ?? '')}</div>
+            <div className="text-[12px] text-[color:var(--muted-2)] truncate">{active?.kind === 'dm' ? 'Active now' : (active?.topic ?? '')}</div>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-4">
           {canStartCall && (
             <>
               <button
                 onClick={async () => {
-                   // Call logic...
+                  try {
+                    if (!activeChannelId || !baseUrl) return;
+                    const { getSocket, joinRoom } = await import("@/lib/socket");
+                    const socket = await getSocket(baseUrl);
+                    await joinRoom(baseUrl, activeChannelId);
+                    socket.emit("call:invite", { channelId: activeChannelId, kind: "voice", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
+                    await startCallWithPeer("voice");
+                  } catch {}
                 }}
-                className="h-10 w-10 rounded-full flex items-center justify-center text-blue-500 hover:bg-gray-100 transition-colors" title="Video">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>
+                className="text-[color:var(--brand)] hover:opacity-80 transition-opacity" title="Call">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 0 0-1.02.24l-2.2 2.2a15.045 15.045 0 0 1-6.59-6.59l2.2-2.21a.96.96 0 0 0 .25-1A11.36 11.36 0 0 1 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM19 12h2a9 9 0 0 0-9-9v2c3.87 0 7 3.13 7 7zm-4 0h2c0-2.76-2.24-5-5-5v2c1.66 0 3 1.34 3 3z"/></svg>
               </button>
               <button
                 onClick={async () => {
-                   // Call logic...
+                  try {
+                    if (!activeChannelId || !baseUrl) return;
+                    const { getSocket, joinRoom } = await import("@/lib/socket");
+                    const socket = await getSocket(baseUrl);
+                    await joinRoom(baseUrl, activeChannelId);
+                    socket.emit("call:invite", { channelId: activeChannelId, kind: "video", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
+                    await startCallWithPeer("video");
+                  } catch {}
                 }}
-                className="h-10 w-10 rounded-full flex items-center justify-center text-blue-500 hover:bg-gray-100 transition-colors" title="Call">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.13.98.36 1.94.69 2.86a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.92.33 1.88.56 2.86.69A2 2 0 0 1 22 16.92z"/></svg>
+                className="text-[color:var(--brand)] hover:opacity-80 transition-opacity" title="Video">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
               </button>
             </>
           )}
-          <button onClick={() => setShowMore((v) => !v)} className="h-10 w-10 rounded-full flex items-center justify-center text-blue-500 hover:bg-gray-100 transition-colors" title="More">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="6" r="1"/><circle cx="12" cy="18" r="1"/></svg>
+          <button onClick={() => setShowMore((v) => !v)} className="text-[color:var(--brand)] hover:opacity-80 transition-opacity" title="More">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="5" r="2.5"/><circle cx="12" cy="19" r="2.5"/></svg>
           </button>
         </div>
       </div>
       {/* Desktop header */}
-      <div className="hidden md:flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-white/10">
+      <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-[color:var(--border)] bg-[color:var(--surface)]">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-full border border-white/20 bg-black/40 grid place-items-center text-[color:var(--foreground)]/80">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
+          <div className="h-[40px] w-[40px] rounded-full border border-[color:var(--border)] bg-[color:var(--surface-2)] overflow-hidden grid place-items-center">
+            {active?.kind === 'dm' && lastOtherAvatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={normalizeAvatar(lastOtherAvatar)!} alt={active?.name || "User"} className="h-full w-full object-cover" />
+            ) : active?.name ? (
+              <div className="h-full w-full grid place-items-center text-[color:var(--brand)] font-bold text-sm">
+                {active.name.charAt(0).toUpperCase()}
+              </div>
+            ) : (
+              <div className="text-[color:var(--muted)]">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+              </div>
+            )}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="truncate tracking-wider font-medium text-[color:var(--foreground)] dark:text-white">{active?.name ?? "Chat"}</span>
+              <span className="truncate font-bold text-[color:var(--foreground)] text-[15px]">{active?.name ?? "Chat"}</span>
               {active?.kind === 'dm' && activeOtherIsTeacher && (
                 <span className="inline-flex items-center rounded-full border border-emerald-300/40 bg-emerald-500/20 px-2 py-[1px] text-[9px] uppercase tracking-[0.22em] text-emerald-200">
                   Teacher
                 </span>
               )}
             </div>
-            <div className="text-xs text-[color:var(--foreground)]/55 dark:text-gray-400 truncate">{active?.kind === 'dm' ? 'Online' : (active?.topic ?? '')}</div>
+            <div className="text-[13px] text-[color:var(--muted-2)] truncate">{active?.kind === 'dm' ? 'Online' : (active?.topic ?? '')}</div>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-[color:var(--foreground)]/80">
+        <div className="flex items-center gap-4 text-[color:var(--brand)]">
           {canStartCall && (
             <>
               <button
@@ -771,14 +808,12 @@ export default function ChatWindow() {
                     const { getSocket, joinRoom } = await import("@/lib/socket");
                     const socket = await getSocket(baseUrl);
                     await joinRoom(baseUrl, activeChannelId);
-                    // eslint-disable-next-line no-console
-                    console.log("[webrtc] Emitting call:invite to channel:", activeChannelId, "socket.id:", socket.id);
                     socket.emit("call:invite", { channelId: activeChannelId, kind: "video", from: displayName || "You", fromSocketId: socket.id, fromUserId: userId || undefined });
                     await startCallWithPeer("video");
                   } catch {}
                 }}
-                className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="Video">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>
+                className="hover:opacity-80 transition-opacity" title="Video">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
               </button>
               <button
                 onContextMenu={(e) => { e.preventDefault(); setShowCall(true); }}
@@ -799,18 +834,18 @@ export default function ChatWindow() {
                     await startCallWithPeer("voice");
                   } catch {}
                 }}
-                className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="Call">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72c.13.98.36 1.94.69 2.86a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.92.33 1.88.56 2.86.69A2 2 0 0 1 22 16.92z"/></svg>
+                className="hover:opacity-80 transition-opacity" title="Call">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 0 0-1.02.24l-2.2 2.2a15.045 15.045 0 0 1-6.59-6.59l2.2-2.21a.96.96 0 0 0 .25-1A11.36 11.36 0 0 1 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM19 12h2a9 9 0 0 0-9-9v2c3.87 0 7 3.13 7 7zm-4 0h2c0-2.76-2.24-5-5-5v2c1.66 0 3 1.34 3 3z"/></svg>
               </button>
             </>
           )}
-          <button onClick={() => setShowMore((v) => !v)} className="h-8 w-8 rounded-md border border-white/20 bg-black/40 grid place-items-center hover:bg-white/10" title="More">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+          <button onClick={() => setShowMore((v) => !v)} className="hover:opacity-80 transition-opacity" title="More">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="12" r="2.5"/></svg>
           </button>
         </div>
       </div>
 
-      <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div ref={listRef} className="flex-1 overflow-y-auto custom-scroll" style={{padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '2px'}}>
         {primaryPin ? (
           <div className="flex justify-between items-center px-4 py-2 mb-2 rounded-xl border border-amber-200/40 bg-amber-500/15 text-amber-100">
             <div className="min-w-0">
@@ -871,19 +906,21 @@ export default function ChatWindow() {
                 </div>
                 <div className={`relative flex items-end ${mine ? "justify-end" : "justify-start"}`}>
                   {!mine && (
-                    <div className="h-8 w-8 rounded-full bg-white/5 border border-white/25 mr-2 overflow-hidden">
+                    <div className="h-[28px] w-[28px] rounded-full mr-2 overflow-hidden bg-[color:var(--surface-2)] shrink-0 self-end mb-1">
                       {normalizeAvatar(m.senderAvatarUrl) ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={normalizeAvatar(m.senderAvatarUrl)!} alt={m.senderName} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="h-full w-full grid place-items-center text-[color:var(--foreground)]/60">?</div>
+                        <div className="h-full w-full grid place-items-center text-[color:var(--muted)]">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+                        </div>
                       )}
                     </div>
                   )}
-                  <div className={`relative group max-w-[75%] rounded-[20px] px-3.5 py-2.5 ${mine ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-[#262626] text-gray-900 dark:text-gray-100"} shadow-sm transition-all`}>
+                  <div className={`relative group ${isImageUrl(m.text ?? '') ? 'max-w-[75%]' : 'max-w-[70%]'} rounded-[20px] overflow-hidden ${mine ? "bg-[color:var(--brand)] text-white" : "bg-[color:var(--surface-2)] text-[color:var(--foreground)]"} transition-all`}>
                     <button
                       type="button"
-                      className={`absolute -top-3 right-2 hidden group-hover:flex items-center justify-center h-6 w-6 rounded-full border border-white/20 bg-[color:var(--surface)] text-[color:var(--brand)] hover:text-[color:var(--brand)] hover:bg-white/20 transition-colors`}
+                      className={`absolute top-1 right-1 z-10 hidden group-hover:flex items-center justify-center h-6 w-6 rounded-full border border-white/20 bg-black/40 text-white hover:bg-black/60 transition-colors`}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (typeof document === "undefined") return;
@@ -899,14 +936,16 @@ export default function ChatWindow() {
                     {typeof m.text === 'string' && (m.text.startsWith('/uploads/') || m.text.startsWith('http')) ? (
                       isImageUrl(m.text) ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={normalizeAttachment(m.text)!} alt={m.context?.meta?.filename || "attachment"} className="max-w-xs md:max-w-sm rounded-md" />
+                        <img src={normalizeAttachment(m.text)!} alt={m.context?.meta?.filename || "attachment"} className="block w-full max-w-[260px] object-cover" style={{maxHeight: '260px'}} />
                       ) : (
-                        <a href={normalizeAttachment(m.text) || '#'} target="_blank" rel="noreferrer" className="underline break-all">
-                          {m.context?.meta?.filename || m.text.split('/').pop() || m.text}
-                        </a>
+                        <div className="px-3.5 py-2">
+                          <a href={normalizeAttachment(m.text) || '#'} target="_blank" rel="noreferrer" className="underline break-all text-sm">
+                            {m.context?.meta?.filename || m.text.split('/').pop() || m.text}
+                          </a>
+                        </div>
                       )
                     ) : (
-                      <div className="text-sm whitespace-pre-wrap break-words">{m.text}</div>
+                      <div className="px-3.5 py-2 text-sm whitespace-pre-wrap break-words">{m.text}</div>
                     )}
                   </div>
                   {mine && (
@@ -940,7 +979,7 @@ export default function ChatWindow() {
           });
         })()}
         {renderMessages.length === 0 && (
-          <div className="text-sm text-gray-500">No messages. Say hello!</div>
+          <div className="flex-1 flex items-center justify-center text-sm text-[color:var(--muted)] text-center py-8">No messages here yet. Say hello! 👋</div>
         )}
       </div>
       <form
@@ -948,15 +987,12 @@ export default function ChatWindow() {
           e.preventDefault();
           if (!text.trim() || !activeChannelId) return;
           const body = text.trim();
-          // Optimistic UI (both LAN and CLOUD). Server echo will reconcile by id.
           send(activeChannelId, body);
 
-          // Persist via socket whenever we have an API baseUrl (LAN or CLOUD)
           if (baseUrl) {
             try {
               const { getSocket, joinRoom } = await import("@/lib/socket");
               const socket = await getSocket(baseUrl);
-              // Ensure connection
               if (!socket.connected) {
                 try {
                   await new Promise<void>((resolve, reject) => {
@@ -966,7 +1002,6 @@ export default function ChatWindow() {
                   });
                 } catch {}
               }
-              // Ensure room join before sending
               try { await joinRoom(baseUrl, activeChannelId); } catch {}
               socket.emit("message:send", {
                 channelId: activeChannelId,
@@ -979,56 +1014,233 @@ export default function ChatWindow() {
           }
           setText("");
         }}
-        className="p-2 md:p-3 border-t border-gray-100 dark:border-white/10 bg-white dark:bg-[#0b0b0b]"
+        className="border-t border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] shrink-0"
       >
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => fileInputRef.current?.click()} className="h-10 w-10 shrink-0 flex items-center justify-center text-blue-500 hover:bg-gray-50 rounded-full transition-colors" title="Attach file">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.2a2 2 0 0 1-2.83-2.83l8.49-8.49"/></svg>
-          </button>
-          
-          <div className="flex-1 bg-gray-100 rounded-2xl px-3 py-1.5 flex items-center">
-            <textarea
-              value={text}
-              onChange={async (e) => {
-                setText(e.target.value);
+        {/* Voice recording UI */}
+        {isRecording ? (
+          <div className="flex items-center gap-3 px-4 py-3">
+            {/* Pulsing dot */}
+            <div className="relative flex items-center justify-center h-10 w-10 shrink-0">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-40 animate-ping" />
+              <span className="inline-flex h-4 w-4 rounded-full bg-red-500" />
+            </div>
+            {/* Timer */}
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-[color:var(--foreground)]">Recording…</div>
+              <div className="text-xs text-red-500 font-mono">
+                {`${String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:${String(recordingSeconds % 60).padStart(2, '0')}`}
+              </div>
+            </div>
+            {/* Cancel */}
+            <button
+              type="button"
+              onClick={() => {
                 try {
-                  if (baseUrl && activeChannelId) {
-                    const { getSocket } = await import("@/lib/socket");
-                    const socket = await getSocket(baseUrl);
-                    socket.emit("typing", { channelId: activeChannelId, userId: userId || socket.id, name: displayName || "You", isTyping: true });
-                    if (typingTimer.current) clearTimeout(typingTimer.current);
-                    typingTimer.current = setTimeout(() => {
-                      try { socket.emit("typing", { channelId: activeChannelId, userId: userId || socket.id, name: displayName || "You", isTyping: false }); } catch {}
-                    }, 2000);
+                  if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+                  if (recordingAutoStopRef.current) clearTimeout(recordingAutoStopRef.current);
+                  if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                    // Override onstop so it discards the recording
+                    mediaRecorderRef.current.onstop = () => {
+                      recordingStreamRef.current?.getTracks().forEach(t => t.stop());
+                      recordingStreamRef.current = null;
+                      mediaRecorderRef.current = null;
+                      recordingChunksRef.current = [];
+                    };
+                    mediaRecorderRef.current.stop();
+                  } else {
+                    recordingStreamRef.current?.getTracks().forEach(t => t.stop());
+                    recordingStreamRef.current = null;
+                    mediaRecorderRef.current = null;
+                    recordingChunksRef.current = [];
                   }
                 } catch {}
+                setIsRecording(false);
+                setRecordingSeconds(0);
               }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  (e.currentTarget.form as HTMLFormElement)?.requestSubmit();
-                }
-              }}
-              onBlur={async () => {
+              className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center text-[color:var(--muted)] bg-[color:var(--surface-2)] hover:bg-red-50 hover:text-red-500 transition-colors"
+              title="Cancel"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+            {/* Send */}
+            <button
+              type="button"
+              onClick={async () => {
                 try {
-                  if (typingTimer.current) { clearTimeout(typingTimer.current); typingTimer.current = null; }
-                  if (baseUrl && activeChannelId) {
-                    const { getSocket } = await import("@/lib/socket");
-                    const socket = await getSocket(baseUrl);
-                    socket.emit("typing", { channelId: activeChannelId, userId: userId || socket.id, name: displayName || "You", isTyping: false });
-                  }
+                  if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+                  if (recordingAutoStopRef.current) clearTimeout(recordingAutoStopRef.current);
+                  const recorder = mediaRecorderRef.current;
+                  if (!recorder || recorder.state === 'inactive') return;
+                  // Set the real onstop handler then stop
+                  recorder.onstop = async () => {
+                    recordingStreamRef.current?.getTracks().forEach(t => t.stop());
+                    recordingStreamRef.current = null;
+                    const blob = new Blob(recordingChunksRef.current, { type: 'audio/webm' });
+                    recordingChunksRef.current = [];
+                    mediaRecorderRef.current = null;
+                    if (!activeChannelId) return;
+                    const form = new FormData();
+                    form.append('file', blob, `voice-${Date.now()}.webm`);
+                    const base = (baseUrl || `http://${window.location.hostname}:4000`).replace(/\/$/, '');
+                    try {
+                      const resp = await fetch(`${base}/upload/file`, { method: 'POST', body: form });
+                      if (!resp.ok) return;
+                      const data = await resp.json();
+                      const path = typeof data?.url === 'string' ? data.url : null;
+                      if (!path) return;
+                      send(activeChannelId, path);
+                      if (baseUrl) {
+                        const { getSocket, joinRoom } = await import('@/lib/socket');
+                        const socket = await getSocket(baseUrl);
+                        try { await joinRoom(baseUrl, activeChannelId); } catch {}
+                        socket.emit('message:send', {
+                          channelId: activeChannelId,
+                          text: path,
+                          senderName: displayName || 'You',
+                          senderAvatarUrl: avatarUrl || null,
+                          senderId: userId || undefined,
+                        });
+                      }
+                    } catch {}
+                  };
+                  recorder.stop();
                 } catch {}
+                setIsRecording(false);
+                setRecordingSeconds(0);
               }}
-              rows={1}
-              placeholder={activeChannelId ? "Aa" : "Select a chat"}
-              className="flex-1 bg-transparent border-none outline-none resize-none text-[15px] text-gray-900 placeholder-gray-400 py-1"
-            />
+              className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center bg-[color:var(--brand)] text-white hover:opacity-90 transition-opacity"
+              title="Send voice message"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
           </div>
+        ) : (
+          <div className="flex items-center gap-2 px-3 py-2.5">
+            {/* Plus / attach file */}
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 shrink-0 flex items-center justify-center text-[color:var(--brand)] hover:opacity-80 transition-opacity" title="Attach file">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+            </button>
 
-          <button type="submit" disabled={!activeChannelId || !text.trim()} className="h-10 w-10 shrink-0 flex items-center justify-center text-blue-500 hover:bg-gray-50 rounded-full transition-colors disabled:opacity-30" title="Send">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-          </button>
-        </div>
+            {/* Image attach */}
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 shrink-0 flex items-center justify-center text-[color:var(--brand)] hover:opacity-80 transition-opacity" title="Attach image">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+            </button>
+
+            {/* Text input pill */}
+            <div className="flex-1 bg-[color:var(--surface-2)] rounded-[20px] px-3 py-1.5 flex items-center">
+              <textarea
+                value={text}
+                onChange={async (e) => {
+                  setText(e.target.value);
+                  try {
+                    if (baseUrl && activeChannelId) {
+                      const { getSocket } = await import("@/lib/socket");
+                      const socket = await getSocket(baseUrl);
+                      socket.emit("typing", { channelId: activeChannelId, userId: userId || socket.id, name: displayName || "You", isTyping: true });
+                      if (typingTimer.current) clearTimeout(typingTimer.current);
+                      typingTimer.current = setTimeout(() => {
+                        try { socket.emit("typing", { channelId: activeChannelId, userId: userId || socket.id, name: displayName || "You", isTyping: false }); } catch {}
+                      }, 2000);
+                    }
+                  } catch {}
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    (e.currentTarget.form as HTMLFormElement)?.requestSubmit();
+                  }
+                }}
+                onBlur={async () => {
+                  try {
+                    if (typingTimer.current) { clearTimeout(typingTimer.current); typingTimer.current = null; }
+                    if (baseUrl && activeChannelId) {
+                      const { getSocket } = await import("@/lib/socket");
+                      const socket = await getSocket(baseUrl);
+                      socket.emit("typing", { channelId: activeChannelId, userId: userId || socket.id, name: displayName || "You", isTyping: false });
+                    }
+                  } catch {}
+                }}
+                rows={1}
+                placeholder="Aa"
+                className="flex-1 bg-transparent border-none outline-none resize-none text-[15px] placeholder-[color:var(--muted)] py-[4px] min-h-[28px] max-h-[100px] overflow-y-auto custom-scroll"
+              />
+            </div>
+
+            {/* Send OR mic */}
+            {text.trim() ? (
+              <button type="submit" className="h-8 w-8 shrink-0 flex items-center justify-center text-[color:var(--brand)] hover:opacity-80 transition-opacity" title="Send">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              </button>
+            ) : (
+              <button
+                type="button"
+                title="Voice message"
+                className="h-8 w-8 shrink-0 flex items-center justify-center text-[color:var(--brand)] hover:opacity-80 transition-opacity"
+                onClick={async () => {
+                  if (!activeChannelId) {
+                    alert('Please open a chat first.');
+                    return;
+                  }
+                  if (typeof window === 'undefined' || !('MediaRecorder' in window)) {
+                    alert('Voice recording is not supported on this browser.');
+                    return;
+                  }
+                  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert('Microphone access requires a secure connection (HTTPS). Voice messages are not available on HTTP.');
+                    return;
+                  }
+                  try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    recordingStreamRef.current = stream;
+                    recordingChunksRef.current = [];
+                    // Pick best supported MIME
+                    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+                      ? 'audio/webm;codecs=opus'
+                      : MediaRecorder.isTypeSupported('audio/webm')
+                      ? 'audio/webm'
+                      : MediaRecorder.isTypeSupported('audio/ogg')
+                      ? 'audio/ogg'
+                      : '';
+                    const recorder = mimeType
+                      ? new MediaRecorder(stream, { mimeType })
+                      : new MediaRecorder(stream);
+                    recorder.ondataavailable = (ev) => {
+                      if (ev.data && ev.data.size > 0) recordingChunksRef.current.push(ev.data);
+                    };
+                    mediaRecorderRef.current = recorder;
+                    recorder.start(100);
+                    setIsRecording(true);
+                    setRecordingSeconds(0);
+                    recordingTimerRef.current = setInterval(() => {
+                      setRecordingSeconds(s => s + 1);
+                    }, 1000);
+                    recordingAutoStopRef.current = setTimeout(() => {
+                      try {
+                        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                          mediaRecorderRef.current.stop();
+                        }
+                      } catch {}
+                      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+                      setIsRecording(false);
+                      setRecordingSeconds(0);
+                    }, 120000);
+                  } catch (err: any) {
+                    setIsRecording(false);
+                    if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+                      alert('Microphone permission denied. Please allow microphone access in your browser settings and try again.');
+                    } else if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
+                      alert('No microphone found. Please connect a microphone and try again.');
+                    } else {
+                      alert('Could not start recording: ' + (err?.message || String(err)));
+                    }
+                  }
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.81 6.43 6.32 6.92v3.08h1.36v-3.08C16.19 17.43 19 14.53 19 11h-2z"/></svg>
+              </button>
+            )}
+          </div>
+        )}
         <input
           ref={fileInputRef}
           type="file"

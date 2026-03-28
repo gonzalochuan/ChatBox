@@ -48,7 +48,7 @@ export default function BottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#1a1a1a] border-t border-gray-100 dark:border-white/5 flex items-center justify-around pb-safe-area-inset-bottom h-[64px] shadow-lg transition-all">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[color:var(--surface)] border-t border-[color:var(--border)] flex items-center justify-around pb-safe-area-inset-bottom h-[64px] shadow-[0_-4px_12px_rgba(0,0,0,0.03)] dark:shadow-none transition-all">
       {navItems.map((item) => {
         const isActive = channelFilter === item.id;
         return (
@@ -60,7 +60,7 @@ export default function BottomNav() {
               setActiveChannel(null);
             }}
             className={`flex flex-col items-center justify-center gap-1 w-full h-full relative transition-colors ${
-              isActive ? "text-blue-500" : "text-gray-400"
+              isActive ? "text-[color:var(--brand)]" : "text-[color:var(--muted-2)]"
             }`}
           >
             <div className="relative">
@@ -73,7 +73,7 @@ export default function BottomNav() {
             </div>
             <span className="text-[10px] font-medium">{item.label}</span>
             {isActive && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-blue-500 rounded-full" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-[color:var(--brand)] rounded-full" />
             )}
           </button>
         );

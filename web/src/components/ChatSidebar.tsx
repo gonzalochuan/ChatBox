@@ -47,6 +47,7 @@ export default function ChatSidebar(): ReactElement {
   const messagesMap = useChatStore((s) => s.messages);
   const unreadCounts = useChatStore((s) => s.unreadCounts);
   const typingByChannel = useChatStore((s) => s.typingByChannel);
+  const presenceByChannel = useChatStore((s) => s.presenceByChannel);
   const createDm = useChatStore((s) => s.createDm);
   const setChannelMessages = useChatStore((s) => s.setChannelMessages);
   const setFilter = useUI((s) => s.setChannelFilter);
@@ -346,24 +347,24 @@ export default function ChatSidebar(): ReactElement {
   }, [filter, channels, filtered, activeChannelId]);
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-[#1a1a1a]">
+    <div className="h-full flex flex-col bg-[color:var(--background)]">
       {/* Header */}
       <div className="px-4 pt-6 pb-2 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Chats</h1>
-        <div className="flex gap-2">
+        <h1 className="text-2xl font-bold text-[color:var(--foreground)] tracking-tight">Chats</h1>
+        <div className="flex gap-3">
           <button
             onClick={() => setShowNewGroup(true)}
-            className="w-9 h-9 rounded-full bg-gray-100 dark:bg-[#323232] flex items-center justify-center text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#3e3e3e] transition-colors"
+            className="w-10 h-10 rounded-full bg-[color:var(--surface-2)] flex items-center justify-center text-[color:var(--foreground)] hover:brightness-95 dark:hover:brightness-110 transition-colors"
             title="Create Group"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </button>
           <button
             onClick={() => setShowNewChat(true)}
-            className="w-9 h-9 rounded-full bg-gray-100 dark:bg-[#323232] flex items-center justify-center text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#3e3e3e] transition-colors"
+            className="w-10 h-10 rounded-full bg-[color:var(--surface-2)] flex items-center justify-center text-[color:var(--foreground)] hover:brightness-95 dark:hover:brightness-110 transition-colors"
             title="New Chat"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
         </div>
       </div>
@@ -371,10 +372,10 @@ export default function ChatSidebar(): ReactElement {
       {/* Search */}
       <div className="px-4 py-2">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--muted-2)]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input
             placeholder="Search"
-            className="w-full bg-gray-100 dark:bg-[#242526] text-gray-900 dark:text-gray-100 rounded-xl py-2 pl-10 pr-4 text-sm outline-none focus:bg-gray-200/80 dark:focus:bg-[#323232] transition-colors"
+            className="w-full bg-[color:var(--surface-2)] text-[color:var(--foreground)] rounded-[20px] py-2 pl-12 pr-4 text-[15px] outline-none placeholder-[color:var(--muted-2)] font-medium transition-colors"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -388,43 +389,53 @@ export default function ChatSidebar(): ReactElement {
           const unread = unreadCounts[c.id] || 0;
           const lastMsg = messagesMap[c.id]?.[messagesMap[c.id].length - 1];
           const isTyping = Object.keys(typingByChannel[c.id] || {}).length > 0;
+          
+          const isOnline = (() => {
+            if (c.kind !== "dm") return false;
+            const channelPresence = presenceByChannel[c.id] || {};
+            const otherUserId = c.meta?.otherId as string;
+            const otherPresenceTs = otherUserId ? channelPresence[otherUserId] : null;
+            return otherPresenceTs ? Date.now() - otherPresenceTs < 300000 : false;
+          })();
 
           return (
             <button
               key={c.id}
               onClick={() => setActive(c.id)}
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${
-                isActive ? "bg-blue-50/50 dark:bg-blue-500/10" : "hover:bg-gray-50 dark:hover:bg-[#2a2a2a] text-gray-900 dark:text-gray-100"
+              className={`w-full flex items-center gap-3 px-2 py-2 rounded-xl transition-colors ${
+                isActive ? "bg-[color:var(--ring)]" : "hover:bg-[color:var(--surface-2)]"
               }`}
             >
               <div className="relative shrink-0">
-                <div className="w-14 h-14 rounded-full bg-gray-200 border border-gray-100 flex items-center justify-center overflow-hidden">
+                <div className="w-[56px] h-[56px] rounded-full bg-[color:var(--surface-2)] flex items-center justify-center overflow-hidden">
                   {c.meta?.avatarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={normalizeAvatar((c.meta as any)?.avatarUrl)!} alt={c.name} className="w-full h-full object-cover" />
                   ) : (
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[color:var(--muted-2)]"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
                   )}
                 </div>
-                {/* Active Indicator (Mock) */}
-                <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white dark:border-[#1a1a1a]" />
+                {/* Active Indicator */}
+                {isOnline && (
+                  <div className="absolute bottom-0 right-0 w-[14px] h-[14px] rounded-full bg-[#31a24c] border-2 border-[color:var(--surface)]" />
+                )}
               </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline mb-0.5">
-                  <span className={`truncate text-[15px] ${unread > 0 ? "font-bold text-black dark:text-white" : "font-semibold text-gray-900 dark:text-gray-100"}`}>
+              <div className="flex-1 min-w-0 pr-2">
+                <div className="flex justify-between items-center mb-0.5">
+                  <span className={`truncate text-[15px] ${unread > 0 ? "font-bold text-[color:var(--foreground)]" : "text-[color:var(--foreground)]"}`}>
                     {c.kind === "section-subject" ? formatSectionSubjectName(c) : c.name}
                   </span>
-                  <span className="text-[11px] text-gray-500 shrink-0">
+                  <span className={`text-[12px] shrink-0 ${unread > 0 ? "font-medium text-[color:var(--foreground)]" : "text-[color:var(--muted-2)]"}`}>
                     {lastMsg ? timeFmt.format(new Date(lastMsg.createdAt)) : ""}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-1">
-                  <span className={`truncate text-sm ${unread > 0 ? "font-bold text-black" : "text-gray-500"}`}>
+                  <span className={`truncate text-[13px] ${unread > 0 ? "font-bold text-[color:var(--foreground)]" : "text-[color:var(--muted)]"}`}>
                     {isTyping ? "Typing..." : (lastMsg?.text || c.topic || "Start a conversation")}
                   </span>
                   {unread > 0 && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[color:var(--brand)] shrink-0" />
                   )}
                 </div>
               </div>
