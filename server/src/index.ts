@@ -4713,7 +4713,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("message:send", async (payload: { channelId: string; text: string; senderId?: string; senderName?: string; senderAvatarUrl?: string | null; priority?: "normal" | "high" | "emergency"; contextMeta?: { filename?: string; mimetype?: string; size?: number }; context?: SmartContext; }) => {
+  socket.on("message:send", async (payload: { id?: string; channelId: string; text: string; senderId?: string; senderName?: string; senderAvatarUrl?: string | null; priority?: "normal" | "high" | "emergency"; contextMeta?: { filename?: string; mimetype?: string; size?: number }; context?: SmartContext; }) => {
     try {
       // Debug: inbound message
       // eslint-disable-next-line no-console
