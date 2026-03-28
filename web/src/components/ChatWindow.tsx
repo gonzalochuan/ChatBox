@@ -144,7 +144,7 @@ export default function ChatWindow() {
     };
   }, []);
 
-  const { messages: allMessagesForSync, syncPendingMessages } = useChatStore();
+  const { messages: allMessagesForSync, syncPendingMessages, startBackgroundSync } = useChatStore();
 
   // Sync pending messages when coming back online
   useEffect(() => {
