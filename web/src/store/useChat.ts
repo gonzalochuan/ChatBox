@@ -71,6 +71,7 @@ export const useChatStore = create<ChatState>()(
           priority: "normal",
           senderIsTeacher: useAuth.getState().isTeacher,
           context: context ?? null,
+          status: "pending",
         };
         const current = get().messages[channelId] ?? [];
         set({
@@ -143,7 +144,7 @@ export const useChatStore = create<ChatState>()(
           const idx = current.findIndex((m) => m.id === msg.id);
           if (idx >= 0) {
             const updated = [...current];
-            updated[idx] = { ...updated[idx], ...msg };
+            updated[idx] = { ...updated[idx], ...msg, status: "sent" as const };
             const nextMessages = { ...get().messages, [msg.channelId]: updated };
             set({
               messages: nextMessages,
@@ -152,7 +153,7 @@ export const useChatStore = create<ChatState>()(
             return;
           }
         }
-        const nextMessages = { ...get().messages, [msg.channelId]: [...current, msg] };
+        const nextMessages = { ...get().messages, [msg.channelId]: [...current, { ...msg, status: "sent" as const }] };
         set({
           messages: nextMessages,
           channels: get().channels.map(ch => ch.id === msg.channelId ? { ...ch, lastActiveAt: msg.createdAt } : ch)

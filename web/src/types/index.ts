@@ -38,6 +38,7 @@ export interface Message {
   priority: MessagePriority;
   senderIsTeacher?: boolean;
   context?: MessageContext | null;
+  status?: "pending" | "sent" | "error";
 }
 
 export interface PinnedMessageInfo {

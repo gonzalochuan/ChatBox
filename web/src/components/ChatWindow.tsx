@@ -129,6 +129,58 @@ export default function ChatWindow() {
   const [showCall, setShowCall] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [showPinnedList, setShowPinnedList] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof window !== "undefined" ? window.navigator.onLine : true);
+
+  // Connection monitoring
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  // Sync pending messages when coming back online
+  useEffect(() => {
+    if (isOnline && activeChannelId && baseUrl) {
+      (async () => {
+        const { messages: allMessages } = useChatStore.getState();
+        const pending = (allMessages[activeChannelId] || []).filter(m => m.status === 'pending');
+        if (pending.length === 0) return;
+
+        try {
+          const { getSocket, joinRoom } = await import("@/lib/socket");
+          const socket = await getSocket(baseUrl);
+          if (!socket.connected) {
+            await new Promise<void>((resolve, reject) => {
+              const t = setTimeout(() => reject(new Error("connect_timeout")), 3000);
+              socket.once("connect", () => { clearTimeout(t); resolve(); });
+              socket.connect();
+            });
+          }
+          await joinRoom(baseUrl, activeChannelId);
+
+          for (const m of pending) {
+            socket.emit("message:send", {
+              channelId: m.channelId,
+              text: m.text,
+              senderName: m.senderName,
+              senderAvatarUrl: m.senderAvatarUrl,
+              senderId: m.senderId || undefined,
+            });
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error("[offline] Sync failed", err);
+        }
+      })();
+    }
+  }, [isOnline, activeChannelId, baseUrl]);
+
   const [messageMenu, setMessageMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [infoLoading, setInfoLoading] = useState(false);
@@ -845,7 +897,13 @@ export default function ChatWindow() {
         </div>
       </div>
 
-      <div ref={listRef} className="flex-1 overflow-y-auto custom-scroll" style={{padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '2px'}}>
+      <div ref={listRef} className="relative flex-1 overflow-y-auto custom-scroll" style={{padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '2px'}}>
+        {!isOnline && (
+          <div className="sticky top-0 z-20 mx-[-12px] mt-[-16px] mb-4 bg-orange-600/90 backdrop-blur-md text-white text-[11px] font-bold py-2 px-4 flex items-center justify-center gap-2 animate-pulse shadow-md rounded-b-xl border-b border-white/20">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            OFFLINE MODE - Your messages are safely queued for sync
+          </div>
+        )}
         {primaryPin ? (
           <div className="flex justify-between items-center px-4 py-2 mb-2 rounded-xl border border-amber-200/40 bg-amber-500/15 text-amber-100">
             <div className="min-w-0">
@@ -917,7 +975,13 @@ export default function ChatWindow() {
                       )}
                     </div>
                   )}
-                  <div className={`relative group ${isImageUrl(m.text ?? '') ? 'max-w-[75%]' : 'max-w-[70%]'} rounded-[20px] overflow-hidden ${mine ? "bg-[color:var(--brand)] text-white" : "bg-[color:var(--surface-2)] text-[color:var(--foreground)]"} transition-all`}>
+                  <div className={`relative group ${isImageUrl(m.text ?? '') ? 'max-w-[75%]' : 'max-w-[70%]'} rounded-[20px] overflow-hidden ${mine ? "bg-[color:var(--brand)] text-white" : "bg-[color:var(--surface-2)] text-[color:var(--foreground)]"} ${m.status === 'pending' ? 'opacity-70 grayscale-[0.5]' : ''} transition-all`}>
+                    {m.status === 'pending' && (
+                      <div className="absolute top-1 right-2 inline-flex items-center gap-1.5 text-[9px] font-bold bg-black/10 px-1.5 py-0.5 rounded-full pointer-events-none">
+                        <svg className="animate-spin" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                        QUEUED
+                      </div>
+                    )}
                     <button
                       type="button"
                       className={`absolute top-1 right-1 z-10 hidden group-hover:flex items-center justify-center h-6 w-6 rounded-full border border-white/20 bg-black/40 text-white hover:bg-black/60 transition-colors`}
