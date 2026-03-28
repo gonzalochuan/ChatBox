@@ -242,18 +242,28 @@ export default function ChatSidebar(): ReactElement {
     const list = channels.filter((c) => {
       // Messenger-style: "Chats" includes DMs and Groups
       if (filter === "chats") {
-        return (
-          c.kind === "dm" ||
-          c.kind === "section-group" ||
-          c.kind === "section-subject" ||
-          (c.kind === "subject" && !sectionSubjectCodes.has(c.id))
-        );
+        if (
+          !(c.kind === "dm" ||
+            c.kind === "section-group" ||
+            c.kind === "section-subject" ||
+            (c.kind === "subject" && !sectionSubjectCodes.has(c.id)))
+        ) {
+          return false;
+        }
+      } else if (filter === "global") {
+        if (!(c.kind === "general" || c.id === "gen" || c.name.toLowerCase() === "general")) {
+          return false;
+        }
+      } else {
+        return false;
       }
-      // "Global" includes general channels
-      if (filter === "global") {
-        return c.kind === "general" || c.id === "gen" || c.name.toLowerCase() === "general";
-      }
-      return false;
+
+      // Search query filtering
+      const q = query.trim().toLowerCase();
+      if (!q) return true;
+      const name = (c.kind === "section-subject" ? formatSectionSubjectName(c) : (c.name || "")).toLowerCase();
+      const topic = (c.topic || "").toLowerCase();
+      return name.includes(q) || topic.includes(q);
     });
 
     // Sort by last active timestamp (descending)
@@ -269,7 +279,7 @@ export default function ChatSidebar(): ReactElement {
 
       return getTs(b, msgsB) - getTs(a, msgsA);
     });
-  }, [channels, filter, sectionSubjectCodes, messagesMap]);
+  }, [channels, filter, sectionSubjectCodes, messagesMap, query]);
 
   const closeGroupModal = useCallback(() => {
     setShowNewGroup(false);
