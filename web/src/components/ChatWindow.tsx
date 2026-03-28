@@ -998,13 +998,19 @@ export default function ChatWindow() {
                 <div className={`flex items-center ${mine ? "justify-end" : "justify-start"} gap-2 px-10 md:px-16`}>
                   <div className="text-[10px] opacity-70">{timeFmt.format(new Date(m.createdAt))}</div>
                   {mine && (
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-1.5 ml-1">
                       {m.status === 'pending' ? (
-                        <div className="h-3 w-3 rounded-full border-[1.5px] border-[color:var(--brand)] border-t-transparent animate-spin ml-1" />
+                        <>
+                          <div className="h-2.5 w-2.5 rounded-full border border-[color:var(--brand)] border-t-transparent animate-spin" />
+                          <span className="text-[9px] font-bold text-[color:var(--brand)] uppercase tracking-tight">sending...</span>
+                        </>
                       ) : m.status === 'sent' ? (
-                        <div className="flex items-center h-3 w-3 rounded-full bg-[color:var(--brand)] ml-1 shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
-                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><polyline points="20 6 9 17 4 12"/></svg>
-                        </div>
+                        <>
+                          <div className="flex items-center h-2.5 w-2.5 rounded-full bg-[color:var(--brand)] shadow-sm">
+                            <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><polyline points="20 6 9 17 4 12"/></svg>
+                          </div>
+                          <span className="text-[9px] font-bold text-[color:var(--brand)] opacity-80 uppercase tracking-tight">sent</span>
+                        </>
                       ) : null}
                     </div>
                   )}
