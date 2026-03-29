@@ -49,10 +49,16 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
   }
 
   if (socket && !listenersBound) {
-    socket.on("connect", () => {
+    socket.on("connect", async () => {
       // eslint-disable-next-line no-console
       console.log("Socket connected", socket?.id);
       currentSocketId = socket?.id ?? null;
+      
+      // Update global connection mode in real-time
+      const { setMode } = (await import("@/store/useConnection")).useConnection.getState();
+      const isCloud = currentBase.includes("chatbox-server") || currentBase.includes("onrender.com") || currentBase.includes("vercel.app");
+      setMode(isCloud ? "cloud" : "lan", currentBase);
+
       // Re-join any rooms from before the reconnect
       try {
         for (const room of Array.from(joinedRooms)) {
@@ -69,11 +75,15 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
     socket.on("connect_error", (err: any) => {
       // eslint-disable-next-line no-console
       console.warn("Socket connect_error", err.message);
+      // If we can't connect, notify the connection store
+      import("@/store/useConnection").then(m => m.useConnection.getState().setMode("offline", null));
     });
     socket.on("disconnect", (reason: any) => {
       // eslint-disable-next-line no-console
       console.log("Socket disconnected", reason);
       currentSocketId = null;
+      // Mark as offline in UI
+      import("@/store/useConnection").then(m => m.useConnection.getState().setMode("offline", null));
       // Keep joinedRooms and joinedUserRooms so we can rejoin on reconnect
     });
     socket.on("message:new", (msg: Message) => {
