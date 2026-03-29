@@ -733,8 +733,8 @@ export default function ChatWindow() {
   return (
     <div className="h-full flex flex-col">
       <audio ref={remoteAudioElRef} autoPlay playsInline />
-      {/* Mobile header */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-[color:var(--border)] bg-[color:var(--surface)]">
+      {/* Mobile header - adjusted for immersive top bar */}
+      <div className="md:hidden flex items-center justify-between px-4 pb-3 pt-2 border-b border-[color:var(--border)] bg-[color:var(--surface)]">
         <div className="flex items-center gap-3 min-w-0">
           <button onClick={() => setActive(null)} className="md:hidden mr-1 text-[color:var(--brand)]">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>

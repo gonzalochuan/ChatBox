@@ -145,6 +145,12 @@ export default function ChatSidebar(): ReactElement {
             byId[ch.id] = ch;
           }
         }
+        // Ensure locally created DMs (not yet on server) are kept
+        for (const ch of currentChannels) {
+          if (ch.kind === "dm" && !byId[ch.id]) {
+            byId[ch.id] = ch;
+          }
+        }
         const merged = Object.values(byId);
         setChannels(merged);
       } catch {}
@@ -378,8 +384,8 @@ export default function ChatSidebar(): ReactElement {
 
   return (
     <div className="h-full flex flex-col bg-[color:var(--background)]">
-      {/* Header */}
-      <div className="px-4 pt-6 pb-2 flex items-center justify-between">
+      {/* Header - adjusted for immersive top bar */}
+      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-[color:var(--foreground)] tracking-tight">Chats</h1>
         <div className="flex gap-3">
           <button
