@@ -3,7 +3,7 @@
 import type { Channel } from "@/types";
 import { useChatStore } from "@/store/useChat";
 import { useUI } from "@/store/useUI";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { createPortal } from "react-dom";
 import { usePeople } from "@/store/usePeople";
@@ -382,6 +382,45 @@ export default function ChatSidebar(): ReactElement {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, channels, filtered, activeChannelId]);
 
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const startY = useRef(0);
+  const listRef = useRef<HTMLDivElement>(null);
+  const { reinit } = useConnection();
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (listRef.current?.scrollTop === 0) {
+      startY.current = e.touches[0].clientY;
+      setPullDistance(0);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (listRef.current?.scrollTop === 0 && startY.current > 0) {
+      const dist = e.touches[0].clientY - startY.current;
+      if (dist > 0) {
+        setPullDistance(Math.min(dist * 0.5, 120)); // Resistance
+      }
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (pullDistance > 70) {
+      setIsRefreshing(true);
+      setPullDistance(70);
+      try {
+        await reinit();
+      } catch {}
+      setTimeout(() => {
+        setIsRefreshing(false);
+        setPullDistance(0);
+      }, 800);
+    } else {
+      setPullDistance(0);
+    }
+    startY.current = 0;
+  };
+
   return (
     <div className="h-full flex flex-col bg-[color:var(--background)]">
       {/* Header - adjusted for immersive top bar */}
@@ -419,7 +458,36 @@ export default function ChatSidebar(): ReactElement {
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto custom-scroll px-2 py-2">
+      <div 
+        ref={listRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="flex-1 overflow-y-auto custom-scroll px-2 py-2"
+        style={{ overscrollBehavior: "contain" }}
+      >
+        {/* Pull Indicator Area */}
+        {(pullDistance > 0 || isRefreshing) && (
+          <div 
+            className="flex items-end justify-center gap-2 overflow-hidden transition-all duration-200"
+            style={{ 
+              height: `${pullDistance}px`,
+              opacity: pullDistance / 70 
+            }}
+          >
+            {[...Array(5)].map((_, i) => (
+              <div 
+                key={i} 
+                className={`w-1.5 rounded-t-full shimmer-bone ${isRefreshing ? "animate-pulse" : ""}`}
+                style={{ 
+                  height: `${Math.min(24, (pullDistance / 80) * 24 * (i === 2 ? 1.5 : i % 2 ? 1.2 : 1))}px`,
+                  transition: isRefreshing ? "none" : "height 0.1s ease"
+                }}
+              />
+            ))}
+          </div>
+        )}
+
         {filtered.map((c) => {
           const isActive = activeChannelId === c.id;
           const unread = unreadCounts[c.id] || 0;

@@ -197,3 +197,44 @@ html:not(.dark) .app-theme .grid-layer {
 }
 
 .app-theme input, .app-theme textarea, .app-theme select { color: var(--foreground) !important; }
+
+/* Pull-to-refresh shimmer skeleton effect */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.shimmer-bone {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.shimmer-bone::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  animation: shimmer 1.5s infinite linear;
+}
+
+.dark .shimmer-bone::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.03),
+    transparent
+  );
+}
+
+.pull-indicator {
+  transition: height 0.2s ease, opacity 0.2s ease;
+}
