@@ -15,7 +15,23 @@ export default function ClientInit() {
       const w = typeof window !== "undefined" ? window : undefined;
       if (!w) return;
 
-      // 1) Check URL (?lan=... or #lan=...)
+      // 1) Re-init on Focus (Auto-Wake-Up)
+      const handleVisibility = () => {
+        if (document.visibilityState === "visible") {
+          reinit();
+        }
+      };
+      w.addEventListener("visibilitychange", handleVisibility);
+
+      // 2) Self-Healing Pulse (Recover from Offline)
+      const interval = setInterval(() => {
+        const { mode } = useConnection.getState();
+        if (mode === "offline") {
+          reinit();
+        }
+      }, 30000); // Check every 30 seconds if offline
+
+      // 3) Check URL (?lan=... or #lan=...)
       let lan: string | null = null;
       try {
         const url = new URL(w.location.href);
@@ -40,6 +56,11 @@ export default function ClientInit() {
         // Re-run connection init to switch to LAN
         reinit();
       }
+
+      return () => {
+        w.removeEventListener("visibilitychange", handleVisibility);
+        clearInterval(interval);
+      };
     } catch {}
   }, [setUserLanUrl, reinit, baseUrl]);
 
