@@ -159,6 +159,18 @@ export default function ChatWindow() {
     }
   }, [isOnline, baseUrl, syncPendingMessages]);
 
+  // Sync immediately when the app is brought to the foreground (mobile resume)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && baseUrl) {
+        syncPendingMessages(baseUrl);
+      }
+    };
+    window.addEventListener("visibilitychange", handleVisibility);
+    return () => window.removeEventListener("visibilitychange", handleVisibility);
+  }, [baseUrl, syncPendingMessages]);
+
   const [messageMenu, setMessageMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [infoLoading, setInfoLoading] = useState(false);

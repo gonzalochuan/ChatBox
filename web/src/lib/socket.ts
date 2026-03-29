@@ -31,7 +31,6 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
   } catch {}
   if (!socket || currentBase !== url) {
     if (socket) socket.disconnect();
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const common = {
       reconnection: true,
       reconnectionAttempts: Infinity,
@@ -42,9 +41,7 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
       forceNew: true,
       withCredentials: true,
     } as any;
-    const opts = isMobile
-      ? { ...common, transports: ["polling"], upgrade: false }
-      : { ...common, transports: ["websocket", "polling"] };
+    const opts = { ...common, transports: ["websocket", "polling"] };
     socket = io(url, opts);
     currentBase = url;
     // Ensure we rebind listeners for the new socket instance

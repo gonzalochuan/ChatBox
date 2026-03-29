@@ -68,21 +68,28 @@ export const useChatStore = create<ChatState>()(
         const msg: Message = {
           id: msgId,
           channelId,
+          text,
+          createdAt: Date.now(),
           senderId: auth.userId || "anonymous",
           senderName: auth.displayName || "You",
           senderAvatarUrl: auth.avatarUrl || null,
-          text,
-          createdAt: Date.now(),
-          priority: "normal",
-          senderIsTeacher: auth.isTeacher,
-          context: context ?? null,
           status: "pending",
+          priority: "normal",
+          context: context ?? null,
+          senderIsTeacher: auth.isTeacher,
         };
         const current = get().messages[channelId] ?? [];
         set({
           messages: { ...get().messages, [channelId]: [...current, msg] },
           channels: get().channels.map(ch => ch.id === channelId ? { ...ch, lastActiveAt: msg.createdAt } : ch)
         });
+
+        // Trigger immediate sync pulse if any base URL exists
+        const connection = (useChatStore.getState() as any).baseUrl || (globalThis as any)._lastBaseUrl;
+        if (connection) {
+          get().syncPendingMessages(connection);
+        }
+
         return msgId;
       },
       setChannels: (chs) => set({ channels: chs }),
@@ -254,15 +261,15 @@ export const useChatStore = create<ChatState>()(
         if (allPending.length === 0) return;
 
         try {
-          // If we're offline, don't even try to import/connect
-          if (typeof window !== "undefined" && !window.navigator.onLine) return;
+          // Store the last base for the pulse trigger
+          (globalThis as any)._lastBaseUrl = baseUrl;
 
           const { getSocket, joinRoom } = await import("@/lib/socket");
           const socket = await getSocket(baseUrl);
           
           if (!socket.connected) {
             await new Promise<void>((resolve, reject) => {
-              const t = setTimeout(() => reject(new Error("connect_timeout")), 3000);
+              const t = setTimeout(() => reject(new Error("connect_timeout")), 2000); // Shorter timeout (2s)
               socket.once("connect", () => { clearTimeout(t); resolve(); });
               socket.connect();
             });
