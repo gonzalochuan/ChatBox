@@ -25,11 +25,15 @@ const applyClass = (t: Theme) => {
   const el = document.documentElement;
   el.classList.remove("dark", "light");
   el.classList.add(t);
-  // Manual sync for immersive status bar
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) {
-    meta.setAttribute("content", t === "dark" ? "#000000" : "#ffffff");
+  
+  // Robust sync for immersive status bar
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.setAttribute('name', 'theme-color');
+    document.head.appendChild(meta);
   }
+  meta.setAttribute("content", t === "dark" ? "#000000" : "#ffffff");
 };
 
 export const useTheme = create<ThemeState>((set, get) => ({

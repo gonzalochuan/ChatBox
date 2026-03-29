@@ -335,10 +335,10 @@ export default function ChatPage() {
         isOffline
           ? "bg-red-500 text-white border-red-400 animate-pulse"
           : mode === "lan"
-          ? "bg-green-50 text-green-700 border-green-200"
+          ? "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20 shadow-sm"
           : mode === "cloud"
-          ? "bg-orange-50 text-orange-700 border-orange-200"
-          : "bg-gray-100 text-gray-600 border-gray-200"
+          ? "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20 shadow-sm"
+          : "bg-[color:var(--surface-2)] text-[color:var(--muted)] border-[color:var(--border)]"
       }`}
     >
       {isOffline ? "OFFLINE" : initializing ? "Connecting…" : mode.toUpperCase()}
@@ -355,22 +355,22 @@ export default function ChatPage() {
         {/* Top bar */}
         <header className="flex items-center justify-between px-4 md:px-6 border-b border-[color:var(--border)] bg-[color:var(--surface)]">
           <div className="flex items-center gap-3">
-            <button onClick={openProfile} title="View profile" className="h-8 w-8 rounded-full overflow-hidden border border-white/20 bg-white/10">
+            <button onClick={openProfile} title="View profile" className="h-9 w-9 rounded-full overflow-hidden border border-[color:var(--border)] bg-[color:var(--surface-2)] hover:opacity-90 transition-opacity">
               {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt="Me" className="h-full w-full object-cover" />
               ) : (
-                <div className="h-full w-full grid place-items-center text-white/60">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
+                <div className="h-full w-full grid place-items-center text-[color:var(--muted-2)]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="9" r="3.2"/><path d="M4 20c0-3.5 4-5.5 8-5.5s8 2 8 5.5"/></svg>
                 </div>
               )}
             </button>
-            <div className="flex items-center gap-2 font-ethno-bold tracking-widest text-sm md:text-base text-[color:var(--foreground)]">
+            <div className="flex items-center gap-2 font-ethno-bold tracking-widest text-[13px] md:text-base text-[color:var(--foreground)]">
               <span>CB ﾒ</span>
-              <Image src="/seaitlogo.png" alt="SEAIT" width={48} height={48} className="h-[40px] w-auto" priority />
+              <Image src="/seaitlogo.png" alt="SEAIT" width={48} height={48} className="h-[40px] w-auto dark:brightness-110" priority />
             </div>
           </div>
-          <div className="flex items-center gap-3 text-xs md:text-sm text-[color:var(--foreground)]/70">
+          <div className="flex items-center gap-3">
             {badge}
           </div>
         </header>
