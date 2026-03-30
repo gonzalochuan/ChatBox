@@ -15,13 +15,22 @@ export default function ClientInit() {
       const w = typeof window !== "undefined" ? window : undefined;
       if (!w) return;
 
-      // 1) Re-init on Focus (Auto-Wake-Up)
+      // 1) Re-init on Focus (Auto-Wake-Up) & Notification Permission
       const handleVisibility = () => {
         if (document.visibilityState === "visible") {
           reinit();
+          // Request permission for system-level notifications (Required for Android Bubbles)
+          if ("Notification" in window && Notification.permission === "default") {
+             Notification.requestPermission();
+          }
         }
       };
       w.addEventListener("visibilitychange", handleVisibility);
+      
+      // Initial permission request on mount
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
 
       // 2) Self-Healing Pulse (Recover from Offline)
       // We use a much faster pulse (5s) for the first minute of app launch
