@@ -105,7 +105,7 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
         const active = chat.activeChannelId;
         const myId = useAuth.getState().userId;
         if (msg.channelId && msg.channelId !== active && msg.senderId !== myId) {
-          // 1. In-App Bubble (the one I built)
+          // 1. In-App Bubble (Internal React state)
           import("@/store/useUI").then(m => {
             m.useUI.getState().addBubble({
               channelId: msg.channelId,
@@ -114,24 +114,34 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
             });
           });
 
-          // 2. System-Level Notification (triggers Android Bubbles)
-          if ("Notification" in window && (Notification as any).permission === "granted") {
-            const n = new Notification(msg.senderName || "ChatBox", {
-              body: msg.text,
-              icon: msg.senderAvatarUrl || "/icons/icon-192.png",
-              badge: "/icons/icon-192.png", // Small icon for the status bar
-              tag: msg.channelId, // Groups messages by conversation
-              renotify: true,
-              vibrate: [200, 100, 200, 100, 200], // Aggressive vibration
-              data: { url: `/?channelId=${msg.channelId}` },
-              requireInteraction: true, // Key for keeping the bubble visible
-              priority: "high" as any, // Tell Android to pop the banner
-              timestamp: Date.now(),
-            } as any);
-            n.onclick = () => {
-              window.focus();
-              import("@/store/useChat").then(m => m.useChatStore.getState().setActiveChannel(msg.channelId));
-            };
+          const notificationData = {
+            title: msg.senderName || "ChatBox",
+            body: msg.text,
+            icon: msg.senderAvatarUrl || "/icons/icon-192.png",
+            tag: msg.channelId,
+            data: { url: `/?channelId=${msg.channelId}` }
+          };
+
+          // 2. Background/System Handoff
+          if (document.visibilityState === "hidden") {
+            // App is backgrounded -> Tell the Service Worker to show the notification
+            // This is the ONLY way to get bubbles "outside" reliably on Android
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage({
+                type: "SHOW_NOTIFICATION",
+                payload: notificationData
+              });
+            }
+          } else {
+            // App is active -> Show a normal notification (optional, since in-app bubble is visible)
+            if ("Notification" in window && (Notification as any).permission === "granted") {
+              new Notification(notificationData.title, {
+                ...notificationData,
+                renotify: true,
+                requireInteraction: true,
+                vibrate: [200, 100, 200]
+              } as any);
+            }
           }
         }
       } catch {}
