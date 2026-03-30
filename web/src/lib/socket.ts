@@ -116,12 +116,20 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
 
           // 2. System-Level Notification (triggers Android Bubbles)
           if ("Notification" in window && (Notification as any).permission === "granted") {
-            new Notification(`New Message: ${msg.senderName || "ChatBox"}`, {
+            const n = new Notification(msg.senderName || "ChatBox", {
               body: msg.text,
               icon: msg.senderAvatarUrl || "/icons/icon-192.png",
-              tag: msg.channelId, // Required for Android to show as a conversation bubble
+              badge: "/icons/icon-192.png", // Small icon for the status bar
+              tag: msg.channelId, // Groups messages by conversation
               renotify: true,
+              vibrate: [200, 100, 200],
+              data: { url: `/?channelId=${msg.channelId}` },
+              requireInteraction: false, // Let the system handle the bubble pop
             } as any);
+            n.onclick = () => {
+              window.focus();
+              import("@/store/useChat").then(m => m.useChatStore.getState().setActiveChannel(msg.channelId));
+            };
           }
         }
       } catch {}

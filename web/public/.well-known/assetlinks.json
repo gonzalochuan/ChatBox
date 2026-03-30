@@ -1,13 +1,11 @@
 [
   {
-    "relation": [
-      "delegate_permission/common.handle_all_urls"
-    ],
+    "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
       "package_name": "app.vercel.chat_box_seait.twa",
       "sha256_cert_fingerprints": [
-        "CD:83:66:CE:4D:22:6C:C3:0D:30:D3:05:32:A4:D9:2A:94:D3:A1:34:25:BD:F8:D0:E3:4E:84:1D:3F:D9:DD:E4"
+        "46:7C:1E:07:E5:6B:D7:78:D3:71:B4:86:59:9B:7D:C9:3B:9A:70:F8:D2:3E:D9:20:B8:69:22:A4:2F:0E:8E:EA"
       ]
     }
   }
