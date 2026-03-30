@@ -88,7 +88,24 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
     });
     socket.on("message:new", (msg: Message) => {
       // Always accept server echo so messages persist after navigation/refresh
-      useChatStore.getState().addIncoming(msg);
+      const chat = useChatStore.getState();
+      chat.addIncoming(msg);
+
+      try {
+        // Floating Bubble Logic (Messenger Style)
+        const active = chat.activeChannelId;
+        const myId = useAuth.getState().userId;
+        if (msg.channelId && msg.channelId !== active && msg.senderId !== myId) {
+          import("@/store/useUI").then(m => {
+            m.useUI.getState().addBubble({
+              channelId: msg.channelId,
+              name: msg.senderName || "Unknown",
+              avatarUrl: msg.senderAvatarUrl || null
+            });
+          });
+        }
+      } catch {}
+
       try {
         // If this is a DM and the channel is not yet in the list, add it so it shows up automatically
         if (msg.channelId?.startsWith("dm-")) {
