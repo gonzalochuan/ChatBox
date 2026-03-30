@@ -21,8 +21,8 @@
     "path": "C:\\SSD\\chatbox\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "13",
-  "appVersionCode": 13,
+  "appVersionName": "14",
+  "appVersionCode": 15,
   "shortcuts": [
     {
       "name": "ChatBox Messenger",
@@ -52,5 +52,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "13"
+  "appVersion": "14"
 }

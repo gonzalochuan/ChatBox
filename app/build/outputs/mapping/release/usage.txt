@@ -3248,6 +3248,24 @@ androidx.browser.trusted.sharing.ShareTarget:
     public static androidx.browser.trusted.sharing.ShareTarget fromBundle(android.os.Bundle)
 androidx.browser.trusted.splashscreens.SplashScreenParamKey
 androidx.browser.trusted.splashscreens.SplashScreenVersion
+androidx.cardview.R$attr
+androidx.cardview.R$color
+androidx.cardview.R$dimen
+androidx.cardview.R$style
+androidx.cardview.R$styleable
+androidx.cardview.R
+androidx.cardview.widget.CardView$1
+androidx.cardview.widget.CardView
+androidx.cardview.widget.CardViewApi17Impl$1
+androidx.cardview.widget.CardViewApi17Impl
+androidx.cardview.widget.CardViewApi21Impl
+androidx.cardview.widget.CardViewBaseImpl$1
+androidx.cardview.widget.CardViewBaseImpl
+androidx.cardview.widget.CardViewDelegate
+androidx.cardview.widget.CardViewImpl
+androidx.cardview.widget.RoundRectDrawable
+androidx.cardview.widget.RoundRectDrawableWithShadow$RoundRectHelper
+androidx.cardview.widget.RoundRectDrawableWithShadow
 androidx.collection.ArrayMap:
     public void <init>(androidx.collection.SimpleArrayMap)
 androidx.collection.ArrayMapKt

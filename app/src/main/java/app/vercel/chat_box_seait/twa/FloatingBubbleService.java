@@ -2,12 +2,11 @@ package app.vercel.chat_box_seait.twa;
 
 import android.app.Service;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
-import android.os.Handler;
+import android.net.Uri;
+import android.os.Build;
 import android.os.IBinder;
-import android.os.Looper;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -15,14 +14,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import java.io.InputStream;
-import java.net.URL;
+import com.bumptech.glide.Glide;
 
 public class FloatingBubbleService extends Service {
-
     private WindowManager windowManager;
-    private View chatHeadView;
+    private View floatingView;
     private WindowManager.LayoutParams params;
 
     @Override
@@ -32,28 +28,29 @@ public class FloatingBubbleService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && intent.hasExtra("profileUrl")) {
-            String url = intent.getStringExtra("profileUrl");
-            String text = intent.getStringExtra("text");
-            showBubble(url, text);
+        if (intent != null && intent.hasExtra("avatarUrl")) {
+            String avatarUrl = intent.getStringExtra("avatarUrl");
+            String message = intent.getStringExtra("message");
+            showBubble(avatarUrl, message);
         }
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
-    private void showBubble(String profileUrl, String text) {
-        if (chatHeadView != null) {
+    private void showBubble(String avatarUrl, String message) {
+        if (floatingView != null) {
             updateBadge();
             return;
         }
 
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        chatHeadView = LayoutInflater.from(this).inflate(R.layout.floating_chat_head, null);
+        floatingView = LayoutInflater.from(this).inflate(R.layout.floating_chat_head, null);
 
-        // Window Layout Params
         params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
+                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
+                        WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -61,21 +58,12 @@ public class FloatingBubbleService extends Service {
         params.x = 100;
         params.y = 100;
 
-        // Load Profile Image
-        final ImageView profileImage = chatHeadView.findViewById(R.id.chat_head_profile);
-        new Thread(() -> {
-            try {
-                InputStream in = new URL(profileUrl).openStream();
-                final Bitmap bitmap = BitmapFactory.decodeStream(in);
-                new Handler(Looper.getMainLooper()).post(() -> profileImage.setImageBitmap(bitmap));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        ImageView profileImage = floatingView.findViewById(R.id.item_profile_image);
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            Glide.with(this).load(avatarUrl).circleCrop().into(profileImage);
+        }
 
-        // Dragging Logic
-        chatHeadView.setOnTouchListener(new View.OnTouchListener() {
-            private int lastAction;
+        floatingView.findViewById(R.id.chat_head_root).setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
@@ -89,42 +77,45 @@ public class FloatingBubbleService extends Service {
                         initialY = params.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
-                        lastAction = MotionEvent.ACTION_DOWN;
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        if (lastAction == MotionEvent.ACTION_DOWN) {
-                            // Clicked -> Open App
-                            Intent intent = new Intent(FloatingBubbleService.this, LauncherActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            stopSelf();
-                        }
-                        lastAction = MotionEvent.ACTION_UP;
                         return true;
                     case MotionEvent.ACTION_MOVE:
                         params.x = initialX + (int) (event.getRawX() - initialTouchX);
                         params.y = initialY + (int) (event.getRawY() - initialTouchY);
-                        windowManager.updateViewLayout(chatHeadView, params);
-                        lastAction = MotionEvent.ACTION_MOVE;
+                        windowManager.updateViewLayout(floatingView, params);
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        float deltaX = event.getRawX() - initialTouchX;
+                        float deltaY = event.getRawY() - initialTouchY;
+                        if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
+                            openApp();
+                        }
                         return true;
                 }
                 return false;
             }
         });
 
-        windowManager.addView(chatHeadView, params);
+        windowManager.addView(floatingView, params);
     }
 
     private void updateBadge() {
-        TextView badge = chatHeadView.findViewById(R.id.chat_head_badge);
+        TextView badge = floatingView.findViewById(R.id.item_badge);
         badge.setVisibility(View.VISIBLE);
-        int count = Integer.parseInt(badge.getText().toString());
-        badge.setText(String.valueOf(count + 1));
+        String countStr = badge.getText().toString();
+        int count = Integer.parseInt(countStr.isEmpty() ? "0" : countStr) + 1;
+        badge.setText(String.valueOf(count));
+    }
+
+    private void openApp() {
+        Intent intent = new Intent(this, LauncherActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        stopSelf();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (chatHeadView != null) windowManager.removeView(chatHeadView);
+        if (floatingView != null) windowManager.removeView(floatingView);
     }
 }

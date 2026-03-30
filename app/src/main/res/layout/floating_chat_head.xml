@@ -1,38 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/chat_head_root"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        app:cardCornerRadius="32dp"
+        android:id="@+id/item_profile_image_container"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_margin="8dp"
+        app:cardCornerRadius="30dp"
         app:cardElevation="8dp"
-        android:layout_centerInParent="true">
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
         <ImageView
-            android:id="@+id/chat_head_profile"
+            android:id="@+id/item_profile_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
             android:src="@mipmap/ic_launcher" />
-
     </androidx.cardview.widget.CardView>
 
     <TextView
-        android:id="@+id/chat_head_badge"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_alignTop="@id/chat_head_root"
-        android:layout_alignRight="@id/chat_head_root"
+        android:id="@+id/item_badge"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
         android:background="@drawable/badge_bg"
         android:gravity="center"
         android:text="1"
         android:textColor="#FFFFFF"
-        android:textSize="12sp"
+        android:textSize="10sp"
+        android:textStyle="bold"
         android:visibility="gone" />
 
-</RelativeLayout>
+</FrameLayout>
