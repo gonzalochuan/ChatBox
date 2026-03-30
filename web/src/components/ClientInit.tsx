@@ -24,12 +24,19 @@ export default function ClientInit() {
       w.addEventListener("visibilitychange", handleVisibility);
 
       // 2) Self-Healing Pulse (Recover from Offline)
+      // We use a much faster pulse (5s) for the first minute of app launch
+      const startTime = Date.now();
       const interval = setInterval(() => {
         const { mode } = useConnection.getState();
         if (mode === "offline") {
-          reinit();
+          const elapsed = Date.now() - startTime;
+          const pulseRate = elapsed < 60000 ? 5000 : 30000;
+          // Only trigger if we are on the 'long' cycle or in the 'fast' initial window
+          if (elapsed < 60000 || (elapsed % 30000 < 5000)) {
+            reinit();
+          }
         }
-      }, 30000); // Check every 30 seconds if offline
+      }, 5000); // Check every 5 seconds to see if we need to pulse
 
       // 3) Check URL (?lan=... or #lan=...)
       let lan: string | null = null;
@@ -40,7 +47,7 @@ export default function ClientInit() {
         lan = fromQuery || fromHash;
       } catch {}
 
-      // 2) If not in URL, restore from storage
+      // 4) If not in URL, restore from storage
       if (!lan) {
         try {
           lan = (localStorage.getItem("chatbox.lan") || localStorage.getItem("chatbox.lanBaseUrl") || null);

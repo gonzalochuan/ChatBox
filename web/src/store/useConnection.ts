@@ -57,7 +57,10 @@ export const useConnection = create<ConnectionState>((set, get) => ({
   initializing: false,
   setMode: (m, baseUrl) => set({ mode: m, baseUrl }),
   init: async () => {
+    const s = get();
+    if (s.initializing) return; // Prevent double-init
     set({ initializing: true });
+    
     const userLan = getStoredLan();
     const isProd = process.env.NODE_ENV === "production";
     const cloud = process.env.NEXT_PUBLIC_CLOUD_BASE_URL || "";
@@ -65,17 +68,32 @@ export const useConnection = create<ConnectionState>((set, get) => ({
       ? (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "")
       : (userLan || process.env.NEXT_PUBLIC_LAN_BASE_URL || "http://localhost:4000");
 
-    // In production, prefer cloud first to avoid accidentally sticking to a stale/misconfigured LAN URL.
-    if (cloud && (await tryHealth(cloud))) {
-      set({ mode: "cloud", baseUrl: cloud, initializing: false });
-      return;
+    // Proactive Socket Kickstart (Speeds up mobile resume!)
+    // If we have a cloud URL, we speculate we'll need it.
+    if (cloud) {
+      // Trigger a silent sync pulse in the background immediately
+      import("@/store/useChat").then(m => m.useChatStore.getState().syncPendingMessages(cloud));
     }
-    // Otherwise, try LAN (useful for local/network deployments)
-    if (lan && (await tryHealth(lan))) {
-      set({ mode: "lan", baseUrl: lan, initializing: false });
-      return;
+
+    // Concurrent Discovery: Try both Cloud and LAN at the same time. Fast wins!
+    try {
+      const results = await Promise.all([
+        cloud ? tryHealth(cloud, 3000) : Promise.resolve(false),
+        lan ? tryHealth(lan, 3000) : Promise.resolve(false)
+      ]);
+
+      const [cloudOk, lanOk] = results;
+      
+      if (cloudOk) {
+        set({ mode: "cloud", baseUrl: cloud, initializing: false });
+      } else if (lanOk) {
+        set({ mode: "lan", baseUrl: lan, initializing: false });
+      } else {
+        set({ mode: "offline", baseUrl: null, initializing: false });
+      }
+    } catch {
+      set({ mode: "offline", baseUrl: null, initializing: false });
     }
-    set({ mode: "offline", baseUrl: null, initializing: false });
   },
   setUserLanUrl: (url) => {
     setStoredLan(url);
