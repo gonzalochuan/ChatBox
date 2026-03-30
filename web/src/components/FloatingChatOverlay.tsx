@@ -22,11 +22,21 @@ export default function FloatingChatOverlay() {
     [messagesMap, activeFloatingChat]
   );
 
-  const [pos, setPos] = useState({ x: window.innerWidth - 320 - 20, y: window.innerHeight - 450 - 100 });
+  const [pos, setPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const startPos = useRef({ x: 0, y: 0 });
   const [text, setText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Set initial position once window is available
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setPos({ 
+        x: window.innerWidth - 320 - 20, 
+        y: window.innerHeight - 450 - 100 
+      });
+    }
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
