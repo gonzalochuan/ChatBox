@@ -6,8 +6,7 @@ import { useChatStore } from "@/store/useChat";
 
 export default function FloatingBubbles() {
   const { bubbles, removeBubble } = useUI();
-  const setActiveChannel = useChatStore((s) => s.setActiveChannel);
-  const setFilter = useUI((s) => s.setChannelFilter);
+  const setFloatingChat = useUI((s) => s.setActiveFloatingChat);
   const [isAnyDragging, setIsAnyDragging] = useState(false);
 
   if (!bubbles || bubbles.length === 0) return null;
@@ -30,8 +29,7 @@ export default function FloatingBubbles() {
           index={i} 
           onDragState={setIsAnyDragging}
           onOpen={() => {
-            setActiveChannel(b.channelId);
-            setFilter("chats");
+            setFloatingChat(b.channelId);
             removeBubble(b.channelId);
           }}
           onClose={() => removeBubble(b.channelId)}

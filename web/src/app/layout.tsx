@@ -4,6 +4,7 @@ import "./globals.css";
 import ClientInit from "@/components/ClientInit";
 import GlobalBannerFeed from "@/components/GlobalBannerFeed";
 import FloatingBubbles from "@/components/FloatingBubbles";
+import FloatingChatOverlay from "@/components/FloatingChatOverlay";
 
 const geistSans = localFont({
   src: "../../public/Akira Expanded Demo.otf",
@@ -108,6 +109,7 @@ export default function RootLayout({
         <ClientInit />
         <GlobalBannerFeed />
         <FloatingBubbles />
+        <FloatingChatOverlay />
         <div className="app-theme min-h-dvh">
           {children}
         </div>

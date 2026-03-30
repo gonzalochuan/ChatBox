@@ -15,6 +15,8 @@ interface UIState {
   addBubble: (b: Bubble) => void;
   removeBubble: (channelId: string) => void;
   clearBubbles: () => void;
+  activeFloatingChat: string | null;
+  setActiveFloatingChat: (id: string | null) => void;
 }
 
 export const useUI = create<UIState>((set, get) => ({
@@ -26,6 +28,11 @@ export const useUI = create<UIState>((set, get) => ({
     if (existing.some(x => x.channelId === b.channelId)) return;
     set({ bubbles: [...existing, b] });
   },
-  removeBubble: (id) => set({ bubbles: get().bubbles.filter(b => b.channelId !== id) }),
+  removeBubble: (id) => {
+    const existing = get().bubbles;
+    set({ bubbles: existing.filter(b => b.channelId !== id) });
+  },
   clearBubbles: () => set({ bubbles: [] }),
+  activeFloatingChat: null,
+  setActiveFloatingChat: (id) => set({ activeFloatingChat: id }),
 }));
