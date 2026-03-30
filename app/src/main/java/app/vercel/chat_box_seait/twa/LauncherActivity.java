@@ -15,6 +15,7 @@
  */
 package app.vercel.chat_box_seait.twa;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
@@ -39,6 +40,28 @@ public class LauncherActivity
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        }
+
+        handleIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent != null && intent.getData() != null) {
+            Uri data = intent.getData();
+            if ("chathead".equals(data.getScheme())) {
+                String profileUrl = data.getQueryParameter("url");
+                String text = data.getQueryParameter("text");
+                Intent serviceIntent = new Intent(this, FloatingBubbleService.class);
+                serviceIntent.putExtra("profileUrl", profileUrl);
+                serviceIntent.putExtra("text", text);
+                startService(serviceIntent);
+            }
         }
     }
 

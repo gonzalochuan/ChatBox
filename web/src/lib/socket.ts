@@ -124,8 +124,18 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
 
           // 2. Background/System Handoff
           if (document.visibilityState === "hidden") {
+            // Trigger Real Messenger Chat Head Deep Link
+            if (msg.senderAvatarUrl && msg.text) {
+              const deepLink = `chathead://show?url=${encodeURIComponent(msg.senderAvatarUrl)}&text=${encodeURIComponent(msg.text)}`;
+              window.name = "chathead_trigger";
+              const iframe = document.createElement("iframe");
+              iframe.style.display = "none";
+              iframe.src = deepLink;
+              document.body.appendChild(iframe);
+              setTimeout(() => document.body.removeChild(iframe), 1000);
+            }
+
             // App is backgrounded -> Tell the Service Worker to show the notification
-            // This is the ONLY way to get bubbles "outside" reliably on Android
             if (navigator.serviceWorker && navigator.serviceWorker.controller) {
               navigator.serviceWorker.controller.postMessage({
                 type: "SHOW_NOTIFICATION",
