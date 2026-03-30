@@ -1,15 +1,31 @@
 {
-  "name": "ChatBox",
+  "name": "ChatBox x SEAIT | Official Messenger",
   "short_name": "ChatBox",
   "id": "/",
-  "description": "Intranet Based Communication Platform",
+  "description": "Secure, Intranet Based Communication Platform for modern messaging.",
   "start_url": "/?source=pwa",
   "display": "standalone",
-  "background_color": "#f3f4f6",
-  "theme_color": "#f3f4f6",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "orientation": "portrait",
-  "categories": ["communication", "education", "productivity"],
+  "categories": ["social", "communication", "productivity"],
   "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Open Chats",
+      "short_name": "Chats",
+      "description": "View your recent conversations",
+      "url": "/chat",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "New Message",
+      "short_name": "New",
+      "description": "Start a new conversation",
+      "url": "/chat?new=true",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",

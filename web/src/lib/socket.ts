@@ -12,6 +12,15 @@ let currentSocketId: string | null = null;
 let joinedRooms = new Set<string>();
 let joinedUserRooms = new Set<string>();
 
+export function init() {
+  if (typeof window === "undefined") return;
+
+  // Request permission for system-level notifications (Required for Android Bubbles)
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+}
+
 export async function getSocket(baseUrl: string): Promise<Socket> {
   if (typeof window === "undefined") {
     throw new Error("Socket can only be used on the client");
@@ -96,6 +105,7 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
         const active = chat.activeChannelId;
         const myId = useAuth.getState().userId;
         if (msg.channelId && msg.channelId !== active && msg.senderId !== myId) {
+          // 1. In-App Bubble (the one I built)
           import("@/store/useUI").then(m => {
             m.useUI.getState().addBubble({
               channelId: msg.channelId,
@@ -103,6 +113,16 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
               avatarUrl: msg.senderAvatarUrl || null
             });
           });
+
+          // 2. System-Level Notification (triggers Android Bubbles)
+          if ("Notification" in window && (Notification as any).permission === "granted") {
+            new Notification(`New Message: ${msg.senderName || "ChatBox"}`, {
+              body: msg.text,
+              icon: msg.senderAvatarUrl || "/icons/icon-192.png",
+              tag: msg.channelId, // Required for Android to show as a conversation bubble
+              renotify: true,
+            } as any);
+          }
         }
       } catch {}
 
