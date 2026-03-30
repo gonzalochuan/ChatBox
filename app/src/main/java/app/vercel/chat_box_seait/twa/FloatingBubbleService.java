@@ -28,6 +28,7 @@ public class FloatingBubbleService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("ChatBox", "🔥 SERVICE STARTED");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String channelId = "chathead_channel";
             android.app.NotificationChannel channel = new android.app.NotificationChannel(
@@ -50,21 +51,25 @@ public class FloatingBubbleService extends Service {
             startForeground(1, notification);
         }
 
-        if (intent != null && intent.hasExtra("avatarUrl")) {
-            String avatarUrl = intent.getStringExtra("avatarUrl");
-            String message = intent.getStringExtra("message");
+        if (intent != null) {
+            String avatarUrl = intent.hasExtra("avatarUrl") ? intent.getStringExtra("avatarUrl") : "";
+            String message = intent.hasExtra("message") ? intent.getStringExtra("message") : "";
             showBubble(avatarUrl, message);
         }
         return START_STICKY;
     }
 
     private void showBubble(String avatarUrl, String message) {
+        Log.d("ChatBox", "🔥 showBubble CALLED");
+        Log.d("ChatBox", "Overlay: " + android.provider.Settings.canDrawOverlays(this));
+        
         if (!android.provider.Settings.canDrawOverlays(this)) {
             Log.e("ChatBox", "Cannot draw overlays. User has not granted permission.");
             return;
         }
 
         if (floatingView != null) {
+            Log.d("ChatBox", "🔥 View already exists, updating badge");
             updateBadge();
             return;
         }
@@ -122,6 +127,7 @@ public class FloatingBubbleService extends Service {
             }
         });
 
+        Log.d("ChatBox", "🔥 ADDING VIEW");
         windowManager.addView(floatingView, params);
     }
 
