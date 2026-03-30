@@ -52,13 +52,37 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "ChatBox",
-  description: "ChatBox — Intranet Based Communication Platform",
+  title: "ChatBox x SEAIT | Official Communication Platform",
+  description: "ChatBox — The official intranet-based communication platform for modern messaging. Offline-ready, secure, and built for speed.",
+  keywords: ["ChatBox", "SEAIT", "ChatBox SEAIT", "Messaging Platform", "PWA Chat App", "Intranet Chat", "Offline Messenger"],
   manifest: "/manifest.json",
+  authors: [{ name: "SEAIT Team" }],
+  openGraph: {
+    title: "ChatBox x SEAIT | Official Messenger",
+    description: "Professional intranet-based communication. Stay connected even in low-signal environments.",
+    url: "https://chatbox-nu-seven.vercel.app/",
+    siteName: "ChatBox x SEAIT",
+    images: [
+      {
+        url: "/icons/icon-512.png",
+        width: 512,
+        height: 512,
+        alt: "ChatBox x SEAIT Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ChatBox x SEAIT | Official Messenger",
+    description: "Secure, offline-ready messenger for modern teams.",
+    images: ["/icons/icon-512.png"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ChatBox",
+    title: "ChatBox x SEAIT",
   },
   formatDetection: {
     telephone: false,
