@@ -1,5 +1,5 @@
 <!--
-    Copyright 2019 Google Inc. All Rights Reserved.
+    Copyright 2020 Google Inc. All Rights Reserved.
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -13,4 +13,14 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<shortcuts xmlns:android='http://schemas.android.com/apk/res/android' />
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/shortcut_background" />
+    <foreground>
+        <!--
+            32dp padding on each side of 108dp asset to
+            create a 44dp box for the icon.
+        -->
+        <inset android:drawable="@drawable/shortcut_0_monochrome"
+            android:inset="32dp" />
+    </foreground>
+</adaptive-icon>

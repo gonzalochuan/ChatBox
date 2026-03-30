@@ -21,9 +21,17 @@
     "path": "C:\\SSD\\chatbox\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "10",
-  "appVersionCode": 10,
-  "shortcuts": [],
+  "appVersionName": "13",
+  "appVersionCode": 13,
+  "shortcuts": [
+    {
+      "name": "ChatBox Messenger",
+      "shortName": "Messenger",
+      "url": "https://chat-box-seait.vercel.app/",
+      "chosenIconUrl": "https://chat-box-seait.vercel.app/icons/icon-192.png",
+      "chosenMonochromeIconUrl": "https://chat-box-seait.vercel.app/icons/icon-192.png"
+    }
+  ],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://chat-box-seait.vercel.app/manifest.json",
   "fallbackType": "customtabs",
@@ -44,5 +52,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "10"
+  "appVersion": "13"
 }

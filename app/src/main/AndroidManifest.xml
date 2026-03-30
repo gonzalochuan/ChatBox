@@ -24,8 +24,6 @@
 
     
         <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-        <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-        <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     
 
     
@@ -81,8 +79,6 @@
         <activity android:name="LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:label="@string/launcherName"
-            android:resizeableActivity="true"
-            android:allowEmbedded="true"
             android:exported="true">
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="@string/launchUrl" />
