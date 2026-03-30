@@ -37,6 +37,11 @@ public class FloatingBubbleService extends Service {
     }
 
     private void showBubble(String avatarUrl, String message) {
+        if (!android.provider.Settings.canDrawOverlays(this)) {
+            Log.e("ChatBox", "Cannot draw overlays. User has not granted permission.");
+            return;
+        }
+
         if (floatingView != null) {
             updateBadge();
             return;

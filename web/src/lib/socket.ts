@@ -126,11 +126,10 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
           if (document.visibilityState === "hidden") {
             // Trigger Real Messenger Chat Head Deep Link
             if (msg.senderAvatarUrl && msg.text) {
-              const deepLink = `chathead://show?url=${encodeURIComponent(msg.senderAvatarUrl)}&text=${encodeURIComponent(msg.text)}`;
-              window.name = "chathead_trigger";
+              const intentUri = `intent://show?avatar=${encodeURIComponent(msg.senderAvatarUrl)}&msg=${encodeURIComponent(msg.text)}#Intent;scheme=chathead;package=app.vercel.chat_box_seait.twa;end`;
               const iframe = document.createElement("iframe");
               iframe.style.display = "none";
-              iframe.src = deepLink;
+              iframe.src = intentUri;
               document.body.appendChild(iframe);
               setTimeout(() => document.body.removeChild(iframe), 1000);
             }
