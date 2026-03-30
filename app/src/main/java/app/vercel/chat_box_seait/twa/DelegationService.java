@@ -33,7 +33,7 @@ public class DelegationService extends
                     // Pass empty so it falls back to default icon for now
                     serviceIntent.putExtra("avatarUrl", ""); 
                     
-                    startService(serviceIntent);
+                    androidx.core.content.ContextCompat.startForegroundService(this, serviceIntent);
                     Log.d("ChatBox", "FloatingBubbleService triggered from Native Intercept!");
                 }
             }

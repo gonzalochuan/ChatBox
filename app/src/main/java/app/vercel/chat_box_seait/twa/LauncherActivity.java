@@ -51,7 +51,7 @@ public class LauncherActivity
             android.content.Intent serviceIntent = new android.content.Intent(this, FloatingBubbleService.class);
             serviceIntent.putExtra("avatarUrl", avatarUrl);
             serviceIntent.putExtra("message", message);
-            startService(serviceIntent);
+            androidx.core.content.ContextCompat.startForegroundService(this, serviceIntent);
         }
     }
 

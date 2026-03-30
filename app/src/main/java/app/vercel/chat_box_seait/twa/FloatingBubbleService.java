@@ -28,6 +28,28 @@ public class FloatingBubbleService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = "chathead_channel";
+            android.app.NotificationChannel channel = new android.app.NotificationChannel(
+                    channelId,
+                    "Chat Heads",
+                    android.app.NotificationManager.IMPORTANCE_LOW
+            );
+            
+            android.app.NotificationManager manager = getSystemService(android.app.NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+            
+            android.app.Notification notification = new android.app.Notification.Builder(this, channelId)
+                    .setContentTitle("ChatBox Active")
+                    .setContentText("Listening for messages...")
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .build();
+            
+            startForeground(1, notification);
+        }
+
         if (intent != null && intent.hasExtra("avatarUrl")) {
             String avatarUrl = intent.getStringExtra("avatarUrl");
             String message = intent.getStringExtra("message");
