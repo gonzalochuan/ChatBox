@@ -238,3 +238,17 @@ html:not(.dark) .app-theme .grid-layer {
 .pull-indicator {
   transition: height 0.2s ease, opacity 0.2s ease;
 }
+
+@keyframes bubble-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.bubble-pop {
+  animation: bubble-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.dismiss-zone {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
