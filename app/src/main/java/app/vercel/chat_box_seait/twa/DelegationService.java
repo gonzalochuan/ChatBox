@@ -1,4 +1,4 @@
-package com.chatbox.seait;
+package app.vercel.chat_box_seait.twa;
 
 
 

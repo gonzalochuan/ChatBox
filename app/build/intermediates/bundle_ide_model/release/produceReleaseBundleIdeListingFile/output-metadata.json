@@ -4,7 +4,7 @@
     "type": "BUNDLE",
     "kind": "RegularFile"
   },
-  "applicationId": "com.chatbox.seait",
+  "applicationId": "app.vercel.chat_box_seait.twa",
   "variantName": "release",
   "elements": [
     {

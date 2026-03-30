@@ -4,7 +4,7 @@
     "type": "COMPATIBLE_SCREEN_MANIFEST",
     "kind": "Directory"
   },
-  "applicationId": "com.chatbox.seait",
+  "applicationId": "app.vercel.chat_box_seait.twa",
   "variantName": "release",
   "elements": []
 }

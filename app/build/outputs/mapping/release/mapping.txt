@@ -3,8 +3,8 @@
 # min_api: 21
 # common_typos_disable
 # {"id":"com.android.tools.r8.mapping","version":"2.2"}
-# pg_map_id: 7d1dcca
-# pg_map_hash: SHA-256 7d1dccae81f127425b6e89ca43733d2b8a0a849982d7e01c7e4d7952d525ad48
+# pg_map_id: a57f361
+# pg_map_hash: SHA-256 a57f3612df1feab4e9b350a06e8244bf20b001df1c2753677e0f3c100bfd730c
 android.support.customtabs.ICustomTabsCallback -> a.a:
 # {"id":"sourceFile","fileName":"ICustomTabsCallback.java"}
     java.lang.String DESCRIPTOR -> a
@@ -22694,15 +22694,15 @@ androidx.versionedparcelable.VersionedParcelParcel -> androidx.versionedparcelab
     1:6:void writeBoolean(boolean):181:181 -> y
 androidx.versionedparcelable.VersionedParcelable -> H.a:
 # {"id":"sourceFile","fileName":"VersionedParcelable.java"}
-com.chatbox.seait.Application -> com.chatbox.seait.Application:
+app.vercel.chat_box_seait.twa.Application -> app.vercel.chat_box_seait.twa.Application:
 # {"id":"sourceFile","fileName":"Application.java"}
     1:4:void <init>():20:20 -> <init>
     1:4:void onCreate():26:26 -> onCreate
-com.chatbox.seait.DelegationService -> com.chatbox.seait.DelegationService:
+app.vercel.chat_box_seait.twa.DelegationService -> app.vercel.chat_box_seait.twa.DelegationService:
 # {"id":"sourceFile","fileName":"DelegationService.java"}
     1:4:void <init>():5:5 -> <init>
     1:4:void onCreate():9:9 -> onCreate
-com.chatbox.seait.LauncherActivity -> com.chatbox.seait.LauncherActivity:
+app.vercel.chat_box_seait.twa.LauncherActivity -> app.vercel.chat_box_seait.twa.LauncherActivity:
 # {"id":"sourceFile","fileName":"LauncherActivity.java"}
     1:4:void <init>():25:25 -> <init>
     1:5:android.net.Uri getLaunchingUrl():48:48 -> i

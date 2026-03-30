@@ -7668,15 +7668,15 @@ androidx.viewpager.widget.ViewPager$SavedState
 androidx.viewpager.widget.ViewPager$SimpleOnPageChangeListener
 androidx.viewpager.widget.ViewPager$ViewPositionComparator
 androidx.viewpager.widget.ViewPager
-com.chatbox.seait.R$bool
-com.chatbox.seait.R$color
-com.chatbox.seait.R$drawable
-com.chatbox.seait.R$integer
-com.chatbox.seait.R$mipmap
-com.chatbox.seait.R$raw
-com.chatbox.seait.R$string
-com.chatbox.seait.R$xml
-com.chatbox.seait.R
+app.vercel.chat_box_seait.twa.R$bool
+app.vercel.chat_box_seait.twa.R$color
+app.vercel.chat_box_seait.twa.R$drawable
+app.vercel.chat_box_seait.twa.R$integer
+app.vercel.chat_box_seait.twa.R$mipmap
+app.vercel.chat_box_seait.twa.R$raw
+app.vercel.chat_box_seait.twa.R$string
+app.vercel.chat_box_seait.twa.R$xml
+app.vercel.chat_box_seait.twa.R
 com.google.androidbrowserhelper.BuildConfig
 com.google.androidbrowserhelper.R$drawable:
     private void <init>()

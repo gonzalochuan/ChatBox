@@ -122,9 +122,11 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
               badge: "/icons/icon-192.png", // Small icon for the status bar
               tag: msg.channelId, // Groups messages by conversation
               renotify: true,
-              vibrate: [200, 100, 200],
+              vibrate: [200, 100, 200, 100, 200], // Aggressive vibration
               data: { url: `/?channelId=${msg.channelId}` },
-              requireInteraction: false, // Let the system handle the bubble pop
+              requireInteraction: true, // Key for keeping the bubble visible
+              priority: "high" as any, // Tell Android to pop the banner
+              timestamp: Date.now(),
             } as any);
             n.onclick = () => {
               window.focus();

@@ -22,15 +22,16 @@
      the abbreviated format.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.chatbox.seait"
-    android:versionCode="5"
-    android:versionName="5" >
+    package="app.vercel.chat_box_seait.twa"
+    android:versionCode="10"
+    android:versionName="10" >
 
     <uses-sdk
         android:minSdkVersion="21"
         android:targetSdkVersion="35" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <queries>
         <intent>
@@ -43,13 +44,13 @@
     </queries>
 
     <permission
-        android:name="com.chatbox.seait.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:name="app.vercel.chat_box_seait.twa.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.chatbox.seait.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+    <uses-permission android:name="app.vercel.chat_box_seait.twa.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 
     <application
-        android:name="com.chatbox.seait.Application"
+        android:name="app.vercel.chat_box_seait.twa.Application"
         android:allowBackup="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:extractNativeLibs="true"
@@ -84,10 +85,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.chatbox.seait.LauncherActivity"
+            android:name="app.vercel.chat_box_seait.twa.LauncherActivity"
+            android:allowEmbedded="true"
             android:alwaysRetainTaskState="true"
             android:exported="true"
-            android:label="@string/launcherName" >
+            android:label="@string/launcherName"
+            android:resizeableActivity="true" >
             <meta-data
                 android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="@string/launchUrl" />
@@ -163,7 +166,7 @@
         </provider>
 
         <service
-            android:name="com.chatbox.seait.DelegationService"
+            android:name="app.vercel.chat_box_seait.twa.DelegationService"
             android:enabled="@bool/enableNotification"
             android:exported="@bool/enableNotification" >
             <meta-data
@@ -181,7 +184,7 @@
 
         <provider
             android:name="androidx.startup.InitializationProvider"
-            android:authorities="com.chatbox.seait.androidx-startup"
+            android:authorities="app.vercel.chat_box_seait.twa.androidx-startup"
             android:exported="false" >
             <meta-data
                 android:name="androidx.emoji2.text.EmojiCompatInitializer"

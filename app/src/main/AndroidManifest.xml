@@ -20,10 +20,11 @@
      application, the package attribute will need to reflect the correct path in order to use
      the abbreviated format. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.chatbox.seait">
+    package="app.vercel.chat_box_seait.twa">
 
     
         <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+        <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     
 
     
@@ -79,6 +80,8 @@
         <activity android:name="LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:label="@string/launcherName"
+            android:resizeableActivity="true"
+            android:allowEmbedded="true"
             android:exported="true">
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="@string/launchUrl" />

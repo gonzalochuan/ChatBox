@@ -21,7 +21,7 @@ plugins {
 }
 
 def twaManifest = [
-    applicationId: 'com.chatbox.seait',
+    applicationId: 'app.vercel.chat_box_seait.twa',
     hostName: 'chat-box-seait.vercel.app/', // The domain being opened in the TWA.
     launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
     name: 'ChatBox', // The application name.
@@ -52,13 +52,13 @@ def twaManifest = [
 
 android {
     compileSdkVersion 36
-    namespace "com.chatbox.seait"
+    namespace "app.vercel.chat_box_seait.twa"
     defaultConfig {
-        applicationId "com.chatbox.seait"
+        applicationId "app.vercel.chat_box_seait.twa"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 5
-        versionName "5"
+        versionCode 10
+        versionName "10"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
