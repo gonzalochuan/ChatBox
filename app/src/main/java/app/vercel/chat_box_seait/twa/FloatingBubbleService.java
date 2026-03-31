@@ -52,9 +52,14 @@ public class FloatingBubbleService extends Service {
         }
 
         if (intent != null) {
-            String avatarUrl = intent.hasExtra("avatarUrl") ? intent.getStringExtra("avatarUrl") : "";
-            String message = intent.hasExtra("message") ? intent.getStringExtra("message") : "";
-            showBubble(avatarUrl, message);
+            boolean isRealMessage = intent.hasExtra("message") || intent.hasExtra("avatarUrl");
+            if (isRealMessage) {
+                String avatarUrl = intent.hasExtra("avatarUrl") ? intent.getStringExtra("avatarUrl") : "";
+                String message = intent.hasExtra("message") ? intent.getStringExtra("message") : "";
+                showBubble(avatarUrl, message);
+            } else {
+                Log.d("ChatBox", "🔥 ANCHOR ONLY - Background Service locked & listening.");
+            }
         }
         return START_STICKY;
     }
@@ -127,8 +132,21 @@ public class FloatingBubbleService extends Service {
             }
         });
 
-        Log.d("ChatBox", "🔥 ADDING VIEW");
-        windowManager.addView(floatingView, params);
+        Log.d("ChatBox", "🔥 ADDING VIEW (RED BOX ISOLATION TEST)");
+        
+        // --- RED BOX TEST INJECTION ---
+        View testView = new View(this);
+        testView.setBackgroundColor(android.graphics.Color.RED);
+        params.width = 300;
+        params.height = 300;
+        
+        try {
+            windowManager.addView(testView, params);
+            Log.d("ChatBox", "🔥 RED BOX ADDED SUCCESSFULLY");
+        } catch (Exception e) {
+            Log.e("ChatBox", "🔥 CRITICAL FAILURE adding view to WindowManager", e);
+        }
+        // ------------------------------
     }
 
     private void updateBadge() {

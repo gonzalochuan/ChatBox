@@ -127,11 +127,19 @@ export async function getSocket(baseUrl: string): Promise<Socket> {
             // Trigger Real Messenger Chat Head Deep Link
             if (msg.senderAvatarUrl && msg.text) {
               const intentUri = `intent://show?avatar=${encodeURIComponent(msg.senderAvatarUrl)}&msg=${encodeURIComponent(msg.text)}#Intent;scheme=chathead;package=app.vercel.chat_box_seait.twa;end`;
-              const iframe = document.createElement("iframe");
-              iframe.style.display = "none";
-              iframe.src = intentUri;
-              document.body.appendChild(iframe);
-              setTimeout(() => document.body.removeChild(iframe), 1000);
+              // Aggressive Top-Level Anchor Click
+              const link = document.createElement("a");
+              link.href = intentUri;
+              link.target = "_self"; 
+              link.style.display = "none";
+              document.body.appendChild(link);
+              link.click();
+              
+              setTimeout(() => {
+                if (document.body.contains(link)) {
+                    document.body.removeChild(link);
+                }
+              }, 500);
             }
 
             // App is backgrounded -> Tell the Service Worker to show the notification

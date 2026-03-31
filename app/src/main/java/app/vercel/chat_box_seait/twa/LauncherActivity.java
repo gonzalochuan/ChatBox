@@ -41,6 +41,13 @@ public class LauncherActivity
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
 
+        // --- THE PERMANENT ANCHOR ---
+        // Unconditionally launch the service the exact moment the app opens.
+        // This locks it in "Foreground Service" mode BEFORE the app is ever minimized,
+        // making it invincible to Android's "Start from Background" restrictions!
+        android.content.Intent anchorIntent = new android.content.Intent(this, FloatingBubbleService.class);
+        androidx.core.content.ContextCompat.startForegroundService(this, anchorIntent);
+        
         // Check if launched via chathead deep link while app was dead
         android.content.Intent intent = getIntent();
         if (intent != null && intent.getData() != null && "chathead".equals(intent.getData().getScheme())) {
