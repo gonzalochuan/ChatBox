@@ -16,8 +16,9 @@ export default function PrivacyPolicyPage() {
       </h2>
       <ul style={{ marginLeft: 18, marginTop: 8 }}>
         <li>
-          Account information such as your email address (for sign-in and account
-          management).
+          Account information such as your login identifier (for sign-in and
+          account management). This identifier may be assigned by an
+          administrator and may not correspond to a functional email inbox.
         </li>
         <li>
           Profile information you provide (such as display name and optional
