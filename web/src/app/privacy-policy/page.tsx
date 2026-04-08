@@ -88,7 +88,7 @@ export default function PrivacyPolicyPage() {
       </h2>
       <p style={{ marginTop: 8 }}>
         If you have questions or requests about privacy, contact us at:{" "}
-        <a href="mailto:chuangonzao33@gmail.com">chuangonzao33@gmail.com</a>
+        <a href="mailto:chuangonzalo33@gmail.com">chuangonzalo33@gmail.com</a>
       </p>
     </main>
   );
