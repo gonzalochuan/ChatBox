@@ -40,42 +40,6 @@ public class LauncherActivity
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
-
-        // --- THE PERMANENT ANCHOR ---
-        // Unconditionally launch the service the exact moment the app opens.
-        // This locks it in "Foreground Service" mode BEFORE the app is ever minimized,
-        // making it invincible to Android's "Start from Background" restrictions!
-        android.content.Intent anchorIntent = new android.content.Intent(this, FloatingBubbleService.class);
-        androidx.core.content.ContextCompat.startForegroundService(this, anchorIntent);
-        
-        // Check if launched via chathead deep link while app was dead
-        android.content.Intent intent = getIntent();
-        if (intent != null && intent.getData() != null && "chathead".equals(intent.getData().getScheme())) {
-            Uri data = intent.getData();
-            String avatarUrl = data.getQueryParameter("avatar");
-            String message = data.getQueryParameter("msg");
-            
-            android.content.Intent serviceIntent = new android.content.Intent(this, FloatingBubbleService.class);
-            serviceIntent.putExtra("avatarUrl", avatarUrl);
-            serviceIntent.putExtra("message", message);
-            androidx.core.content.ContextCompat.startForegroundService(this, serviceIntent);
-        }
-    }
-
-    @Override
-    protected void onNewIntent(android.content.Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        if (intent != null && intent.getData() != null && "chathead".equals(intent.getData().getScheme())) {
-            Uri data = intent.getData();
-            String avatarUrl = data.getQueryParameter("avatar");
-            String message = data.getQueryParameter("msg");
-            
-            android.content.Intent serviceIntent = new android.content.Intent(this, FloatingBubbleService.class);
-            serviceIntent.putExtra("avatarUrl", avatarUrl);
-            serviceIntent.putExtra("message", message);
-            startService(serviceIntent);
-        }
     }
 
     @Override
