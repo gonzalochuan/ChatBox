@@ -60,9 +60,9 @@ export default function PrivacyPolicyPage() {
       </h2>
       <p style={{ marginTop: 8 }}>
         We do not sell your personal information. We may share information only
-        as needed to operate the service (for example, hosting and delivery
-        providers), comply with legal obligations, enforce our policies, or
-        protect users.
+        as needed to operate the service (for example, hosting, database, and
+        delivery service providers), comply with legal obligations, enforce our
+        policies, or protect users.
       </p>
 
       <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 20 }}>
@@ -70,8 +70,9 @@ export default function PrivacyPolicyPage() {
       </h2>
       <p style={{ marginTop: 8 }}>
         We retain information for as long as necessary to provide the service,
-        comply with legal requirements, resolve disputes, and enforce our
-        agreements.
+        including maintaining chat history (messages and attachments) for your
+        account, comply with legal requirements, resolve disputes, and enforce
+        our agreements.
       </p>
 
       <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 20 }}>
