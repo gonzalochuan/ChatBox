@@ -12,13 +12,24 @@ export default function PrivacyPolicyPage() {
       </p>
 
       <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 20 }}>
+        Organization use
+      </h2>
+      <p style={{ marginTop: 8 }}>
+        ChatBox is intended for use within an organization (such as a school
+        campus). Accounts are provisioned by organization administrators or
+        authorized staff. Users may need to claim their pre-created account and
+        set a new password.
+      </p>
+
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 20 }}>
         Information we collect
       </h2>
       <ul style={{ marginLeft: 18, marginTop: 8 }}>
         <li>
-          Account information such as your login identifier (for sign-in and
-          account management). This identifier may be assigned by an
-          administrator and may not correspond to a functional email inbox.
+          Account information such as your email address or other login
+          identifier (for sign-in and account management). This identifier may
+          be assigned by an administrator. In some cases it may not correspond
+          to a functional email inbox.
         </li>
         <li>
           Profile information you provide (such as display name and optional
@@ -39,6 +50,9 @@ export default function PrivacyPolicyPage() {
       </h2>
       <ul style={{ marginLeft: 18, marginTop: 8 }}>
         <li>To provide and operate the chat and communication features.</li>
+        <li>
+          To provide organization features such as emergency banner alerts.
+        </li>
         <li>To authenticate users and maintain account security.</li>
         <li>To improve reliability, prevent abuse, and debug issues.</li>
         <li>
@@ -51,8 +65,17 @@ export default function PrivacyPolicyPage() {
       </h2>
       <p style={{ marginTop: 8 }}>
         If your account is part of an organization (for example, a school),
-        designated administrators may be able to access or review message content
-        and related data for compliance, moderation, or support purposes.
+        designated administrators or teachers may be able to access analytics and
+        review content in organization spaces such as global and section/group
+        chats. They do not have access to your private direct messages (DMs).
+      </p>
+
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 20 }}>
+        Moderation and safety
+      </h2>
+      <p style={{ marginTop: 8 }}>
+        Administrators and teachers cannot delete messages through the App. This
+        helps preserve communication records within the organization.
       </p>
 
       <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 20 }}>
