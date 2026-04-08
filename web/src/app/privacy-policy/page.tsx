@@ -75,12 +75,26 @@ export default function PrivacyPolicyPage() {
       </p>
 
       <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 20 }}>
-        Your choices
+        Data deletion requests
+      </h2>
+      <p style={{ marginTop: 8 }}>
+        You can request deletion of your account and associated data by
+        contacting us at{" "}
+        <a href="mailto:chuangonzalo33@gmail.com">chuangonzalo33@gmail.com</a>.
+        Please include your login identifier and a brief description of your
+        request.
+      </p>
+
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 20 }}>
+        Your choices & Data deletion
       </h2>
       <p style={{ marginTop: 8 }}>
         You may be able to update your profile information within the App. You
         can also control device permissions (such as notifications) in your
         device settings.
+      </p>
+      <p style={{ marginTop: 8 }}>
+        <b>Account & Data Deletion:</b> You can request the complete deletion of your account, messages, and associated personal data at any time. To do so, please contact us at the email address below. We will process your deletion request within 30 days.
       </p>
 
       <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 20 }}>
