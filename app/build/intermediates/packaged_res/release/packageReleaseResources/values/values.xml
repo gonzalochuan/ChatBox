@@ -17,7 +17,7 @@
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
         \"target\": {
             \"namespace\": \"web\",
-            \"site\": \"https://chat-box-seait.vercel.app/\"
+            \"site\": \"https://chat-box-seait.vercel.app\"
         }
     }]
     
@@ -25,8 +25,8 @@
     <string name="fallbackType" translatable="false">customtabs</string>
     <string name="fullScopeUrl" translatable="false">https://chat-box-seait.vercel.app/</string>
     <string name="generatorApp" translatable="false">bubblewrap-cli</string>
-    <string name="hostName" translatable="false">chat-box-seait.vercel.app/</string>
-    <string name="launchUrl" translatable="false">https://chat-box-seait.vercel.app//</string>
+    <string name="hostName" translatable="false">chat-box-seait.vercel.app</string>
+    <string name="launchUrl" translatable="false">https://chat-box-seait.vercel.app/</string>
     <string name="launcherName" translatable="false">ChatBox</string>
     <string name="orientation" translatable="false">portrait</string>
     <string name="providerAuthority" translatable="false">app.vercel.chat_box_seait.twa.fileprovider</string>

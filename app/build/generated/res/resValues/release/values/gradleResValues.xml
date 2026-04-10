@@ -32,9 +32,9 @@
     <!-- Value from default config. -->
     <string name="generatorApp" translatable="false">bubblewrap-cli</string>
     <!-- Value from default config. -->
-    <string name="hostName" translatable="false">chat-box-seait.vercel.app/</string>
+    <string name="hostName" translatable="false">chat-box-seait.vercel.app</string>
     <!-- Value from default config. -->
-    <string name="launchUrl" translatable="false">https://chat-box-seait.vercel.app//</string>
+    <string name="launchUrl" translatable="false">https://chat-box-seait.vercel.app/</string>
     <!-- Value from default config. -->
     <string name="launcherName" translatable="false">ChatBox</string>
     <!-- Value from default config. -->

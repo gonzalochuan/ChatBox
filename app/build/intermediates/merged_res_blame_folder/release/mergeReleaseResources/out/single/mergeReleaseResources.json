@@ -20,10 +20,6 @@
         "source": "app.vercel.chat_box_seait.twa.app-main-5:/drawable-hdpi/splash.png"
     },
     {
-        "merged": "app.vercel.chat_box_seait.twa.app-release-4:/drawable_badge_bg.xml.flat",
-        "source": "app.vercel.chat_box_seait.twa.app-main-5:/drawable/badge_bg.xml"
-    },
-    {
         "merged": "app.vercel.chat_box_seait.twa.app-release-4:/drawable-mdpi_splash.png.flat",
         "source": "app.vercel.chat_box_seait.twa.app-main-5:/drawable-mdpi/splash.png"
     },
@@ -106,10 +102,6 @@
     {
         "merged": "app.vercel.chat_box_seait.twa.app-release-4:/drawable-anydpi-v26_shortcut_0.xml.flat",
         "source": "app.vercel.chat_box_seait.twa.app-main-5:/drawable-anydpi-v26/shortcut_0.xml"
-    },
-    {
-        "merged": "app.vercel.chat_box_seait.twa.app-release-4:/layout_floating_chat_head.xml.flat",
-        "source": "app.vercel.chat_box_seait.twa.app-main-5:/layout/floating_chat_head.xml"
     },
     {
         "merged": "app.vercel.chat_box_seait.twa.app-release-4:/drawable-mdpi_shortcut_0_monochrome.png.flat",

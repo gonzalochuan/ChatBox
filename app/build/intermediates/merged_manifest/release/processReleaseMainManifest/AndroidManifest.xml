@@ -23,15 +23,14 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="app.vercel.chat_box_seait.twa"
-    android:versionCode="15"
-    android:versionName="14" >
+    android:versionCode="18"
+    android:versionName="18" >
 
     <uses-sdk
         android:minSdkVersion="21"
         android:targetSdkVersion="35" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <queries>
         <intent>
@@ -88,24 +87,13 @@
             android:name="app.vercel.chat_box_seait.twa.LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:exported="true"
-            android:label="@string/launcherName"
-            android:launchMode="singleTop" >
+            android:label="@string/launcherName" >
             <meta-data
                 android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="@string/launchUrl" />
             <meta-data
                 android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
                 android:resource="@color/colorPrimary" />
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="chathead" />
-            </intent-filter>
-
             <meta-data
                 android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
                 android:resource="@color/colorPrimaryDark" />
@@ -188,10 +176,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </service>
-        <service
-            android:name="app.vercel.chat_box_seait.twa.FloatingBubbleService"
-            android:enabled="true"
-            android:exported="true" />
 
         <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity" />
 
